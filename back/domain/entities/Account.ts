@@ -1,5 +1,6 @@
 import { User } from "./User";
 import { AccountType } from "../enum/Account/Type";
+import { Transaction } from "./Transaction";
 import { SavingRate } from "./SavingRate";
 
 export class Account {
@@ -10,7 +11,9 @@ export class Account {
         public readonly name: string | null,
         public readonly type: AccountType,
         public readonly balance: number,
-        public readonly savingRates: Array<SavingRate> = [],
+        public readonly savingRate: SavingRate | null,
+        public readonly transactions: Array<Transaction> = [],
+        
         public readonly createdAt: Date,
     ) {}
-}
+}   

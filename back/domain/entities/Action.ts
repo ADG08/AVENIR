@@ -1,3 +1,4 @@
+import { Order } from "./Order";
 import { User } from "./User";
 
 export class Action {
@@ -8,6 +9,7 @@ export class Action {
         public readonly symbol: string,
         public readonly currentPrice: number,
         public readonly isActive: boolean,
+        public readonly orders: Array<Order> = [],
 
         public readonly createdAt: Date,
     ) {}

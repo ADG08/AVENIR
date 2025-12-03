@@ -1,6 +1,8 @@
 import { UserRole } from "../enum/User/Role";
 import { UserState } from "../enum/User/State";
 import { Account } from "./Account";
+import { Loan } from "./Loan";
+import { Order } from "./Order";
 
 export class User {
     public constructor(
@@ -13,6 +15,8 @@ export class User {
         public readonly role: UserRole,
         public readonly state: UserState,
         public readonly accounts: Array<Account> = [],
+        public readonly loans: Array<Loan> = [],
+        public readonly orders: Array<Order> = [],
 
         public readonly createdAt: Date,
     ) {}
