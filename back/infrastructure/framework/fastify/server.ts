@@ -16,15 +16,7 @@ const userController = new UserController(getUserUseCase, addUserUseCase);
 
 // Déclaration des routes
 async function setupRoutes() {
-    // Route de base
-    fastify.get('/', async (request, reply) => {
-        return { hello: 'world' };
-    });
-
-    // Route health
     await fastify.register(healthRoutes);
-
-    // Routes user avec injection du controller
     await fastify.register(userRoutes, { userController });
 }
 
