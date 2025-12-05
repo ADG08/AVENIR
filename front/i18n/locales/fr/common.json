@@ -1,0 +1,43 @@
+{
+  "common": {
+    "welcome": "Bienvenue",
+    "loading": "Chargement...",
+    "error": "Une erreur est survenue",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "create": "Créer",
+    "search": "Rechercher",
+    "filter": "Filtrer",
+    "submit": "Soumettre",
+    "close": "Fermer",
+    "confirm": "Confirmer",
+    "back": "Retour",
+    "next": "Suivant",
+    "previous": "Précédent"
+  },
+  "home": {
+    "title": "AVENIR",
+    "subtitle": "Application bancaire moderne",
+    "currentLanguage": "Langue actuelle",
+    "switchLanguage": "Switch to English",
+    "technologies": "Technologies"
+  },
+  "nav": {
+    "home": "Accueil",
+    "dashboard": "Tableau de bord",
+    "profile": "Profil",
+    "settings": "Paramètres",
+    "logout": "Déconnexion"
+  },
+  "errors": {
+    "required": "Ce champ est requis",
+    "invalidEmail": "Adresse email invalide",
+    "minLength": "Minimum {{count}} caractères requis",
+    "maxLength": "Maximum {{count}} caractères autorisés",
+    "serverError": "Erreur serveur. Veuillez réessayer plus tard.",
+    "notFound": "Non trouvé"
+  }
+}
+
