@@ -89,5 +89,18 @@
     "saving": "Épargne",
     "yearly": "Annuel",
     "spending": "Dépenses"
+  },
+  "landing": {
+    "product": "Produit",
+    "solution": "Solution",
+    "community": "Communauté",
+    "about": "À propos",
+    "signIn": "Se connecter",
+    "openAccount": "Ouvrir un compte",
+    "hero": {
+      "title": "Solutions bancaires adaptées aux entreprises en croissance",
+      "subtitle": "La plateforme de planification financière tout-en-un pour les employés, découvrez l'avantage bien-être qui est réellement utilisé.",
+      "cta": "Obtenir un compte"
+    }
   }
 }

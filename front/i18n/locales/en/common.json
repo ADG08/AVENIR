@@ -89,5 +89,18 @@
     "saving": "Saving",
     "yearly": "Yearly",
     "spending": "Spending"
+  },
+  "landing": {
+    "product": "Product",
+    "solution": "Solution",
+    "community": "Community",
+    "about": "About",
+    "signIn": "Sign In",
+    "openAccount": "Open account",
+    "hero": {
+      "title": "Banking solutions tailored for growing companies",
+      "subtitle": "The all-in-one financial planning platform for employees, experience the well-being benefit that is actually being used.",
+      "cta": "Get an account"
+    }
   }
 }
