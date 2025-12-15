@@ -25,13 +25,15 @@ export class GetChatsUseCase {
                 chats = [...advisorChats, ...pendingChats];
                 break;
             case UserRole.DIRECTOR:
-                chats = await this.chatRepository.getByStatus(ChatStatus.ACTIVE);
+                const activeChats = await this.chatRepository.getByStatus(ChatStatus.ACTIVE);
+                const directorPendingChats = await this.chatRepository.getByStatus(ChatStatus.PENDING);
+                const closedChats = await this.chatRepository.getByStatus(ChatStatus.CLOSED);
+                chats = [...activeChats, ...directorPendingChats, ...closedChats];
                 break;
             default:
                 chats = [];
         }
 
-        // Calculer le nombre de messages non lus pour chaque chat
         const chatResponses = await Promise.all(
             chats.map(async (chat: Chat) => {
                 const messages = await this.messageRepository.getByChatId(chat.id);

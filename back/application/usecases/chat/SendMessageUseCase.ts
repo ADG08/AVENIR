@@ -31,14 +31,14 @@ export class SendMessageUseCase {
 
         // Vérifier que l'utilisateur a accès à ce chat
         const isClient = chat.client.id === request.senderId;
-        const isAdvisor = chat.advisor?.id === request.senderId;
+        const isAssignedAdvisor = chat.advisor?.id === request.senderId;
+        const isAdvisorOnPending = sender.role === UserRole.ADVISOR && chat.status === ChatStatus.PENDING;
         const isDirector = sender.role === UserRole.DIRECTOR;
 
-        if (!isClient && !isAdvisor && !isDirector) {
+        if (!isClient && !isAssignedAdvisor && !isAdvisorOnPending && !isDirector) {
             throw new UnauthorizedChatAccessError();
         }
 
-        // Si c'est un conseiller qui répond pour la première fois, assigner le chat
         if (sender.role === UserRole.ADVISOR && chat.status === ChatStatus.PENDING) {
             const updatedChat = new Chat(
                 chat.id,
