@@ -1,40 +1,21 @@
 'use client';
 
-import { motion, useTransform } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { ArrowUp, ArrowDown, Plus } from 'lucide-react';
 import Image from 'next/image';
 import { useState } from 'react';
-import { useCounterAnimation, useCounterAnimationDecimal } from '@/hooks/use-counter-animation';
-
-const AnimatedNumber = ({ value, prefix = '', suffix = '', decimals = 0, delay = 0 }: { value: number; prefix?: string; suffix?: string; decimals?: number; delay?: number }) => {
-    const count = decimals > 0 ? useCounterAnimationDecimal(value, 1.5) : useCounterAnimation(value, 1.5);
-    const rounded = useTransform(count, (latest) =>
-        decimals > 0
-            ? latest.toFixed(decimals)
-            : Math.round(latest).toLocaleString('en-US')
-    );
-
-    return (
-        <motion.span
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.5 + delay }}
-        >
-            {prefix}
-            <motion.span>{rounded}</motion.span>
-            {suffix}
-        </motion.span>
-    );
-};
+import { AnimatedNumber } from '@/components/ui/animated-number';
+import { useLanguage } from '@/hooks/use-language';
 
 export const DashboardPreview = () => {
+    const { t } = useLanguage();
     const [hoveredTab, setHoveredTab] = useState<string | null>(null);
     const [activeTab, setActiveTab] = useState('overview');
 
     const stats = [
-        { title: 'Income', amount: 41200, trend: '+2.5%' },
-        { title: 'Expenses', amount: 23200, trend: '+1.8%' },
-        { title: 'Savings', amount: 9800, trend: '+3.2%' },
+        { title: t('dashboard.income'), amount: 41200, trend: '+2.5%' },
+        { title: t('dashboard.expenses'), amount: 23200, trend: '+1.8%' },
+        { title: t('dashboard.savings'), amount: 9800, trend: '+3.2%' },
     ];
 
     const transactions = [
@@ -102,11 +83,11 @@ export const DashboardPreview = () => {
                     <div className="hidden items-center gap-2 md:flex">
                         <div className="flex items-center gap-1 rounded-full bg-white p-1 shadow-sm">
                             {[
-                                { id: 'overview', label: 'Overview' },
-                                { id: 'investment', label: 'Investment' },
-                                { id: 'card', label: 'Card' },
-                                { id: 'activity', label: 'Activity' },
-                                { id: 'saving', label: 'Saving' }
+                                { id: 'overview', label: t('dashboard.overview') },
+                                { id: 'investment', label: t('dashboard.investment') },
+                                { id: 'card', label: t('dashboard.card') },
+                                { id: 'activity', label: t('dashboard.activity') },
+                                { id: 'saving', label: t('dashboard.saving') }
                             ].map((item, i) => {
                                 const displayTab = hoveredTab || activeTab;
                                 const shouldShowBackground = displayTab === item.id;
@@ -203,7 +184,7 @@ export const DashboardPreview = () => {
                                             animate={{ opacity: 1 }}
                                             transition={{ delay: 1.2 }}
                                         >
-                                            Total Balance
+                                            {t('dashboard.totalBalance')}
                                         </motion.p>
                                         <motion.h2
                                             className="text-2xl font-bold text-gray-900 md:text-3xl"
@@ -215,7 +196,7 @@ export const DashboardPreview = () => {
                                         </motion.h2>
                                     </div>
                                     <div className="rounded-full bg-gray-100 px-4 py-2 text-xs font-medium text-gray-900">
-                                        Yearly
+                                        {t('dashboard.yearly')}
                                     </div>
                                 </div>
                                 <motion.h3
@@ -224,7 +205,7 @@ export const DashboardPreview = () => {
                                     animate={{ opacity: 1 }}
                                     transition={{ delay: 1.4 }}
                                 >
-                                    Spending
+                                    {t('dashboard.spending')}
                                 </motion.h3>
                                 {/* Simple Bar Chart */}
                                 <div className="flex items-end justify-between gap-2" style={{ height: '180px' }}>
@@ -234,7 +215,7 @@ export const DashboardPreview = () => {
                                             initial={{ scaleY: 0 }}
                                             animate={{ scaleY: 1 }}
                                             transition={{ delay: 1.2 + i * 0.05, duration: 0.4, type: 'spring' }}
-                                            className="flex-1 origin-bottom cursor-pointer rounded-t-lg bg-linear-to-t from-blue-500 to-blue-400"
+                                            className="flex-1 origin-bottom cursor-pointer rounded-t-lg bg-gradient-to-t from-blue-500 to-blue-400"
                                             style={{ height: `${height}%` }}
                                         ></motion.div>
                                     ))}
@@ -255,7 +236,7 @@ export const DashboardPreview = () => {
                                         animate={{ opacity: 1, x: 0 }}
                                         transition={{ delay: 1.5 }}
                                     >
-                                        Recent Transaction
+                                        {t('dashboard.recentTransactions')}
                                     </motion.h3>
                                 </div>
                                 <div className="space-y-3">
@@ -320,18 +301,18 @@ export const DashboardPreview = () => {
                                         animate={{ opacity: 1 }}
                                         transition={{ delay: 1.1 }}
                                     >
-                                        My Cards
+                                        {t('dashboard.myCards')}
                                     </motion.h3>
                                     <div className="flex cursor-pointer items-center gap-1 rounded-full bg-gray-100 px-3 py-2">
                                         <Plus className="h-4 w-4 text-gray-700" />
-                                        <span className="text-xs font-medium text-gray-900">Add Card</span>
+                                        <span className="text-xs font-medium text-gray-900">{t('dashboard.addCard')}</span>
                                     </div>
                                 </div>
                                 <motion.div
                                     initial={{ rotateY: -15, scale: 0.95 }}
                                     animate={{ rotateY: 0, scale: 1 }}
                                     transition={{ delay: 1.1, duration: 0.6 }}
-                                    className="mb-4 cursor-pointer rounded-2xl bg-linear-to-br from-gray-900 via-gray-800 to-gray-700 p-6 shadow-lg"
+                                    className="mb-4 cursor-pointer rounded-2xl bg-gradient-to-br from-gray-900 via-gray-800 to-gray-700 p-6 shadow-lg"
                                     style={{ aspectRatio: '1.586' }}
                                 >
                                     <div className="flex h-full flex-col justify-between">
@@ -361,11 +342,11 @@ export const DashboardPreview = () => {
                                 <div className="grid grid-cols-2 gap-3">
                                     <div className="flex cursor-pointer items-center justify-center gap-2 rounded-full border bg-white px-4 py-3">
                                         <ArrowDown className="h-4 w-4 text-gray-700" />
-                                        <span className="text-xs font-medium text-gray-900">Receive</span>
+                                        <span className="text-xs font-medium text-gray-900">{t('dashboard.receiveFunds')}</span>
                                     </div>
                                     <div className="flex cursor-pointer items-center justify-center gap-2 rounded-full border bg-white px-4 py-3">
                                         <ArrowUp className="h-4 w-4 text-gray-700" />
-                                        <span className="text-xs font-medium text-gray-900">Send</span>
+                                        <span className="text-xs font-medium text-gray-900">{t('dashboard.sendMoney')}</span>
                                     </div>
                                 </div>
 
@@ -379,7 +360,7 @@ export const DashboardPreview = () => {
                                         <div className="flex h-10 w-10 items-center justify-center rounded-full border">
                                             <ArrowUp className="h-5 w-5 text-gray-600" />
                                         </div>
-                                        <span className="flex-1 text-sm font-medium text-gray-700">Income this month</span>
+                                        <span className="flex-1 text-sm font-medium text-gray-700">{t('dashboard.incomeThisMonth')}</span>
                                         <motion.span
                                             className="text-base font-semibold text-gray-900"
                                             initial={{ opacity: 0, scale: 0.5 }}
@@ -398,7 +379,7 @@ export const DashboardPreview = () => {
                                         <div className="flex h-10 w-10 items-center justify-center rounded-full border">
                                             <ArrowDown className="h-5 w-5 text-gray-600" />
                                         </div>
-                                        <span className="flex-1 text-sm font-medium text-gray-700">Expenses this month</span>
+                                        <span className="flex-1 text-sm font-medium text-gray-700">{t('dashboard.expensesThisMonth')}</span>
                                         <motion.span
                                             className="text-base font-semibold text-gray-900"
                                             initial={{ opacity: 0, scale: 0.5 }}
@@ -425,10 +406,10 @@ export const DashboardPreview = () => {
                                         animate={{ opacity: 1 }}
                                         transition={{ delay: 1.4 }}
                                     >
-                                        Savings Accounts
+                                        {t('dashboard.savingsGoals')}
                                     </motion.h3>
                                     <button className="cursor-pointer rounded-full bg-gray-100 px-4 py-2 text-xs font-medium text-gray-900">
-                                        View All
+                                        {t('dashboard.viewAll')}
                                     </button>
                                 </div>
                                 <div className="space-y-4">

@@ -132,7 +132,7 @@ export default function Home() {
     const hasActiveFilters = activeFilters.card || activeFilters.category || activeFilters.status;
 
     return (
-        <div className="min-h-screen bg-linear-to-br from-gray-50 to-gray-100">
+        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
             <DashboardHeader activeTab={activeTab} setActiveTab={setActiveTab} />
 
             <main className="mx-auto max-w-[1800px] p-6">

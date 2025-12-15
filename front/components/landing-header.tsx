@@ -2,22 +2,20 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { ChevronDown, Package, Grid, Users, Info } from 'lucide-react';
+import { Package, Grid, Users, Info } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useState } from 'react';
 import { useLanguage } from '@/hooks/use-language';
 
 export const LandingHeader = () => {
     const { t } = useLanguage();
-    const [solutionOpen, setSolutionOpen] = useState(false);
-    const [communityOpen, setCommunityOpen] = useState(false);
     const [hoveredItem, setHoveredItem] = useState<string | null>(null);
     const [activeItem, setActiveItem] = useState<string>('product');
 
     const navItems = [
         { id: 'product', label: t('landing.product'), href: '#', icon: Package },
-        { id: 'solution', label: t('landing.solution'), href: '#', icon: Grid, hasDropdown: true },
-        { id: 'community', label: t('landing.community'), href: '#', icon: Users, hasDropdown: true },
+        { id: 'solution', label: t('landing.solution'), href: '#', icon: Grid },
+        { id: 'community', label: t('landing.community'), href: '#', icon: Users },
         { id: 'about', label: t('landing.about'), href: '#', icon: Info },
     ];
 
@@ -39,73 +37,30 @@ export const LandingHeader = () => {
                         const shouldShowBackground = displayItem === item.id;
 
                         return (
-                            <div key={item.id} className="relative">
-                                {item.hasDropdown ? (
-                                    <button
-                                        onClick={() => {
-                                            setActiveItem(item.id);
-                                            if (item.id === 'solution') setSolutionOpen(!solutionOpen);
-                                            if (item.id === 'community') setCommunityOpen(!communityOpen);
+                            <Link
+                                key={item.id}
+                                href={item.href}
+                                onClick={() => setActiveItem(item.id)}
+                                onMouseEnter={() => setHoveredItem(item.id)}
+                                onMouseLeave={() => setHoveredItem(null)}
+                                className={`relative z-10 flex cursor-pointer items-center rounded-full px-5 py-2 text-sm font-light transition-colors duration-200 ${
+                                    shouldShowBackground ? 'text-white' : 'text-gray-600'
+                                }`}
+                            >
+                                {shouldShowBackground && (
+                                    <motion.div
+                                        layoutId="navBackground"
+                                        className="absolute inset-0 rounded-full bg-gray-900"
+                                        style={{ zIndex: -1 }}
+                                        transition={{
+                                            type: 'spring',
+                                            stiffness: 380,
+                                            damping: 30,
                                         }}
-                                        onMouseEnter={() => {
-                                            setHoveredItem(item.id);
-                                            if (item.id === 'solution') setSolutionOpen(true);
-                                            if (item.id === 'community') setCommunityOpen(true);
-                                        }}
-                                        onMouseLeave={() => {
-                                            setHoveredItem(null);
-                                            if (item.id === 'solution') setSolutionOpen(false);
-                                            if (item.id === 'community') setCommunityOpen(false);
-                                        }}
-                                        className={`relative z-10 flex cursor-pointer items-center gap-1 rounded-full px-5 py-2 text-sm font-light transition-colors duration-200 ${
-                                            shouldShowBackground ? 'text-white' : 'text-gray-600'
-                                        }`}
-                                        aria-expanded={item.id === 'solution' ? solutionOpen : communityOpen}
-                                        aria-haspopup="true"
-                                    >
-                                        {shouldShowBackground && (
-                                            <motion.div
-                                                layoutId="navBackground"
-                                                className="absolute inset-0 rounded-full bg-gray-900"
-                                                style={{ zIndex: -1 }}
-                                                transition={{
-                                                    type: 'spring',
-                                                    stiffness: 380,
-                                                    damping: 30,
-                                                }}
-                                            />
-                                        )}
-                                        {item.label}
-                                        <ChevronDown className={`h-4 w-4 transition-transform ${
-                                            (item.id === 'solution' && solutionOpen) || (item.id === 'community' && communityOpen) ? 'rotate-180' : ''
-                                        }`} />
-                                    </button>
-                                ) : (
-                                    <Link
-                                        href={item.href}
-                                        onClick={() => setActiveItem(item.id)}
-                                        onMouseEnter={() => setHoveredItem(item.id)}
-                                        onMouseLeave={() => setHoveredItem(null)}
-                                        className={`relative z-10 flex cursor-pointer items-center rounded-full px-5 py-2 text-sm font-light transition-colors duration-200 ${
-                                            shouldShowBackground ? 'text-white' : 'text-gray-600'
-                                        }`}
-                                    >
-                                        {shouldShowBackground && (
-                                            <motion.div
-                                                layoutId="navBackground"
-                                                className="absolute inset-0 rounded-full bg-gray-900"
-                                                style={{ zIndex: -1 }}
-                                                transition={{
-                                                    type: 'spring',
-                                                    stiffness: 380,
-                                                    damping: 30,
-                                                }}
-                                            />
-                                        )}
-                                        {item.label}
-                                    </Link>
+                                    />
                                 )}
-                            </div>
+                                {item.label}
+                            </Link>
                         );
                     })}
                 </nav>
