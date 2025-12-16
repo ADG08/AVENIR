@@ -4,6 +4,7 @@ import { MarkMessageAsReadUseCase } from '@avenir/application/usecases/chat/Mark
 import { SendMessageRequest } from '@avenir/application/requests';
 import { ChatNotFoundError, UserNotFoundError, UnauthorizedChatAccessError, MessageNotFoundError } from '@avenir/domain/errors';
 import { ValidationError } from '@avenir/application/errors';
+import { webSocketService } from '../../services/WebSocketService';
 
 export class MessageController {
     constructor(
@@ -18,6 +19,13 @@ export class MessageController {
         try {
             const sendMessageRequest: SendMessageRequest = request.body;
             const response = await this.sendMessageUseCase.execute(sendMessageRequest);
+
+            webSocketService.notifyNewMessage(
+                sendMessageRequest.chatId,
+                [sendMessageRequest.senderId], // À améliorer en récupérant tous les participants
+                response
+            );
+
             return reply.code(201).send(response);
         } catch (error) {
             if (error instanceof ChatNotFoundError) {

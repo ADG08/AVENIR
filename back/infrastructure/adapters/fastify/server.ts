@@ -1,8 +1,11 @@
 import Fastify from 'fastify';
+import fastifyWebsocket from '@fastify/websocket';
+import cors from '@fastify/cors';
 import { healthRoutes } from './routes/health';
 import { userRoutes } from './routes/user';
 import { chatRoutes } from './routes/chat';
 import { messageRoutes } from './routes/message';
+import { websocketRoutes } from './routes/websocket';
 import { UserController } from './controllers/UserController';
 import { ChatController } from './controllers/ChatController';
 import { MessageController } from './controllers/MessageController';
@@ -13,13 +16,18 @@ import { GetChatsUseCase } from '@avenir/application/usecases/chat/GetChatsUseCa
 import { GetChatMessagesUseCase } from '@avenir/application/usecases/chat/GetChatMessagesUseCase';
 import { TransferChatUseCase } from '@avenir/application/usecases/chat/TransferChatUseCase';
 import { SendMessageUseCase } from '@avenir/application/usecases/chat/SendMessageUseCase';
+import { CloseChatUseCase } from '@avenir/application/usecases/chat/CloseChatUseCase';
+import { AssignAdvisorUseCase } from '@avenir/application/usecases/chat/AssignAdvisorUseCase';
 import { RepositoryFactory } from '../../factories/RepositoryFactory';
 import { databaseConfig } from '../../config/database.config';
-import {GetChatByIdUseCase} from "@avenir/application/usecases/chat/GetChatByIdUseCase";
-import {MarkMessageAsReadUseCase} from "@avenir/application/usecases/chat/MarkMessageAsReadUseCase";
-import {MarkChatMessagesAsReadUseCase} from "@avenir/application/usecases/chat/MarkChatMessagesAsReadUseCase";
+import { GetChatByIdUseCase } from "@avenir/application/usecases/chat/GetChatByIdUseCase";
+import { MarkMessageAsReadUseCase } from "@avenir/application/usecases/chat/MarkMessageAsReadUseCase";
+import { MarkChatMessagesAsReadUseCase } from "@avenir/application/usecases/chat/MarkChatMessagesAsReadUseCase";
 
-const fastify = Fastify({ logger: true });
+const fastify = Fastify({
+    logger: true
+});
+
 const dbContext = RepositoryFactory.createDatabaseContext();
 
 // User
@@ -38,6 +46,8 @@ const getChatByIdUseCase = new GetChatByIdUseCase(chatRepository, messageReposit
 const getChatMessagesUseCase = new GetChatMessagesUseCase(chatRepository, messageRepository);
 const markChatMessagesAsReadUseCase = new MarkChatMessagesAsReadUseCase(chatRepository, messageRepository);
 const transferChatUseCase = new TransferChatUseCase(chatRepository, userRepository);
+const closeChatUseCase = new CloseChatUseCase(chatRepository);
+const assignAdvisorUseCase = new AssignAdvisorUseCase(chatRepository, userRepository);
 const sendMessageUseCase = new SendMessageUseCase(chatRepository, messageRepository, userRepository);
 const markMessageAsReadUseCase = new MarkMessageAsReadUseCase(messageRepository);
 
@@ -53,17 +63,31 @@ const chatController = new ChatController(
 const messageController = new MessageController(sendMessageUseCase, markMessageAsReadUseCase);
 
 async function setupRoutes() {
+    await fastify.register(cors, {
+        origin: true,
+        credentials: true
+    });
+
+    // Enregistrer le plugin WebSocket
+    await fastify.register(fastifyWebsocket);
+
+    // Routes API REST
     await fastify.register(healthRoutes, { prefix: '/api' });
     await fastify.register(userRoutes, { prefix: '/api', userController });
-    await fastify.register(chatRoutes, { prefix: '/api', chatController });
+    await fastify.register(chatRoutes, { prefix: '/api', chatController, closeChatUseCase, assignAdvisorUseCase });
     await fastify.register(messageRoutes, { prefix: '/api', messageController });
+
+    // Route WebSocket
+    await fastify.register(websocketRoutes, { prefix: '/api' });
 }
 
 const start = async () => {
     try {
         await setupRoutes();
-        await fastify.listen({ port: 3000 });
-        console.log(`🚀 Serveur http://localhost:3000 (${databaseConfig.type})`);
+        await fastify.listen({ port: 3001, host: '0.0.0.0' });
+        console.log(`Serveur Fastify démarré sur http://localhost:3001`);
+        console.log(`WebSocket disponible sur ws://localhost:3001/api/ws`);
+        console.log(`Base de données: ${databaseConfig.type}`);
     } catch (err) {
         fastify.log.error(err);
         process.exit(1);
@@ -72,10 +96,13 @@ const start = async () => {
 
 const shutdown = async () => {
     try {
+        console.log('Arrêt du serveur...');
         await dbContext.close();
         await fastify.close();
+        console.log('Serveur arrêté proprement');
         process.exit(0);
-    } catch {
+    } catch (err) {
+        console.error('Erreur lors de l\'arrêt:', err);
         process.exit(1);
     }
 };
