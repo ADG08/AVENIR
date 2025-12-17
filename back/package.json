@@ -6,7 +6,8 @@
     "domain",
     "application",
     "infrastructure",
-    "infrastructure/adapters"
+    "infrastructure/adapters",
+    "../shared"
   ],
   "main": "dist/infrastructure/adapters/fastify/server.js",
   "scripts": {
