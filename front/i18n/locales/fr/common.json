@@ -32,6 +32,7 @@
     "logout": "Déconnexion"
   },
   "errors": {
+    "error": "Erreur",
     "required": "Ce champ est requis",
     "invalidEmail": "Adresse email invalide",
     "minLength": "Minimum {{count}} caractères requis",
@@ -121,6 +122,26 @@
       "termsOfService": "Conditions d'utilisation",
       "downloadAndroid": "Télécharger l'app Android",
       "downloadIOS": "Télécharger l'app iOS"
+    }
+  },
+  "auth": {
+    "registration": {
+      "title": "Inscription",
+      "subtitle": "Créez votre compte AVENIR en quelques minutes",
+      "firstName": "Prénom",
+      "firstNamePlaceholder": "Entrez votre prénom",
+      "lastName": "Nom",
+      "lastNamePlaceholder": "Entrez votre nom",
+      "email": "Email",
+      "emailPlaceholder": "exemple@email.com",
+      "passcode": "Code secret",
+      "passcodePlaceholder": "Créez un code secret",
+      "submit": "S'inscrire",
+      "hasAccount": "Vous avez déjà un compte ?",
+      "signIn": "Se connecter",
+      "success": "Inscription réussie",
+      "successDescription": "Votre compte a été créé avec succès",
+      "error": "Une erreur est survenue lors de l'inscription"
     }
   }
 }
