@@ -15,7 +15,9 @@
     "confirm": "Confirmer",
     "back": "Retour",
     "next": "Suivant",
-    "previous": "Précédent"
+    "previous": "Précédent",
+    "send": "Envoyer",
+    "sending": "Envoi..."
   },
   "home": {
     "title": "AVENIR",
@@ -88,6 +90,7 @@
     "card": "Carte",
     "activity": "Activité",
     "saving": "Épargne",
+    "contact": "Contact",
     "yearly": "Annuel",
     "spending": "Dépenses"
   },
@@ -157,5 +160,11 @@
       "successDescription": "Bienvenue",
       "error": "Une erreur est survenue lors de la connexion"
     }
+  },
+  "chat": {
+    "newConversation": "Nouvelle conversation",
+    "yourMessage": "Votre message",
+    "typeYourMessage": "Décrivez votre demande...",
+    "advisorWillRespond": "Un conseiller vous répondra dans les plus brefs délais"
   }
 }

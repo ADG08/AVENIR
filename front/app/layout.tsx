@@ -3,6 +3,7 @@ import { Inter, Manrope } from "next/font/google";
 import "./globals.css";
 import { TRPCProvider } from "@/lib/trpc/Provider";
 import { Toaster } from "@/components/ui/toaster";
+import ClientProviders from "@/components/client-providers";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -36,6 +37,7 @@ export default function RootLayout({
         <TRPCProvider>
           {children}
           <Toaster />
+          <ClientProviders />
         </TRPCProvider>
       </body>
     </html>

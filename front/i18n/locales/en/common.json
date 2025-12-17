@@ -15,7 +15,9 @@
     "confirm": "Confirm",
     "back": "Back",
     "next": "Next",
-    "previous": "Previous"
+    "previous": "Previous",
+    "send": "Send",
+    "sending": "Sending..."
   },
   "home": {
     "title": "AVENIR",
@@ -88,6 +90,7 @@
     "card": "Card",
     "activity": "Activity",
     "saving": "Saving",
+    "contact": "Contact",
     "yearly": "Yearly",
     "spending": "Spending"
   },
@@ -157,5 +160,11 @@
       "successDescription": "Welcome",
       "error": "An error occurred during login"
     }
+  },
+  "chat": {
+    "newConversation": "New conversation",
+    "yourMessage": "Your message",
+    "typeYourMessage": "Describe your request...",
+    "advisorWillRespond": "An advisor will respond to you as soon as possible"
   }
 }
