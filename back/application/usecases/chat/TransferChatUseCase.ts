@@ -5,6 +5,7 @@ import { ChatResponse } from "../../responses";
 import { Chat } from "@avenir/domain/entities/Chat";
 import { ChatNotFoundError, UserNotFoundError, UnauthorizedChatAccessError } from "@avenir/domain/errors";
 import { UserRole } from "@avenir/domain/enumerations/UserRole";
+import { ChatStatus } from "@avenir/domain/enumerations/ChatStatus";
 
 export class TransferChatUseCase {
     constructor(
@@ -18,9 +19,10 @@ export class TransferChatUseCase {
             throw new ChatNotFoundError();
         }
 
-        // Vérifier que le conseiller actuel est bien celui qui fait le transfert
-        if (chat.advisor?.id !== request.currentAdvisorId) {
-            throw new UnauthorizedChatAccessError();
+        if (request.currentAdvisorId) {
+            if (chat.advisor?.id !== request.currentAdvisorId) {
+                throw new UnauthorizedChatAccessError();
+            }
         }
 
         const newAdvisor = await this.userRepository.getById(request.newAdvisorId);
@@ -36,7 +38,7 @@ export class TransferChatUseCase {
             chat.id,
             chat.client,
             newAdvisor,
-            chat.status,
+            chat.advisor ? chat.status : ChatStatus.ACTIVE,
             chat.messages,
             chat.createdAt,
             new Date()

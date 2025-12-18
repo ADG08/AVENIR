@@ -19,6 +19,7 @@ import {
   mapChatFromApi,
   mapMessageFromApi
 } from '@/lib/mapping';
+import {ChatStatus} from "@avenir/shared";
 
 export default function ContactPage() {
   const currentUser = useCurrentMockUser();
@@ -180,11 +181,11 @@ export default function ContactPage() {
 
       setChats((prev) =>
         prev.map((chat) =>
-          chat.id === selectedChat.id ? { ...chat, status: 'CLOSED' } : chat
+          chat.id === selectedChat.id ? { ...chat, status: ChatStatus.CLOSED} : chat
         )
       );
 
-      setSelectedChat((prev) => (prev ? { ...prev, status: 'CLOSED' } : null));
+      setSelectedChat((prev) => (prev ? { ...prev, status: ChatStatus.CLOSED } : null));
 
       toast({
         title: 'Succès',

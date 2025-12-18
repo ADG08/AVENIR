@@ -44,7 +44,6 @@ export interface UserApiDto {
   role: UserRole;
   state: UserState;
   createdAt: string;
-  updatedAt: string;
 }
 
 /**
@@ -125,7 +124,7 @@ export const mapUserFromApi = (apiUser: UserApiDto): User => {
     role: apiUser.role,
     state: apiUser.state,
     createdAt: new Date(apiUser.createdAt),
-    updatedAt: new Date(apiUser.updatedAt),
+    updatedAt: new Date(apiUser.createdAt),
   };
 };
 

@@ -10,6 +10,7 @@ import { UserController } from './controllers/UserController';
 import { ChatController } from './controllers/ChatController';
 import { MessageController } from './controllers/MessageController';
 import { GetUserUseCase } from '@avenir/application/usecases/user/GetUserUseCase';
+import { GetUsersUseCase } from '@avenir/application/usecases/user/GetUsersUseCase';
 import { AddUserUseCase } from '@avenir/application/usecases/user/AddUserUseCase';
 import { CreateChatUseCase } from '@avenir/application/usecases/chat/CreateChatUseCase';
 import { GetChatsUseCase } from '@avenir/application/usecases/chat/GetChatsUseCase';
@@ -17,7 +18,6 @@ import { GetChatMessagesUseCase } from '@avenir/application/usecases/chat/GetCha
 import { TransferChatUseCase } from '@avenir/application/usecases/chat/TransferChatUseCase';
 import { SendMessageUseCase } from '@avenir/application/usecases/chat/SendMessageUseCase';
 import { CloseChatUseCase } from '@avenir/application/usecases/chat/CloseChatUseCase';
-import { AssignAdvisorUseCase } from '@avenir/application/usecases/chat/AssignAdvisorUseCase';
 import { RepositoryFactory } from '../../factories/RepositoryFactory';
 import { databaseConfig } from '../../config/database.config';
 import { GetChatByIdUseCase } from "@avenir/application/usecases/chat/GetChatByIdUseCase";
@@ -33,8 +33,9 @@ const dbContext = RepositoryFactory.createDatabaseContext();
 // User
 const userRepository = dbContext.userRepository;
 const getUserUseCase = new GetUserUseCase(userRepository);
+const getUsersUseCase = new GetUsersUseCase(userRepository);
 const addUserUseCase = new AddUserUseCase(userRepository);
-const userController = new UserController(getUserUseCase, addUserUseCase);
+const userController = new UserController(getUserUseCase, getUsersUseCase, addUserUseCase);
 
 // Chat
 const chatRepository = dbContext.chatRepository;
@@ -47,7 +48,6 @@ const getChatMessagesUseCase = new GetChatMessagesUseCase(chatRepository, messag
 const markChatMessagesAsReadUseCase = new MarkChatMessagesAsReadUseCase(chatRepository, messageRepository);
 const transferChatUseCase = new TransferChatUseCase(chatRepository, userRepository);
 const closeChatUseCase = new CloseChatUseCase(chatRepository);
-const assignAdvisorUseCase = new AssignAdvisorUseCase(chatRepository, userRepository);
 const sendMessageUseCase = new SendMessageUseCase(chatRepository, messageRepository, userRepository);
 const markMessageAsReadUseCase = new MarkMessageAsReadUseCase(messageRepository);
 
@@ -65,7 +65,9 @@ const messageController = new MessageController(sendMessageUseCase, markMessageA
 async function setupRoutes() {
     await fastify.register(cors, {
         origin: true,
-        credentials: true
+        credentials: true,
+        methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+        allowedHeaders: ['Content-Type', 'Authorization']
     });
 
     // Enregistrer le plugin WebSocket
@@ -74,7 +76,7 @@ async function setupRoutes() {
     // Routes API REST
     await fastify.register(healthRoutes, { prefix: '/api' });
     await fastify.register(userRoutes, { prefix: '/api', userController });
-    await fastify.register(chatRoutes, { prefix: '/api', chatController, closeChatUseCase, assignAdvisorUseCase });
+    await fastify.register(chatRoutes, { prefix: '/api', chatController, closeChatUseCase });
     await fastify.register(messageRoutes, { prefix: '/api', messageController });
 
     // Route WebSocket

@@ -142,7 +142,7 @@ export const TransferChatModal = ({
                     className={`w-full rounded-lg border p-3 text-left transition-all ${
                       selectedAdvisorId === advisor.id
                         ? 'border-blue-500 bg-blue-50'
-                        : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                        : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50 hover:cursor-pointer'
                     }`}
                   >
                     <div className="flex items-center gap-3">
@@ -166,14 +166,14 @@ export const TransferChatModal = ({
               <button
                 onClick={handleClose}
                 disabled={isLoading}
-                className="flex-1 rounded-lg border border-gray-300 bg-white px-4 py-2.5 font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+                className="flex-1 rounded-lg border border-gray-300 bg-white px-4 py-2.5 font-medium text-gray-700 transition-colors hover:bg-gray-50 hover:cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
               >
                 Annuler
               </button>
               <button
                 onClick={handleSubmit}
                 disabled={!selectedAdvisorId || isLoading}
-                className="flex-1 rounded-lg bg-blue-600 px-4 py-2.5 font-medium text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+                className="flex-1 rounded-lg bg-blue-600 px-4 py-2.5 font-medium text-white transition-colors hover:bg-blue-700 hover:cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {isLoading ? 'Transfert...' : 'Transférer'}
               </button>

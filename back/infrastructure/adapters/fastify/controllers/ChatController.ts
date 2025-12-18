@@ -171,6 +171,51 @@ export class ChatController {
         }
     }
 
+    async assignOrTransferChat(
+        request: FastifyRequest<{
+            Params: { chatId: string };
+            Body: { advisorId: string; currentUserId?: string }
+        }>,
+        reply: FastifyReply
+    ) {
+        try {
+            const transferChatRequest = new TransferChatRequest(
+                request.params.chatId,
+                request.body.currentUserId,
+                request.body.advisorId
+            );
+
+            const response = await this.transferChatUseCase.execute(transferChatRequest);
+            return reply.code(200).send(response);
+        } catch (error) {
+            if (error instanceof ChatNotFoundError) {
+                return reply.code(404).send({
+                    error: 'Chat not found',
+                    message: error.message,
+                });
+            }
+
+            if (error instanceof UnauthorizedChatAccessError) {
+                return reply.code(403).send({
+                    error: 'Unauthorized',
+                    message: error.message,
+                });
+            }
+
+            if (error instanceof ValidationError) {
+                return reply.code(400).send({
+                    error: 'Validation error',
+                    message: error.message,
+                });
+            }
+
+            return reply.code(500).send({
+                error: 'Internal server error',
+                message: error instanceof Error ? error.message : 'Unknown error',
+            });
+        }
+    }
+
     async markChatMessagesAsRead(
         request: FastifyRequest<{ Params: { chatId: string }; Querystring: { userId: string } }>,
         reply: FastifyReply
