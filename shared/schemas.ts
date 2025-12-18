@@ -20,3 +20,14 @@ export const registrationSchema = z.object({
 });
 
 export type RegistrationInput = z.infer<typeof registrationSchema>;
+
+export const loginSchema = z.object({
+  identityNumber: z
+    .string()
+    .min(1, { message: "Le numéro d'identité est requis" }),
+  passcode: z
+    .string()
+    .min(8, { message: "Le code secret doit contenir au moins 8 caractères" }),
+});
+
+export type LoginInput = z.infer<typeof loginSchema>;

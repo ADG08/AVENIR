@@ -142,6 +142,20 @@
       "success": "Registration successful",
       "successDescription": "Your account has been created successfully",
       "error": "An error occurred during registration"
+    },
+    "login": {
+      "title": "Sign In",
+      "subtitle": "Sign in to your AVENIR account",
+      "identityNumber": "Identity Number",
+      "identityNumberPlaceholder": "Enter your identity number",
+      "passcode": "Passcode",
+      "passcodePlaceholder": "Enter your passcode",
+      "submit": "Sign In",
+      "noAccount": "Don't have an account?",
+      "signUp": "Register",
+      "success": "Login successful",
+      "successDescription": "Welcome",
+      "error": "An error occurred during login"
     }
   }
 }

@@ -12,6 +12,7 @@ import {
     FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { PasswordInput } from '@/components/ui/password-input';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from 'react-i18next';
@@ -174,8 +175,7 @@ export const RegistrationForm = () => {
                                     {t('auth.registration.passcode')}
                                 </FormLabel>
                                 <FormControl>
-                                    <Input
-                                        type="password"
+                                    <PasswordInput
                                         placeholder={t('auth.registration.passcodePlaceholder')}
                                         className="h-12 font-light text-base rounded-none focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-[#004d91] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#004d91]/30"
                                         {...field}
