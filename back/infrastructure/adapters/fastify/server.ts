@@ -57,7 +57,8 @@ const chatController = new ChatController(
     getChatByIdUseCase,
     getChatMessagesUseCase,
     markChatMessagesAsReadUseCase,
-    transferChatUseCase
+    transferChatUseCase,
+    closeChatUseCase
 );
 
 const messageController = new MessageController(sendMessageUseCase, markMessageAsReadUseCase);
@@ -76,7 +77,7 @@ async function setupRoutes() {
     // Routes API REST
     await fastify.register(healthRoutes, { prefix: '/api' });
     await fastify.register(userRoutes, { prefix: '/api', userController });
-    await fastify.register(chatRoutes, { prefix: '/api', chatController, closeChatUseCase });
+    await fastify.register(chatRoutes, { prefix: '/api', chatController });
     await fastify.register(messageRoutes, { prefix: '/api', messageController });
 
     // Route WebSocket

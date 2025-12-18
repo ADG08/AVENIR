@@ -5,6 +5,7 @@ import { GetChatByIdUseCase } from '@avenir/application/usecases/chat/GetChatByI
 import { GetChatMessagesUseCase } from '@avenir/application/usecases/chat/GetChatMessagesUseCase';
 import { MarkChatMessagesAsReadUseCase } from '@avenir/application/usecases/chat/MarkChatMessagesAsReadUseCase';
 import { TransferChatUseCase } from '@avenir/application/usecases/chat/TransferChatUseCase';
+import { CloseChatUseCase } from '@avenir/application/usecases/chat/CloseChatUseCase';
 import { CreateChatRequest } from '@avenir/application/requests';
 import { GetChatsRequest } from '@avenir/application/requests';
 import { TransferChatRequest } from '@avenir/application/requests';
@@ -20,7 +21,8 @@ export class ChatController {
         private readonly getChatByIdUseCase: GetChatByIdUseCase,
         private readonly getChatMessagesUseCase: GetChatMessagesUseCase,
         private readonly markChatMessagesAsReadUseCase: MarkChatMessagesAsReadUseCase,
-        private readonly transferChatUseCase: TransferChatUseCase
+        private readonly transferChatUseCase: TransferChatUseCase,
+        private readonly closeChatUseCase: CloseChatUseCase
     ) {}
 
     async createChat(request: FastifyRequest<{ Body: CreateChatRequest }>, reply: FastifyReply) {
@@ -137,40 +139,6 @@ export class ChatController {
         }
     }
 
-    async transferChat(request: FastifyRequest<{ Body: TransferChatRequest }>, reply: FastifyReply) {
-        try {
-            const transferChatRequest: TransferChatRequest = request.body;
-            const response = await this.transferChatUseCase.execute(transferChatRequest);
-            return reply.code(200).send(response);
-        } catch (error) {
-            if (error instanceof ChatNotFoundError) {
-                return reply.code(404).send({
-                    error: 'Chat not found',
-                    message: error.message,
-                });
-            }
-
-            if (error instanceof UnauthorizedChatAccessError) {
-                return reply.code(403).send({
-                    error: 'Unauthorized',
-                    message: error.message,
-                });
-            }
-
-            if (error instanceof ValidationError) {
-                return reply.code(400).send({
-                    error: 'Validation error',
-                    message: error.message,
-                });
-            }
-
-            return reply.code(500).send({
-                error: 'Internal server error',
-                message: error instanceof Error ? error.message : 'Unknown error',
-            });
-        }
-    }
-
     async assignOrTransferChat(
         request: FastifyRequest<{
             Params: { chatId: string };
@@ -230,6 +198,50 @@ export class ChatController {
             if (error instanceof ChatNotFoundError) {
                 return reply.code(404).send({
                     error: 'Chat not found',
+                    message: error.message,
+                });
+            }
+
+            if (error instanceof ValidationError) {
+                return reply.code(400).send({
+                    error: 'Validation error',
+                    message: error.message,
+                });
+            }
+
+            return reply.code(500).send({
+                error: 'Internal server error',
+                message: error instanceof Error ? error.message : 'Unknown error',
+            });
+        }
+    }
+
+    async closeChat(
+        request: FastifyRequest<{
+            Params: { chatId: string };
+            Body: { userId: string; userRole?: string }
+        }>,
+        reply: FastifyReply
+    ) {
+        try {
+            await this.closeChatUseCase.execute({
+                chatId: request.params.chatId,
+                userId: request.body.userId,
+                userRole: request.body.userRole || 'ADVISOR',
+            });
+
+            return reply.code(200).send({ success: true, message: 'Chat closed successfully' });
+        } catch (error) {
+            if (error instanceof ChatNotFoundError) {
+                return reply.code(404).send({
+                    error: 'Chat not found',
+                    message: error.message,
+                });
+            }
+
+            if (error instanceof UnauthorizedChatAccessError) {
+                return reply.code(403).send({
+                    error: 'Unauthorized',
                     message: error.message,
                 });
             }

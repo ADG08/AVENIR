@@ -181,11 +181,11 @@ export default function ContactPage() {
 
       setChats((prev) =>
         prev.map((chat) =>
-          chat.id === selectedChat.id ? { ...chat, status: ChatStatus.CLOSED} : chat
+          chat.id === selectedChat.id ? { ...chat, status: ChatStatus.CLOSED } : chat
         )
       );
 
-      setSelectedChat((prev) => (prev ? { ...prev, status: ChatStatus.CLOSED } : null));
+      setSelectedChat(null);
 
       toast({
         title: 'Succès',
