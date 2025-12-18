@@ -1,3 +1,6 @@
+import { User } from '@/types/chat';
+import { mapUsersFromApi, mapUserFromApi } from '@/lib/mapping/chat.mapper';
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
 export interface GetUsersParams {
@@ -5,7 +8,7 @@ export interface GetUsersParams {
 }
 
 export const userApi = {
-  async getUsers(params?: GetUsersParams) {
+  async getUsers(params?: GetUsersParams): Promise<User[]> {
     const queryParams = new URLSearchParams();
     if (params?.role) {
       queryParams.append('role', params.role);
@@ -25,10 +28,11 @@ export const userApi = {
       throw new Error('Failed to fetch users');
     }
 
-    return response.json();
+    const data = await response.json();
+    return mapUsersFromApi(Array.isArray(data) ? data : []);
   },
 
-  async getUserById(userId: string) {
+  async getUserById(userId: string): Promise<User> {
     const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
       method: 'GET',
       headers: {
@@ -40,6 +44,7 @@ export const userApi = {
       throw new Error('Failed to fetch user');
     }
 
-    return response.json();
+    const data = await response.json();
+    return mapUserFromApi(data);
   },
 };

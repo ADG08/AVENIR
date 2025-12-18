@@ -1,7 +1,6 @@
 // Types partagés pour le système de chat
-export type UserRole = 'DIRECTOR' | 'ADVISOR' | 'CLIENT';
-export type UserState = 'ACTIVE' | 'INACTIVE' | 'BANNED';
-export type ChatStatus = 'PENDING' | 'ACTIVE' | 'CLOSED';
+import { UserRole, UserState, ChatStatus } from './enums';
+export { UserRole, UserState, ChatStatus };
 
 export interface User {
   id: string;
@@ -56,7 +55,7 @@ export const MOCK_USERS: Record<UserRole, MockUser> = {
     lastName: 'Doe',
     email: 'john.doe@example.com',
     identityNumber: 'CLI001',
-    role: 'CLIENT',
+    role: UserRole.CLIENT,
   },
   ADVISOR: {
     id: 'adv-001',
@@ -64,7 +63,7 @@ export const MOCK_USERS: Record<UserRole, MockUser> = {
     lastName: 'Martin',
     email: 'marie.martin@avenir-bank.fr',
     identityNumber: 'ADV001',
-    role: 'ADVISOR',
+    role: UserRole.ADVISOR,
   },
   DIRECTOR: {
     id: 'dir-001',
@@ -72,6 +71,6 @@ export const MOCK_USERS: Record<UserRole, MockUser> = {
     lastName: 'Durand',
     email: 'pierre.durand@avenir-bank.fr',
     identityNumber: 'DIR001',
-    role: 'DIRECTOR',
+    role: UserRole.DIRECTOR,
   },
 };

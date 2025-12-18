@@ -1,4 +1,5 @@
-import { Chat, Message } from '@/types/chat';
+import { Chat, Message, User, UserState } from '@/types/chat';
+import { ChatStatus, UserRole } from '@/types/enums';
 
 /**
  * DTO reçu de l'API pour un chat
@@ -9,7 +10,7 @@ export interface ChatApiDto {
   clientName?: string;
   advisorId: string | null;
   advisorName?: string | null;
-  status: 'PENDING' | 'ACTIVE' | 'CLOSED';
+  status: ChatStatus;
   lastMessage?: string;
   lastMessageAt?: string;
   unreadCount?: number;
@@ -25,10 +26,25 @@ export interface MessageApiDto {
   chatId: string;
   senderId: string;
   senderName?: string;
-  senderRole?: 'CLIENT' | 'ADVISOR' | 'DIRECTOR';
+  senderRole?: UserRole;
   content: string;
   isRead: boolean;
   createdAt: string;
+}
+
+/**
+ * DTO reçu de l'API pour un utilisateur
+ */
+export interface UserApiDto {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  identityNumber: string;
+  role: UserRole;
+  state: UserState;
+  createdAt: string;
+  updatedAt: string;
 }
 
 /**
@@ -76,10 +92,10 @@ export const mapMessageFromApi = (apiMessage: MessageApiDto): Message => {
       id: apiMessage.senderId,
       firstName,
       lastName,
-      email: '', // Non fourni par l'API pour les messages
-      identityNumber: '', // Non fourni par l'API pour les messages
+      email: '',
+      identityNumber: '',
       role: apiMessage.senderRole,
-      state: 'ACTIVE', // Par défaut
+      state: UserState.ACTIVE, // Par défaut
       createdAt: new Date(),
       updatedAt: new Date(),
     } : undefined,
@@ -96,3 +112,26 @@ export const mapMessagesFromApi = (apiMessages: MessageApiDto[]): Message[] => {
   return apiMessages.map(mapMessageFromApi);
 };
 
+/**
+ * Mapper pour transformer un UserApiDto en User
+ */
+export const mapUserFromApi = (apiUser: UserApiDto): User => {
+  return {
+    id: apiUser.id,
+    firstName: apiUser.firstName,
+    lastName: apiUser.lastName,
+    email: apiUser.email,
+    identityNumber: apiUser.identityNumber,
+    role: apiUser.role,
+    state: apiUser.state,
+    createdAt: new Date(apiUser.createdAt),
+    updatedAt: new Date(apiUser.updatedAt),
+  };
+};
+
+/**
+ * Mapper pour transformer un tableau de UserApiDto en tableau de User
+ */
+export const mapUsersFromApi = (apiUsers: UserApiDto[]): User[] => {
+  return apiUsers.map(mapUserFromApi);
+};
