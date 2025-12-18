@@ -165,7 +165,7 @@ export const LoginForm = () => {
             >
                 <span className="font-light text-gray-600">{t('auth.login.noAccount')} </span>
                 <a
-                    href="/registration"
+                    href="/register"
                     className="font-light text-blue-600 hover:underline focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2"
                     tabIndex={0}
                 >

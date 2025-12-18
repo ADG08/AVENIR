@@ -77,7 +77,7 @@ export const LandingHeader = () => {
                         whileTap={{ scale: 0.98 }}
                     >
                         <Link
-                            href="/registration"
+                            href="/register"
                             className="block rounded-full bg-gray-900 px-6 py-2.5 text-sm font-light text-white transition-all hover:bg-gray-800"
                         >
                             {t('landing.openAccount')}
