@@ -61,7 +61,7 @@ const chatController = new ChatController(
     closeChatUseCase
 );
 
-const messageController = new MessageController(sendMessageUseCase, markMessageAsReadUseCase);
+const messageController = new MessageController(sendMessageUseCase, markMessageAsReadUseCase, chatRepository);
 
 async function setupRoutes() {
     await fastify.register(cors, {

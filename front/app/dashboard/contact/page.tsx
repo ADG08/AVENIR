@@ -1,29 +1,26 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
-import { useCurrentMockUser } from '@/components/dev-user-switcher';
-import { ChatListItem } from '@/components/chat/chat-list-item';
-import { ChatWindow } from '@/components/chat/chat-window';
-import { NewChatModal } from '@/components/chat/new-chat-modal';
-import { TransferChatModal } from '@/components/chat/transfer-chat-modal';
-import { AssignAdvisorModal } from '@/components/chat/assign-advisor-modal';
-import { Chat, Message } from '@/types/chat';
-import { motion } from 'framer-motion';
-import { Plus, MessageCircle, Search } from 'lucide-react';
-import { DashboardHeader } from '@/components/dashboard-header';
-import { chatApi } from '@/lib/api/chat.api';
-import { useToast } from '@/hooks/use-toast';
-import {
-  mapChatsFromApi,
-  mapMessagesFromApi,
-  mapChatFromApi,
-  mapMessageFromApi
-} from '@/lib/mapping';
+import {useCallback, useEffect, useState} from 'react';
+import {useCurrentMockUser} from '@/components/dev-user-switcher';
+import {ChatListItem} from '@/components/chat/chat-list-item';
+import {ChatWindow} from '@/components/chat/chat-window';
+import {NewChatModal} from '@/components/chat/new-chat-modal';
+import {TransferChatModal} from '@/components/chat/transfer-chat-modal';
+import {AssignAdvisorModal} from '@/components/chat/assign-advisor-modal';
+import {Chat, Message, UserRole} from '@/types/chat';
+import {motion} from 'framer-motion';
+import {MessageCircle, Plus, Search} from 'lucide-react';
+import {DashboardHeader} from '@/components/dashboard-header';
+import {chatApi} from '@/lib/api/chat.api';
+import {useToast} from '@/hooks/use-toast';
+import {useWebSocket, WebSocketMessageType} from '@/contexts/WebSocketContext';
+import {mapChatFromApi, mapChatsFromApi, mapMessageFromApi, mapMessagesFromApi} from '@/lib/mapping';
 import {ChatStatus} from "@avenir/shared";
 
 export default function ContactPage() {
   const currentUser = useCurrentMockUser();
   const { toast } = useToast();
+  const { subscribe } = useWebSocket();
   const [activeTab, setActiveTab] = useState('contact');
   const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -102,28 +99,11 @@ export default function ContactPage() {
     if (!selectedChat || !currentUser) return;
 
     try {
-      const response = await chatApi.sendMessage({
+      await chatApi.sendMessage({
         chatId: selectedChat.id,
         senderId: currentUser.id,
         content,
       });
-
-      const newMessage = mapMessageFromApi(response);
-
-      setChatMessages((prev) => ({
-        ...prev,
-        [selectedChat.id]: [...(prev[selectedChat.id] || []), newMessage],
-      }));
-
-      setChats((prev) =>
-        prev.map((chat) =>
-          chat.id === selectedChat.id
-            ? { ...chat, lastMessage: newMessage, updatedAt: new Date() }
-            : chat
-        )
-      );
-
-      console.log('Message sent successfully:', response);
     } catch (error) {
       console.error('Error sending message:', error);
       toast({
@@ -266,6 +246,93 @@ export default function ContactPage() {
       setIsAssigning(false);
     }
   };
+
+  useEffect(() => {
+    if (!currentUser) return;
+
+    const unsubscribe = subscribe((message) => {
+      console.log('[ContactPage] WebSocket message received:', message);
+
+      switch (message.type) {
+        case WebSocketMessageType.NEW_MESSAGE:
+          if (message.chatId && message.data) {
+            const newMessage = mapMessageFromApi(message.data);
+
+            setChatMessages((prev) => {
+              const existingMessages = prev[message.chatId!] || [];
+              const messageExists = existingMessages.some(msg => msg.id === newMessage.id);
+
+              if (messageExists) {
+                return prev;
+              }
+
+              return {
+                ...prev,
+                [message.chatId!]: [...existingMessages, newMessage],
+              };
+            });
+
+            loadChats();
+            if (newMessage.senderId !== currentUser.id) {
+              toast({
+                title: 'Nouveau message',
+                description: `${newMessage.sender?.firstName || 'Un utilisateur'} a envoyé un message`,
+              });
+            }
+          }
+          break;
+        case WebSocketMessageType.CHAT_CLOSED:
+          if (message.chatId) {
+            setChats((prev) =>
+              prev.map((chat) =>
+                chat.id === message.chatId ? { ...chat, status: ChatStatus.CLOSED } : chat
+              )
+            );
+
+            if (selectedChat?.id === message.chatId) {
+              setSelectedChat(null);
+              toast({
+                title: 'Conversation fermée',
+                description: 'La conversation a été fermée',
+              });
+            }
+          }
+          break;
+        case WebSocketMessageType.CHAT_ASSIGNED:
+          if (message.chatId) {
+            loadChats();
+            toast({
+              title: 'Conseiller assigné',
+              description: 'Un conseiller a été assigné à la conversation',
+            });
+          }
+          break;
+
+        case WebSocketMessageType.CHAT_TRANSFERRED:
+          if (message.chatId) {
+            loadChats();
+
+            if (selectedChat?.id === message.chatId && currentUser.role === UserRole.ADVISOR) {
+              setSelectedChat(null);
+              toast({
+                title: 'Conversation transférée',
+                description: 'La conversation a été transférée à un autre conseiller',
+              });
+            }
+          }
+          break;
+
+        case WebSocketMessageType.CONNECTED:
+          break;
+        default:
+          console.log('[ContactPage] Unknown message type:', message.type);
+      }
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, [currentUser, subscribe, selectedChat, loadChats, toast]);
 
   const filteredChats = chats;
   const currentMessages = selectedChat ? chatMessages[selectedChat.id] || [] : [];

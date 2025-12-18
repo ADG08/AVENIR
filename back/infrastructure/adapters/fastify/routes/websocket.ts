@@ -27,15 +27,9 @@ export const websocketRoutes: FastifyPluginAsync = async (fastify) => {
         }));
 
         // Gérer les messages entrants
-        socket.on('message', (rawMessage: Buffer) => {
+        socket.on('message', async (rawMessage: Buffer) => {
             try {
                 const message = JSON.parse(rawMessage.toString());
-
-                // Gérer les événements "typing"
-                if (message.type === 'typing') {
-                    const { chatId, isTyping } = message.data;
-                    console.log(`[WebSocket] User ${userId} is typing in chat ${chatId}: ${isTyping}`);
-                }
 
                 // Ping/Pong pour maintenir la connexion
                 if (message.type === 'ping') {
@@ -55,7 +49,7 @@ export const websocketRoutes: FastifyPluginAsync = async (fastify) => {
         });
     });
 
-    fastify.get('/ws/status', async (request, reply) => {
+    fastify.get('/ws/status', async () => {
         return {
             connected: webSocketService.getConnectedClientsCount(),
             timestamp: new Date().toISOString(),

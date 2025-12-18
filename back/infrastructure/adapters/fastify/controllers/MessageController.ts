@@ -5,11 +5,13 @@ import { SendMessageRequest } from '@avenir/application/requests';
 import { ChatNotFoundError, UserNotFoundError, UnauthorizedChatAccessError, MessageNotFoundError } from '@avenir/domain/errors';
 import { ValidationError } from '@avenir/application/errors';
 import { webSocketService } from '../../services/WebSocketService';
+import { ChatRepository } from '@avenir/domain/repositories/ChatRepository';
 
 export class MessageController {
     constructor(
         private readonly sendMessageUseCase: SendMessageUseCase,
         private readonly markMessageAsReadUseCase: MarkMessageAsReadUseCase,
+        private readonly chatRepository: ChatRepository,
     ) {}
 
     async sendMessage(
@@ -20,9 +22,19 @@ export class MessageController {
             const sendMessageRequest: SendMessageRequest = request.body;
             const response = await this.sendMessageUseCase.execute(sendMessageRequest);
 
+            const chat = await this.chatRepository.getById(sendMessageRequest.chatId);
+
+            const participantIds: string[] = [];
+            if (chat?.client?.id) {
+                participantIds.push(chat.client.id);
+            }
+            if (chat?.advisor?.id) {
+                participantIds.push(chat.advisor.id);
+            }
+
             webSocketService.notifyNewMessage(
                 sendMessageRequest.chatId,
-                [sendMessageRequest.senderId], // À améliorer en récupérant tous les participants
+                participantIds,
                 response
             );
 

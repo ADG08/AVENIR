@@ -1,8 +1,22 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useRef, useState, useCallback } from 'react';
-import { useAuth } from './AuthContext';
-import { WebSocketMessage } from '@/types/chat';
+import { useCurrentMockUser } from '@/components/dev-user-switcher';
+
+export enum WebSocketMessageType {
+    CONNECTED = 'connected',
+    NEW_MESSAGE = 'new_message',
+    CHAT_ASSIGNED = 'chat_assigned',
+    CHAT_TRANSFERRED = 'chat_transferred',
+    CHAT_CLOSED = 'chat_closed',
+    PONG = 'pong'
+}
+
+export interface WebSocketMessage {
+    type: WebSocketMessageType | string;
+    chatId?: string;
+    data?: Record<string, unknown>;
+}
 
 interface WebSocketContextType {
     isConnected: boolean;
@@ -12,10 +26,10 @@ interface WebSocketContextType {
 
 const WebSocketContext = createContext<WebSocketContextType | undefined>(undefined);
 
-const WS_URL = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:3000/api/ws';
+const WS_URL = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:3001/api/ws';
 
 export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const { currentUser } = useAuth();
+    const currentUser = useCurrentMockUser();
     const [isConnected, setIsConnected] = useState(false);
     const wsRef = useRef<WebSocket | null>(null);
     const subscribersRef = useRef<Set<(message: WebSocketMessage) => void>>(new Set());
@@ -102,18 +116,6 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         reconnectAttemptsRef.current = 0;
     }, []);
 
-    useEffect(() => {
-        if (currentUser) {
-            connect();
-        } else {
-            disconnect();
-        }
-
-        return () => {
-            disconnect();
-        };
-    }, [currentUser, connect, disconnect]);
-
     const sendMessage = useCallback((message: WebSocketMessage) => {
         if (wsRef.current?.readyState === WebSocket.OPEN) {
             wsRef.current.send(JSON.stringify(message));
@@ -128,6 +130,17 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
             subscribersRef.current.delete(callback);
         };
     }, []);
+
+    useEffect(() => {
+        if (currentUser) {
+            connect();
+        }
+
+        return () => {
+            disconnect();
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [currentUser]);
 
     return (
         <WebSocketContext.Provider value={{ isConnected, sendMessage, subscribe }}>

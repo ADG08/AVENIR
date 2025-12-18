@@ -4,7 +4,6 @@ import { Message } from '@/types/chat';
 import { motion } from 'framer-motion';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { Check, CheckCheck } from 'lucide-react';
 
 interface ChatMessageProps {
   message: Message;
@@ -51,15 +50,6 @@ export const ChatMessage = ({ message, isOwnMessage, isDirector }: ChatMessagePr
           <span className="text-xs">
             {format(new Date(message.createdAt), 'HH:mm', { locale: fr })}
           </span>
-          {isOwnMessage && (
-            <span>
-              {message.isRead ? (
-                <CheckCheck className="h-3 w-3 text-blue-400" />
-              ) : (
-                <Check className="h-3 w-3" />
-              )}
-            </span>
-          )}
         </div>
       </div>
     </motion.div>

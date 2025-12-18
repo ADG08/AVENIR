@@ -26,6 +26,7 @@ export class WebSocketService {
         this.clients.get(userId)!.push(client);
 
         console.log(`[WebSocket] Client connecté: ${userId} (${userRole})`);
+        console.log(`[WebSocket] Total clients connectés: ${this.getConnectedClientsCount()}`);
 
         socket.on('close', () => {
             this.unregisterClient(userId, socket);
@@ -44,17 +45,21 @@ export class WebSocketService {
             }
         }
         console.log(`[WebSocket] Client déconnecté: ${userId}`);
+        console.log(`[WebSocket] Total clients connectés: ${this.getConnectedClientsCount()}`);
     }
 
     sendMessageToUser(userId: string, message: ChatMessage): void {
         const userClients = this.clients.get(userId);
         if (userClients) {
             const payload = JSON.stringify(message);
+            console.log(`[WebSocket] Envoi du message`, message);
             userClients.forEach(client => {
                 if (client.socket.readyState === WSWebSocket.OPEN) {
                     client.socket.send(payload);
                 }
             });
+        } else {
+            console.log(`[WebSocket] Utilisateur non connecté, message non envoyé`);
         }
     }
 
@@ -81,13 +86,13 @@ export class WebSocketService {
         });
     }
 
-    notifyMessageRead(chatId: string, participantIds: string[], messageId: string): void {
-        this.sendMessageToChatParticipants(participantIds, {
-            type: 'message_read',
-            chatId,
-            data: { messageId },
-        });
-    }
+    // notifyMessageRead(chatId: string, participantIds: string[], messageId: string): void {
+    //     this.sendMessageToChatParticipants(participantIds, {
+    //         type: 'message_read',
+    //         chatId,
+    //         data: { messageId },
+    //     });
+    // }
 
     notifyChatAssigned(chatId: string, clientId: string, advisorId: string): void {
         this.sendMessageToChatParticipants([clientId, advisorId], {
@@ -113,14 +118,19 @@ export class WebSocketService {
         });
     }
 
-    notifyUserTyping(chatId: string, participantIds: string[], userId: string, isTyping: boolean): void {
-        const otherParticipants = participantIds.filter(id => id !== userId);
-        this.sendMessageToChatParticipants(otherParticipants, {
-            type: 'user_typing',
-            chatId,
-            data: { userId, isTyping },
-        });
-    }
+    // notifyUserTyping(chatId: string, participantIds: string[], userId: string, isTyping: boolean): void {
+    //     console.log(`[WebSocket] notifyUserTyping - chatId: ${chatId}, userId: ${userId}, isTyping: ${isTyping}`);
+    //     console.log(`[WebSocket] Participants:`, participantIds);
+    //
+    //     const otherParticipants = participantIds.filter(id => id !== userId);
+    //     console.log(`[WebSocket] Autres participants (destinataires):`, otherParticipants);
+    //
+    //     this.sendMessageToChatParticipants(otherParticipants, {
+    //         type: 'user_typing',
+    //         chatId,
+    //         data: { userId, isTyping },
+    //     });
+    // }
 
     getConnectedClientsCount(): number {
         let count = 0;
@@ -133,7 +143,13 @@ export class WebSocketService {
     isUserConnected(userId: string): boolean {
         return this.clients.has(userId);
     }
+
+    getConnectedClients(): string[] {
+        return Array.from(this.clients.keys());
+    }
 }
 
 export const webSocketService = new WebSocketService();
+
+
 
