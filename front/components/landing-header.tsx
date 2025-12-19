@@ -67,19 +67,22 @@ export const LandingHeader = () => {
 
                 <div className="flex items-center gap-4">
                     <Link
-                        href="/sign-in"
+                        href="/login"
                         className="hidden text-sm font-light text-gray-700 transition-colors hover:text-gray-900 md:block"
                     >
                         {t('landing.signIn')}
                     </Link>
-                    <motion.a
-                        href="/sign-up"
-                        className="cursor-pointer rounded-full bg-gray-900 px-6 py-2.5 text-sm font-light text-white transition-all hover:bg-gray-800"
+                    <motion.div
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                     >
-                        {t('landing.openAccount')}
-                    </motion.a>
+                        <Link
+                            href="/register"
+                            className="block rounded-full bg-gray-900 px-6 py-2.5 text-sm font-light text-white transition-all hover:bg-gray-800"
+                        >
+                            {t('landing.openAccount')}
+                        </Link>
+                    </motion.div>
                 </div>
             </div>
         </header>

@@ -32,6 +32,7 @@
     "logout": "Logout"
   },
   "errors": {
+    "error": "Error",
     "required": "This field is required",
     "invalidEmail": "Invalid email address",
     "minLength": "Minimum {{count}} characters required",
@@ -121,6 +122,40 @@
       "termsOfService": "Terms of Service",
       "downloadAndroid": "Download Android App",
       "downloadIOS": "Download iOS App"
+    }
+  },
+  "auth": {
+    "registration": {
+      "title": "Register to NetBanking",
+      "subtitle": "Create your AVENIR account in minutes",
+      "firstName": "First Name",
+      "firstNamePlaceholder": "Enter your first name",
+      "lastName": "Last Name",
+      "lastNamePlaceholder": "Enter your last name",
+      "email": "Email",
+      "emailPlaceholder": "example@email.com",
+      "passcode": "Passcode",
+      "passcodePlaceholder": "Create a passcode",
+      "submit": "Register",
+      "hasAccount": "Already have an account?",
+      "signIn": "Sign In",
+      "success": "Registration successful",
+      "successDescription": "Your account has been created successfully",
+      "error": "An error occurred during registration"
+    },
+    "login": {
+      "title": "Sign In",
+      "subtitle": "Sign in to your AVENIR account",
+      "identityNumber": "Identity Number",
+      "identityNumberPlaceholder": "Enter your identity number",
+      "passcode": "Passcode",
+      "passcodePlaceholder": "Enter your passcode",
+      "submit": "Sign In",
+      "noAccount": "Don't have an account?",
+      "signUp": "Register",
+      "success": "Login successful",
+      "successDescription": "Welcome",
+      "error": "An error occurred during login"
     }
   }
 }
