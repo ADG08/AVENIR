@@ -115,6 +115,12 @@
       "verificationError": "Confirmation text does not match",
       "verificationSuccess": "Valid confirmation text"
     },
+    "editAccountNameModal": {
+      "title": "Edit Account Name",
+      "description": "Change your account name to better identify it.",
+      "accountName": "Account Name",
+      "accountNamePlaceholder": "e.g., Main Account, Savings Account..."
+    },
     "savingsTypes": {
       "livretA": "Livret A",
       "livretJeune": "Livret Jeune",

@@ -10,42 +10,47 @@ import { Input } from '@/components/ui/input';
 import { AnimatedFormSection, ModalButton } from '@/components/ui/modal-helpers';
 import { useLanguage } from '@/hooks/use-language';
 
-type AddAccountModalProps = {
+type EditAccountNameModalProps = {
     open: boolean;
     onOpenChange: (open: boolean) => void;
+    currentName: string;
+    onSave?: (newName: string) => void;
 };
 
-const addAccountSchema = z.object({
+const editAccountNameSchema = z.object({
     accountName: z.string().min(1, 'Le nom du compte est requis').max(50, 'Le nom ne peut pas dépasser 50 caractères'),
 });
 
-type AddAccountFormData = z.infer<typeof addAccountSchema>;
+type EditAccountNameFormData = z.infer<typeof editAccountNameSchema>;
 
-export const AddAccountModal = ({ open, onOpenChange }: AddAccountModalProps) => {
+export const EditAccountNameModal = ({ open, onOpenChange, currentName, onSave }: EditAccountNameModalProps) => {
     const { t } = useLanguage();
 
-    const form = useForm<AddAccountFormData>({
-        resolver: zodResolver(addAccountSchema),
+    const form = useForm<EditAccountNameFormData>({
+        resolver: zodResolver(editAccountNameSchema),
         defaultValues: {
-            accountName: '',
+            accountName: currentName,
         },
     });
 
     useEffect(() => {
         if (open) {
-            form.reset();
+            form.reset({ accountName: currentName });
         }
-    }, [open, form]);
+    }, [open, currentName, form]);
 
-    const handleSubmit = async (data: AddAccountFormData) => {
+    const handleSubmit = async (data: EditAccountNameFormData) => {
         await new Promise((resolve) => setTimeout(resolve, 1000));
 
-        form.reset();
+        if (onSave) {
+            onSave(data.accountName);
+        }
+
         onOpenChange(false);
     };
 
     const handleCancel = () => {
-        form.reset();
+        form.reset({ accountName: currentName });
         onOpenChange(false);
     };
 
@@ -53,8 +58,8 @@ export const AddAccountModal = ({ open, onOpenChange }: AddAccountModalProps) =>
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent>
                 <DialogHeader>
-                    <DialogTitle>{t('dashboard.addAccountModal.title')}</DialogTitle>
-                    <DialogDescription>{t('dashboard.addAccountModal.description')}</DialogDescription>
+                    <DialogTitle>{t('dashboard.editAccountNameModal.title')}</DialogTitle>
+                    <DialogDescription>{t('dashboard.editAccountNameModal.description')}</DialogDescription>
                 </DialogHeader>
 
                 <Form {...form}>
@@ -66,11 +71,11 @@ export const AddAccountModal = ({ open, onOpenChange }: AddAccountModalProps) =>
                                     name="accountName"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>{t('dashboard.addAccountModal.accountName')}</FormLabel>
+                                            <FormLabel>{t('dashboard.editAccountNameModal.accountName')}</FormLabel>
                                             <FormControl>
                                                 <Input
                                                     {...field}
-                                                    placeholder={t('dashboard.addAccountModal.accountNamePlaceholder')}
+                                                    placeholder={t('dashboard.editAccountNameModal.accountNamePlaceholder')}
                                                     disabled={form.formState.isSubmitting}
                                                     className="h-11"
                                                 />
@@ -92,7 +97,7 @@ export const AddAccountModal = ({ open, onOpenChange }: AddAccountModalProps) =>
                                     variant="primary"
                                     disabled={form.formState.isSubmitting || !form.formState.isValid}
                                 >
-                                    {form.formState.isSubmitting ? t('common.loading') : t('common.create')}
+                                    {form.formState.isSubmitting ? t('common.loading') : t('common.save')}
                                 </ModalButton>
                             </DialogFooter>
                         </AnimatedFormSection>

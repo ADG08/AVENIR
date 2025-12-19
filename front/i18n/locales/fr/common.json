@@ -115,6 +115,12 @@
       "verificationError": "Le texte de confirmation ne correspond pas",
       "verificationSuccess": "Texte de confirmation valide"
     },
+    "editAccountNameModal": {
+      "title": "Modifier le nom du compte",
+      "description": "Changez le nom de votre compte pour mieux l'identifier.",
+      "accountName": "Nom du compte",
+      "accountNamePlaceholder": "Ex: Compte Principal, Compte Épargne..."
+    },
     "savingsTypes": {
       "livretA": "Livret A",
       "livretJeune": "Livret Jeune",

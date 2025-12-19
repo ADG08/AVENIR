@@ -6,11 +6,13 @@ import { TransactionItem } from '@/components/ui/transaction-item';
 import { CreditCard } from '@/components/ui/credit-card';
 import { SavingsGoalItem } from '@/components/ui/savings-goal-item';
 import { BarChart } from '@/components/ui/bar-chart';
+import { FilterToggleButton } from '@/components/ui/filter-toggle-button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DashboardHeader } from '@/components/dashboard-header';
 import { AddAccountModal } from '@/components/modals/AddAccountModal';
 import { AddSavingsModal } from '@/components/modals/AddSavingsModal';
 import { DeleteAccountModal } from '@/components/modals/DeleteAccountModal';
+import { EditAccountNameModal } from '@/components/modals/EditAccountNameModal';
 import { Search, ArrowUp, ArrowDown, Plus, ChevronLeft, ChevronRight, Trash2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useState, useRef, useEffect } from 'react';
@@ -26,6 +28,7 @@ export default function Home() {
     const [addAccountModalOpen, setAddAccountModalOpen] = useState(false);
     const [addSavingsModalOpen, setAddSavingsModalOpen] = useState(false);
     const [deleteAccountModalOpen, setDeleteAccountModalOpen] = useState(false);
+    const [editAccountNameModalOpen, setEditAccountNameModalOpen] = useState(false);
     const [activeFilters, setActiveFilters] = useState<{
         card: string | null;
         category: string | null;
@@ -54,8 +57,24 @@ export default function Home() {
     }, [filterOpen]);
 
     const cards = [
-        { cardNumber: '****4329', cardType: 'VISA', expiryDate: '09/28' },
-        { cardNumber: '****8765', cardType: 'Mastercard', expiryDate: '12/26' },
+        {
+            cardNumber: '****4329',
+            cardType: 'VISA',
+            expiryDate: '09/28',
+            firstName: 'Jean',
+            lastName: 'Dupont',
+            accountName: 'Compte Principal',
+            cvv: '123'
+        },
+        {
+            cardNumber: '****8765',
+            cardType: 'Mastercard',
+            expiryDate: '12/26',
+            firstName: 'Jean',
+            lastName: 'Dupont',
+            accountName: 'Compte Secondaire',
+            cvv: '456'
+        },
     ];
 
     const nextCard = () => {
@@ -232,24 +251,14 @@ export default function Home() {
                                                     <div>
                                                         <label className="mb-2 block text-xs font-medium text-gray-700">Card</label>
                                                         <div className="flex flex-wrap gap-2">
-                                                            <button
-                                                                onClick={() => setActiveFilters({ ...activeFilters, card: activeFilters.card === 'VISA' ? null : 'VISA' })}
-                                                                className={`cursor-pointer rounded-full px-3 py-1 text-xs font-medium transition-colors ${activeFilters.card === 'VISA'
-                                                                    ? 'bg-blue-600 text-white'
-                                                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                                                                    }`}
-                                                            >
-                                                                VISA
-                                                            </button>
-                                                            <button
-                                                                onClick={() => setActiveFilters({ ...activeFilters, card: activeFilters.card === 'Mastercard' ? null : 'Mastercard' })}
-                                                                className={`cursor-pointer rounded-full px-3 py-1 text-xs font-medium transition-colors ${activeFilters.card === 'Mastercard'
-                                                                    ? 'bg-blue-600 text-white'
-                                                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                                                                    }`}
-                                                            >
-                                                                Mastercard
-                                                            </button>
+                                                            {['VISA', 'Mastercard'].map((card) => (
+                                                                <FilterToggleButton
+                                                                    key={card}
+                                                                    value={card}
+                                                                    isActive={activeFilters.card === card}
+                                                                    onClick={() => setActiveFilters({ ...activeFilters, card: activeFilters.card === card ? null : card })}
+                                                                />
+                                                            ))}
                                                         </div>
                                                     </div>
 
@@ -257,16 +266,12 @@ export default function Home() {
                                                         <label className="mb-2 block text-xs font-medium text-gray-700">Category</label>
                                                         <div className="flex flex-wrap gap-2">
                                                             {[t('dashboard.electronics'), 'Food & Drink', 'Transport', 'Entertainment', 'Health', 'Shopping'].map((cat) => (
-                                                                <button
+                                                                <FilterToggleButton
                                                                     key={cat}
+                                                                    value={cat}
+                                                                    isActive={activeFilters.category === cat}
                                                                     onClick={() => setActiveFilters({ ...activeFilters, category: activeFilters.category === cat ? null : cat })}
-                                                                    className={`cursor-pointer rounded-full px-3 py-1 text-xs font-medium transition-colors ${activeFilters.category === cat
-                                                                        ? 'bg-blue-600 text-white'
-                                                                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                                                                        }`}
-                                                                >
-                                                                    {cat}
-                                                                </button>
+                                                                />
                                                             ))}
                                                         </div>
                                                     </div>
@@ -275,16 +280,12 @@ export default function Home() {
                                                         <label className="mb-2 block text-xs font-medium text-gray-700">Status</label>
                                                         <div className="flex flex-wrap gap-2">
                                                             {['Success', 'Pending', 'Failed'].map((status) => (
-                                                                <button
+                                                                <FilterToggleButton
                                                                     key={status}
+                                                                    value={status}
+                                                                    isActive={activeFilters.status === status}
                                                                     onClick={() => setActiveFilters({ ...activeFilters, status: activeFilters.status === status ? null : status })}
-                                                                    className={`cursor-pointer rounded-full px-3 py-1 text-xs font-medium transition-colors ${activeFilters.status === status
-                                                                        ? 'bg-blue-600 text-white'
-                                                                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                                                                        }`}
-                                                                >
-                                                                    {status}
-                                                                </button>
+                                                                />
                                                             ))}
                                                         </div>
                                                     </div>
@@ -394,6 +395,11 @@ export default function Home() {
                                             cardNumber={cards[currentCardIndex].cardNumber}
                                             cardType={cards[currentCardIndex].cardType}
                                             expiryDate={cards[currentCardIndex].expiryDate}
+                                            firstName={cards[currentCardIndex].firstName}
+                                            lastName={cards[currentCardIndex].lastName}
+                                            accountName={cards[currentCardIndex].accountName}
+                                            cvv={cards[currentCardIndex].cvv}
+                                            onEditAccountName={() => setEditAccountNameModalOpen(true)}
                                         />
                                     </motion.div>
 
@@ -493,6 +499,11 @@ export default function Home() {
             <AddAccountModal open={addAccountModalOpen} onOpenChange={setAddAccountModalOpen} />
             <AddSavingsModal open={addSavingsModalOpen} onOpenChange={setAddSavingsModalOpen} />
             <DeleteAccountModal open={deleteAccountModalOpen} onOpenChange={setDeleteAccountModalOpen} />
+            <EditAccountNameModal
+                open={editAccountNameModalOpen}
+                onOpenChange={setEditAccountNameModalOpen}
+                currentName={cards[currentCardIndex]?.accountName || ''}
+            />
         </div>
     );
 }

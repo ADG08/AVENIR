@@ -1,7 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -21,12 +25,34 @@ const MOCK_ACCOUNTS = [
     { value: 'account-3', label: 'Compte Épargne Voyage' },
 ];
 
+const deleteAccountSchema = z.object({
+    selectedAccount: z.string().min(1, 'Vous devez sélectionner un compte'),
+    verificationText: z.string().min(1, 'Le texte de vérification est requis'),
+});
+
+type DeleteAccountFormData = z.infer<typeof deleteAccountSchema>;
+
 export const DeleteAccountModal = ({ open, onOpenChange }: DeleteAccountModalProps) => {
     const { t } = useLanguage();
-    const [selectedAccount, setSelectedAccount] = useState('');
-    const [verificationText, setVerificationText] = useState('');
     const [copied, setCopied] = useState(false);
-    const [isLoading, setIsLoading] = useState(false);
+
+    const form = useForm<DeleteAccountFormData>({
+        resolver: zodResolver(deleteAccountSchema),
+        defaultValues: {
+            selectedAccount: '',
+            verificationText: '',
+        },
+    });
+
+    useEffect(() => {
+        if (open) {
+            form.reset();
+            setCopied(false);
+        }
+    }, [open, form]);
+
+    const selectedAccount = form.watch('selectedAccount');
+    const verificationText = form.watch('verificationText');
 
     const selectedAccountLabel = MOCK_ACCOUNTS.find(acc => acc.value === selectedAccount)?.label || '';
     const confirmationText = selectedAccount
@@ -40,23 +66,18 @@ export const DeleteAccountModal = ({ open, onOpenChange }: DeleteAccountModalPro
         setTimeout(() => setCopied(false), 2000);
     };
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
+    const handleSubmit = async (data: DeleteAccountFormData) => {
         if (!isVerified) return;
-
-        setIsLoading(true);
 
         await new Promise((resolve) => setTimeout(resolve, 1000));
 
-        setIsLoading(false);
-        setSelectedAccount('');
-        setVerificationText('');
+        form.reset();
+        setCopied(false);
         onOpenChange(false);
     };
 
     const handleCancel = () => {
-        setSelectedAccount('');
-        setVerificationText('');
+        form.reset();
         setCopied(false);
         onOpenChange(false);
     };
@@ -76,24 +97,38 @@ export const DeleteAccountModal = ({ open, onOpenChange }: DeleteAccountModalPro
                     </div>
                 </DialogHeader>
 
-                <form onSubmit={handleSubmit}>
-                    <AnimatedFormSection delay={0.1}>
-                        <div className="space-y-4 py-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="accountToDelete">{t('dashboard.deleteAccountModal.selectAccount')}</Label>
-                            <Select value={selectedAccount} onValueChange={setSelectedAccount} disabled={isLoading}>
-                                <SelectTrigger id="accountToDelete" className="h-11">
-                                    <SelectValue placeholder={t('dashboard.deleteAccountModal.selectAccountPlaceholder')} />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {MOCK_ACCOUNTS.map((account) => (
-                                        <SelectItem key={account.value} value={account.value}>
-                                            {account.label}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
+                <Form {...form}>
+                    <form onSubmit={form.handleSubmit(handleSubmit)}>
+                        <AnimatedFormSection delay={0.1}>
+                            <div className="space-y-4 py-4">
+                                <FormField
+                                    control={form.control}
+                                    name="selectedAccount"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>{t('dashboard.deleteAccountModal.selectAccount')}</FormLabel>
+                                            <Select
+                                                onValueChange={field.onChange}
+                                                defaultValue={field.value}
+                                                disabled={form.formState.isSubmitting}
+                                            >
+                                                <FormControl>
+                                                    <SelectTrigger className="h-11">
+                                                        <SelectValue placeholder={t('dashboard.deleteAccountModal.selectAccountPlaceholder')} />
+                                                    </SelectTrigger>
+                                                </FormControl>
+                                                <SelectContent>
+                                                    {MOCK_ACCOUNTS.map((account) => (
+                                                        <SelectItem key={account.value} value={account.value}>
+                                                            {account.label}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
 
                         {selectedAccount && (
                             <motion.div
@@ -124,49 +159,57 @@ export const DeleteAccountModal = ({ open, onOpenChange }: DeleteAccountModalPro
                                     </div>
                                 </div>
 
-                                <div className="space-y-2">
-                                    <Label htmlFor="verification">{t('dashboard.deleteAccountModal.verificationInput')}</Label>
-                                    <Input
-                                        id="verification"
-                                        value={verificationText}
-                                        onChange={(e) => setVerificationText(e.target.value)}
-                                        placeholder={t('dashboard.deleteAccountModal.verificationPlaceholder')}
-                                        disabled={isLoading}
-                                        className={`h-11 ${
-                                            verificationText && !isVerified
-                                                ? 'border-red-500 focus:ring-red-500'
-                                                : verificationText && isVerified
-                                                ? 'border-green-500 focus:ring-green-500'
-                                                : ''
-                                        }`}
-                                    />
-                                    {verificationText && !isVerified && (
-                                        <p className="text-xs text-red-600">{t('dashboard.deleteAccountModal.verificationError')}</p>
+                                <FormField
+                                    control={form.control}
+                                    name="verificationText"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>{t('dashboard.deleteAccountModal.verificationInput')}</FormLabel>
+                                            <FormControl>
+                                                <Input
+                                                    {...field}
+                                                    placeholder={t('dashboard.deleteAccountModal.verificationPlaceholder')}
+                                                    disabled={form.formState.isSubmitting}
+                                                    className={`h-11 ${
+                                                        verificationText && !isVerified
+                                                            ? 'border-red-500 focus:ring-red-500'
+                                                            : verificationText && isVerified
+                                                            ? 'border-green-500 focus:ring-green-500'
+                                                            : ''
+                                                    }`}
+                                                />
+                                            </FormControl>
+                                            {verificationText && !isVerified && (
+                                                <p className="text-xs text-red-600">{t('dashboard.deleteAccountModal.verificationError')}</p>
+                                            )}
+                                            {isVerified && (
+                                                <p className="text-xs text-green-600">{t('dashboard.deleteAccountModal.verificationSuccess')}</p>
+                                            )}
+                                            <FormMessage />
+                                        </FormItem>
                                     )}
-                                    {isVerified && (
-                                        <p className="text-xs text-green-600">{t('dashboard.deleteAccountModal.verificationSuccess')}</p>
-                                    )}
-                                </div>
+                                />
                             </motion.div>
                         )}
                         </div>
                     </AnimatedFormSection>
 
-                    <AnimatedFormSection delay={0.15}>
-                        <DialogFooter>
-                            <ModalButton onClick={handleCancel} disabled={isLoading}>
-                                {t('common.cancel')}
-                            </ModalButton>
-                            <ModalButton
-                                type="submit"
-                                variant="danger"
-                                disabled={isLoading || !isVerified || !selectedAccount}
-                            >
-                                {isLoading ? t('common.loading') : t('common.delete')}
-                            </ModalButton>
-                        </DialogFooter>
-                    </AnimatedFormSection>
-                </form>
+                        <AnimatedFormSection delay={0.15}>
+                            <DialogFooter>
+                                <ModalButton onClick={handleCancel} disabled={form.formState.isSubmitting}>
+                                    {t('common.cancel')}
+                                </ModalButton>
+                                <ModalButton
+                                    type="submit"
+                                    variant="danger"
+                                    disabled={form.formState.isSubmitting || !isVerified}
+                                >
+                                    {form.formState.isSubmitting ? t('common.loading') : t('common.delete')}
+                                </ModalButton>
+                            </DialogFooter>
+                        </AnimatedFormSection>
+                    </form>
+                </Form>
             </DialogContent>
         </Dialog>
     );
