@@ -7,13 +7,16 @@ import { CreditCard } from '@/components/ui/credit-card';
 import { SavingsGoalItem } from '@/components/ui/savings-goal-item';
 import { BarChart } from '@/components/ui/bar-chart';
 import { FilterToggleButton } from '@/components/ui/filter-toggle-button';
+import { ActionButton } from '@/components/ui/action-button';
+import { StatRow } from '@/components/ui/stat-row';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DashboardHeader } from '@/components/dashboard-header';
 import { AddAccountModal } from '@/components/modals/AddAccountModal';
 import { AddSavingsModal } from '@/components/modals/AddSavingsModal';
 import { DeleteAccountModal } from '@/components/modals/DeleteAccountModal';
 import { EditAccountNameModal } from '@/components/modals/EditAccountNameModal';
-import { Search, ArrowUp, ArrowDown, Plus, ChevronLeft, ChevronRight, Trash2 } from 'lucide-react';
+import { SendMoneyModal } from '@/components/modals/SendMoneyModal';
+import { Search, ArrowUp, ArrowDown, Plus, ChevronLeft, ChevronRight, Trash2, List } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useState, useRef, useEffect } from 'react';
 import { useLanguage } from '@/hooks/use-language';
@@ -29,6 +32,7 @@ export default function Home() {
     const [addSavingsModalOpen, setAddSavingsModalOpen] = useState(false);
     const [deleteAccountModalOpen, setDeleteAccountModalOpen] = useState(false);
     const [editAccountNameModalOpen, setEditAccountNameModalOpen] = useState(false);
+    const [sendMoneyModalOpen, setSendMoneyModalOpen] = useState(false);
     const [activeFilters, setActiveFilters] = useState<{
         card: string | null;
         category: string | null;
@@ -39,6 +43,7 @@ export default function Home() {
         status: null,
     });
     const filterRef = useRef<HTMLDivElement>(null);
+    const transactionsRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -156,6 +161,10 @@ export default function Home() {
 
     const hasActiveFilters = activeFilters.card || activeFilters.category || activeFilters.status;
 
+    const handleViewAllTransactions = () => {
+        transactionsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
+
     return (
         <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
             <DashboardHeader activeTab={activeTab} setActiveTab={setActiveTab} />
@@ -206,6 +215,7 @@ export default function Home() {
                         </motion.div>
 
                         <motion.div
+                            ref={transactionsRef}
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.1 }}
@@ -428,31 +438,29 @@ export default function Home() {
                             </div>
 
                             <div className="mt-4 grid grid-cols-2 gap-3">
-                                <button className="flex cursor-pointer items-center justify-center gap-2 rounded-full border border-gray-200 bg-white px-6 py-3 transition-all hover:bg-gray-50">
-                                    <ArrowDown className="h-5 w-5 text-gray-700" />
-                                    <span className="text-base font-medium text-gray-900">{t('dashboard.receiveFunds')}</span>
-                                </button>
-                                <button className="flex cursor-pointer items-center justify-center gap-2 rounded-full border border-gray-200 bg-white px-6 py-3 transition-all hover:bg-gray-50">
-                                    <ArrowUp className="h-5 w-5 text-gray-700" />
-                                    <span className="text-base font-medium text-gray-900">{t('dashboard.sendMoney')}</span>
-                                </button>
+                                <ActionButton
+                                    icon={List}
+                                    label={t('dashboard.viewAllTransactions')}
+                                    onClick={handleViewAllTransactions}
+                                />
+                                <ActionButton
+                                    icon={ArrowUp}
+                                    label={t('dashboard.sendMoney')}
+                                    onClick={() => setSendMoneyModalOpen(true)}
+                                />
                             </div>
 
                             <div className="mt-4 space-y-4">
-                                <div className="flex items-center gap-3">
-                                    <div className="flex h-10 w-10 items-center justify-center rounded-full border">
-                                        <ArrowUp className="h-5 w-5 text-gray-600" />
-                                    </div>
-                                    <span className="flex-1 text-base font-medium text-gray-700">{t('dashboard.incomeThisMonth')}</span>
-                                    <span className="text-lg font-semibold financial-amount text-gray-900">$2,873.00</span>
-                                </div>
-                                <div className="flex items-center gap-3">
-                                    <div className="flex h-10 w-10 items-center justify-center rounded-full border">
-                                        <ArrowDown className="h-5 w-5 text-gray-600" />
-                                    </div>
-                                    <span className="flex-1 text-base font-medium text-gray-700">{t('dashboard.expensesThisMonth')}</span>
-                                    <span className="text-lg font-semibold financial-amount text-gray-900">$1,924.00</span>
-                                </div>
+                                <StatRow
+                                    icon={ArrowUp}
+                                    label={t('dashboard.incomeThisMonth')}
+                                    amount="$2,873.00"
+                                />
+                                <StatRow
+                                    icon={ArrowDown}
+                                    label={t('dashboard.expensesThisMonth')}
+                                    amount="$1,924.00"
+                                />
                             </div>
                         </motion.div>
 
@@ -504,6 +512,7 @@ export default function Home() {
                 onOpenChange={setEditAccountNameModalOpen}
                 currentName={cards[currentCardIndex]?.accountName || ''}
             />
+            <SendMoneyModal open={sendMoneyModalOpen} onOpenChange={setSendMoneyModalOpen} />
         </div>
     );
 }

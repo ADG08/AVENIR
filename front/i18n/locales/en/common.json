@@ -15,7 +15,9 @@
     "confirm": "Confirm",
     "back": "Back",
     "next": "Next",
-    "previous": "Previous"
+    "previous": "Previous",
+    "send": "Send",
+    "optional": "Optional"
   },
   "home": {
     "title": "AVENIR",
@@ -71,7 +73,7 @@
     "myCards": "My Cards",
     "addCard": "Add Card",
     "addAccount": "Add Account",
-    "receiveFunds": "Receive",
+    "viewAllTransactions": "View All",
     "sendMoney": "Send",
     "incomeThisMonth": "Income this month",
     "expensesThisMonth": "Expenses this month",
@@ -120,6 +122,18 @@
       "description": "Change your account name to better identify it.",
       "accountName": "Account Name",
       "accountNamePlaceholder": "e.g., Main Account, Savings Account..."
+    },
+    "sendMoneyModal": {
+      "title": "Send Money",
+      "description": "Transfer money to your accounts or registered beneficiaries.",
+      "sourceAccount": "From account",
+      "sourceAccountPlaceholder": "Select source account",
+      "destination": "To",
+      "destinationPlaceholder": "Select a recipient",
+      "amount": "Amount",
+      "descriptionPlaceholder": "e.g., Refund, Gift...",
+      "myAccounts": "My accounts",
+      "savedRIBs": "Saved RIBs"
     },
     "savingsTypes": {
       "livretA": "Livret A",
