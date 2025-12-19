@@ -11,6 +11,7 @@ interface AssignAdvisorModalProps {
   onClose: () => void;
   onSubmit: (advisorId: string) => void;
   isLoading?: boolean;
+  currentAdvisorId?: string | null;
 }
 
 export const AssignAdvisorModal = ({
@@ -18,6 +19,7 @@ export const AssignAdvisorModal = ({
   onClose,
   onSubmit,
   isLoading = false,
+  currentAdvisorId,
 }: AssignAdvisorModalProps) => {
   const [advisors, setAdvisors] = useState<User[]>([]);
   const [selectedAdvisorId, setSelectedAdvisorId] = useState<string>('');
@@ -130,30 +132,54 @@ export const AssignAdvisorModal = ({
                   </p>
                 </div>
               ) : (
-                filteredAdvisors.map((advisor) => (
-                  <button
-                    key={advisor.id}
-                    onClick={() => setSelectedAdvisorId(advisor.id)}
-                    className={`w-full rounded-lg border p-3 text-left transition-all ${
-                      selectedAdvisorId === advisor.id
-                        ? 'border-blue-500 bg-blue-50'
-                        : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
-                    }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-600 text-white font-semibold text-sm">
-                        {advisor.firstName[0]}
-                        {advisor.lastName[0]}
+                filteredAdvisors.map((advisor) => {
+                  const isCurrentAdvisor = currentAdvisorId === advisor.id;
+
+                  return (
+                    <button
+                      key={advisor.id}
+                      onClick={() => !isCurrentAdvisor && setSelectedAdvisorId(advisor.id)}
+                      disabled={isCurrentAdvisor}
+                      className={`w-full rounded-lg border p-3 text-left transition-all ${
+                        isCurrentAdvisor
+                          ? 'border-red-300 bg-red-50 cursor-not-allowed opacity-60'
+                          : selectedAdvisorId === advisor.id
+                          ? 'border-blue-500 bg-blue-50'
+                          : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className={`flex h-10 w-10 items-center justify-center rounded-full font-semibold text-sm ${
+                          isCurrentAdvisor 
+                            ? 'bg-red-500 text-white' 
+                            : 'bg-blue-600 text-white'
+                        }`}>
+                          {advisor.firstName[0]}
+                          {advisor.lastName[0]}
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <p className={`font-semibold ${
+                              isCurrentAdvisor ? 'text-red-700' : 'text-gray-900'
+                            }`}>
+                              {advisor.firstName} {advisor.lastName}
+                            </p>
+                            {isCurrentAdvisor && (
+                              <span className="rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700">
+                                Déjà assigné
+                              </span>
+                            )}
+                          </div>
+                          <p className={`text-xs ${
+                            isCurrentAdvisor ? 'text-red-600' : 'text-gray-500'
+                          }`}>
+                            {advisor.email}
+                          </p>
+                        </div>
                       </div>
-                      <div className="flex-1">
-                        <p className="font-semibold text-gray-900">
-                          {advisor.firstName} {advisor.lastName}
-                        </p>
-                        <p className="text-xs text-gray-500">{advisor.email}</p>
-                      </div>
-                    </div>
-                  </button>
-                ))
+                    </button>
+                  );
+                })
               )}
             </div>
 

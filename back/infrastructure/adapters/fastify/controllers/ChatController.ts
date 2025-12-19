@@ -13,6 +13,15 @@ import { ChatNotFoundError } from '@avenir/domain/errors';
 import { UnauthorizedChatAccessError } from '@avenir/domain/errors';
 import { ValidationError } from '@avenir/application/errors';
 import { UserRole } from '@avenir/domain/enumerations/UserRole';
+import { ChatRepository } from '@avenir/domain/repositories/ChatRepository';
+import { webSocketService } from '../../services/WebSocketService';
+import {
+    createChatSchema,
+    getChatsSchema,
+    getChatByIdSchema,
+    closeChatSchema,
+} from '@avenir/shared/schemas/chat.schema';
+import { ZodError } from 'zod';
 
 export class ChatController {
     constructor(
@@ -22,15 +31,24 @@ export class ChatController {
         private readonly getChatMessagesUseCase: GetChatMessagesUseCase,
         private readonly markChatMessagesAsReadUseCase: MarkChatMessagesAsReadUseCase,
         private readonly transferChatUseCase: TransferChatUseCase,
-        private readonly closeChatUseCase: CloseChatUseCase
+        private readonly closeChatUseCase: CloseChatUseCase,
+        private readonly chatRepository: ChatRepository
     ) {}
 
     async createChat(request: FastifyRequest<{ Body: CreateChatRequest }>, reply: FastifyReply) {
         try {
-            const createChatRequest: CreateChatRequest = request.body;
+            const validatedData = createChatSchema.parse(request.body);
+            const createChatRequest: CreateChatRequest = validatedData as CreateChatRequest;
             const response = await this.createChatUseCase.execute(createChatRequest);
             return reply.code(201).send(response);
         } catch (error) {
+            if (error instanceof ZodError) {
+                return reply.code(400).send({
+                    error: 'Validation error',
+                    message: error.issues.map((e: any) => `${e.path.join('.')}: ${e.message}`).join(', '),
+                });
+            }
+
             if (error instanceof ValidationError) {
                 return reply.code(400).send({
                     error: 'Validation error',
@@ -47,14 +65,25 @@ export class ChatController {
 
     async getChats(request: FastifyRequest<{ Querystring: { userId: string; userRole: string } }>, reply: FastifyReply) {
         try {
-            const getChatsRequest: GetChatsRequest = {
+            const validatedData = getChatsSchema.parse({
                 userId: request.query.userId,
-                userRole: request.query.userRole as UserRole,
+                userRole: request.query.userRole,
+            });
+            const getChatsRequest: GetChatsRequest = {
+                userId: validatedData.userId,
+                userRole: validatedData.userRole as UserRole,
             };
 
             const response = await this.getChatsUseCase.execute(getChatsRequest);
             return reply.code(200).send(response);
         } catch (error) {
+            if (error instanceof ZodError) {
+                return reply.code(400).send({
+                    error: 'Validation error',
+                    message: error.issues.map((e: any) => `${e.path.join('.')}: ${e.message}`).join(', '),
+                });
+            }
+
             if (error instanceof ValidationError) {
                 return reply.code(400).send({
                     error: 'Validation error',
@@ -74,9 +103,13 @@ export class ChatController {
         reply: FastifyReply
     ) {
         try {
-            const response = await this.getChatByIdUseCase.execute({
+            const validatedData = getChatByIdSchema.parse({
                 chatId: request.params.chatId,
                 userId: request.query.userId,
+            });
+            const response = await this.getChatByIdUseCase.execute({
+                chatId: validatedData.chatId,
+                userId: validatedData.userId,
                 userRole: request.query.userRole as UserRole,
             });
 
@@ -224,14 +257,45 @@ export class ChatController {
         reply: FastifyReply
     ) {
         try {
-            await this.closeChatUseCase.execute({
+            const validatedData = closeChatSchema.parse({
                 chatId: request.params.chatId,
                 userId: request.body.userId,
                 userRole: request.body.userRole || 'ADVISOR',
             });
 
+            const chat = await this.chatRepository.getById(validatedData.chatId);
+
+            if (!chat) {
+                return reply.code(404).send({
+                    error: 'Chat not found',
+                    message: 'Chat not found',
+                });
+            }
+
+            await this.closeChatUseCase.execute({
+                chatId: validatedData.chatId,
+                userId: validatedData.userId,
+                userRole: validatedData.userRole,
+            });
+
+            const participantIds: string[] = [];
+            if (chat.client?.id) {
+                participantIds.push(chat.client.id);
+            }
+            if (chat.advisor?.id) {
+                participantIds.push(chat.advisor.id);
+            }
+            webSocketService.notifyChatClosed(validatedData.chatId, participantIds);
+
             return reply.code(200).send({ success: true, message: 'Chat closed successfully' });
         } catch (error) {
+            if (error instanceof ZodError) {
+                return reply.code(400).send({
+                    error: 'Validation error',
+                    message: error.issues.map((e: any) => `${e.path.join('.')}: ${e.message}`).join(', '),
+                });
+            }
+
             if (error instanceof ChatNotFoundError) {
                 return reply.code(404).send({
                     error: 'Chat not found',

@@ -1,50 +1,57 @@
 import { z } from 'zod';
+import { UserRole, ChatStatus } from '../enums';
 
-export enum ChatStatus {
-    PENDING = 'PENDING',
-    ACTIVE = 'ACTIVE',
-    CLOSED = 'CLOSED'
-}
+export { UserRole, ChatStatus };
+
+const idSchema = z.string().min(1, 'ID cannot be empty').refine(
+    (id) => {
+        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+        const mockIdRegex = /^(client|adv|dir|chat|msg)-\d{3,}$/i;
+        return uuidRegex.test(id) || mockIdRegex.test(id);
+    },
+    { message: 'Invalid ID format (must be UUID or mock ID like client-001)' }
+);
 
 // SCHÉMAS DE VALIDATION CHAT
 export const createChatSchema = z.object({
-    clientId: z.uuid('Invalid client ID format'),
+    clientId: idSchema,
     initialMessage: z.string().min(1, 'Initial message cannot be empty').max(5000, 'Message is too long'),
 });
 
 export const sendMessageSchema = z.object({
-    chatId: z.uuid('Invalid chat ID format'),
-    senderId: z.uuid('Invalid sender ID format'),
+    chatId: idSchema,
+    senderId: idSchema,
     content: z.string().min(1, 'Message cannot be empty').max(5000, 'Message is too long'),
 });
 
 export const getChatsSchema = z.object({
-    userId: z.uuid('Invalid user ID format'),
-    userRole: z.enum(['DIRECTOR', 'ADVISOR', 'CLIENT'] as const),
+    userId: idSchema,
+    userRole: z.enum(['CLIENT', 'ADVISOR', 'DIRECTOR']),
 });
 
 export const getChatByIdSchema = z.object({
-    chatId: z.uuid('Invalid chat ID format'),
-    userId: z.uuid('Invalid user ID format'),
+    chatId: idSchema,
+    userId: idSchema,
 });
 
 export const transferChatSchema = z.object({
-    chatId: z.uuid('Invalid chat ID format'),
-    newAdvisorId: z.uuid('Invalid advisor ID format'),
+    chatId: idSchema,
+    newAdvisorId: idSchema,
 });
 
 export const markMessageAsReadSchema = z.object({
-    messageId: z.uuid('Invalid message ID format'),
+    messageId: idSchema,
 });
 
 export const markChatMessagesAsReadSchema = z.object({
-    chatId: z.uuid('Invalid chat ID format'),
-    userId: z.uuid('Invalid user ID format'),
+    chatId: idSchema,
+    userId: idSchema,
 });
 
 export const closeChatSchema = z.object({
-    chatId: z.uuid('Invalid chat ID format'),
-    userId: z.uuid('Invalid user ID format'),
+    chatId: idSchema,
+    userId: idSchema,
+    userRole: z.enum(UserRole),
 });
 
 

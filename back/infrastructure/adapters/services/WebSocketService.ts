@@ -1,5 +1,6 @@
 import { WebSocket } from '@fastify/websocket';
 import { WebSocket as WSWebSocket } from 'ws';
+import { WebSocketMessageType } from '@avenir/shared/enums/WebSocketMessageType';
 
 export interface WebSocketClient {
     userId: string;
@@ -8,9 +9,9 @@ export interface WebSocketClient {
 }
 
 export interface ChatMessage {
-    type: 'new_message' | 'message_read' | 'chat_assigned' | 'chat_transferred' | 'chat_closed' | 'user_typing';
+    type: WebSocketMessageType;
     chatId: string;
-    data: any;
+    payload: any;
 }
 
 export class WebSocketService {
@@ -80,57 +81,35 @@ export class WebSocketService {
 
     notifyNewMessage(chatId: string, participantIds: string[], messageData: any): void {
         this.sendMessageToChatParticipants(participantIds, {
-            type: 'new_message',
+            type: WebSocketMessageType.NEW_MESSAGE,
             chatId,
-            data: messageData,
+            payload: messageData,
         });
     }
 
-    // notifyMessageRead(chatId: string, participantIds: string[], messageId: string): void {
-    //     this.sendMessageToChatParticipants(participantIds, {
-    //         type: 'message_read',
-    //         chatId,
-    //         data: { messageId },
-    //     });
-    // }
-
     notifyChatAssigned(chatId: string, clientId: string, advisorId: string): void {
         this.sendMessageToChatParticipants([clientId, advisorId], {
-            type: 'chat_assigned',
+            type: WebSocketMessageType.CHAT_ASSIGNED,
             chatId,
-            data: { advisorId },
+            payload: { advisorId },
         });
     }
 
     notifyChatTransferred(chatId: string, participantIds: string[], newAdvisorId: string): void {
         this.sendMessageToChatParticipants(participantIds, {
-            type: 'chat_transferred',
+            type: WebSocketMessageType.CHAT_TRANSFERRED,
             chatId,
-            data: { newAdvisorId },
+            payload: { newAdvisorId },
         });
     }
 
     notifyChatClosed(chatId: string, participantIds: string[]): void {
         this.sendMessageToChatParticipants(participantIds, {
-            type: 'chat_closed',
+            type: WebSocketMessageType.CHAT_CLOSED,
             chatId,
-            data: { closedAt: new Date().toISOString() },
+            payload: { closedAt: new Date().toISOString() },
         });
     }
-
-    // notifyUserTyping(chatId: string, participantIds: string[], userId: string, isTyping: boolean): void {
-    //     console.log(`[WebSocket] notifyUserTyping - chatId: ${chatId}, userId: ${userId}, isTyping: ${isTyping}`);
-    //     console.log(`[WebSocket] Participants:`, participantIds);
-    //
-    //     const otherParticipants = participantIds.filter(id => id !== userId);
-    //     console.log(`[WebSocket] Autres participants (destinataires):`, otherParticipants);
-    //
-    //     this.sendMessageToChatParticipants(otherParticipants, {
-    //         type: 'user_typing',
-    //         chatId,
-    //         data: { userId, isTyping },
-    //     });
-    // }
 
     getConnectedClientsCount(): number {
         let count = 0;
@@ -150,6 +129,3 @@ export class WebSocketService {
 }
 
 export const webSocketService = new WebSocketService();
-
-
-

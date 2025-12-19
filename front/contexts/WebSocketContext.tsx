@@ -2,21 +2,42 @@
 
 import React, { createContext, useContext, useEffect, useRef, useState, useCallback } from 'react';
 import { useCurrentMockUser } from '@/components/dev-user-switcher';
+import { MessageApiDto } from '@/lib/mapping/chat.mapper';
+import { WebSocketMessageType } from '@avenir/shared/enums';
 
-export enum WebSocketMessageType {
-    CONNECTED = 'connected',
-    NEW_MESSAGE = 'new_message',
-    CHAT_ASSIGNED = 'chat_assigned',
-    CHAT_TRANSFERRED = 'chat_transferred',
-    CHAT_CLOSED = 'chat_closed',
-    PONG = 'pong'
+export { WebSocketMessageType };
+
+export interface ConnectedPayload {
+    userId: string;
+    userRole: string;
+    message: string;
+    timestamp: string;
 }
 
-export interface WebSocketMessage {
-    type: WebSocketMessageType | string;
-    chatId?: string;
-    data?: Record<string, unknown>;
+export interface ChatAssignedPayload {
+    advisorId: string;
 }
+
+export interface ChatTransferredPayload {
+    newAdvisorId: string;
+}
+
+export interface ChatClosedPayload {
+    closedAt: string;
+}
+
+export interface PongPayload {
+    timestamp: string;
+}
+
+export type WebSocketMessage =
+    | { type: WebSocketMessageType.CONNECTED; chatId?: string; payload?: ConnectedPayload }
+    | { type: WebSocketMessageType.NEW_MESSAGE; chatId: string; payload: MessageApiDto }
+    | { type: WebSocketMessageType.CHAT_ASSIGNED; chatId: string; payload?: ChatAssignedPayload }
+    | { type: WebSocketMessageType.CHAT_TRANSFERRED; chatId: string; payload?: ChatTransferredPayload }
+    | { type: WebSocketMessageType.CHAT_CLOSED; chatId: string; payload?: ChatClosedPayload }
+    | { type: WebSocketMessageType.PONG; chatId?: string; payload?: PongPayload }
+    | { type: string; chatId?: string; payload?: unknown };
 
 interface WebSocketContextType {
     isConnected: boolean;

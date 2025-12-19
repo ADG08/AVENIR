@@ -6,6 +6,8 @@ import { ChatNotFoundError, UserNotFoundError, UnauthorizedChatAccessError, Mess
 import { ValidationError } from '@avenir/application/errors';
 import { webSocketService } from '../../services/WebSocketService';
 import { ChatRepository } from '@avenir/domain/repositories/ChatRepository';
+import {markMessageAsReadSchema} from "../../../../application/schemas";
+import {ZodError} from "zod";
 
 export class MessageController {
     constructor(
@@ -80,9 +82,21 @@ export class MessageController {
         reply: FastifyReply
     ) {
         try {
-            await this.markMessageAsReadUseCase.execute(request.params.messageId);
+            // Validation Zod
+            const validatedData = markMessageAsReadSchema.parse({
+                messageId: request.params.messageId,
+            });
+
+            await this.markMessageAsReadUseCase.execute(validatedData.messageId);
             return reply.code(200).send({ success: true });
         } catch (error) {
+            if (error instanceof ZodError) {
+                return reply.code(400).send({
+                    error: 'Validation error',
+                    message: error.issues.map((e: any) => `${e.path.join('.')}: ${e.message}`).join(', '),
+                });
+            }
+
             if (error instanceof MessageNotFoundError) {
                 return reply.code(404).send({
                     error: 'Message not found',

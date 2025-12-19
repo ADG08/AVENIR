@@ -1,4 +1,14 @@
-// Service API pour les chats
+import {
+  createChatSchema,
+  sendMessageSchema,
+  getChatsSchema,
+  getChatByIdSchema,
+  transferChatSchema,
+  closeChatSchema,
+  markMessageAsReadSchema,
+} from '@avenir/shared/schemas/chat.schema';
+import {UserRole} from "@avenir/shared";
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
 export interface SendMessageDto {
@@ -20,6 +30,7 @@ export interface GetChatsParams {
 export interface CloseChatDto {
   chatId: string;
   userId: string;
+  userRole: UserRole;
 }
 
 export interface TransferChatDto {
@@ -35,8 +46,9 @@ export interface AssignAdvisorDto {
 
 export const chatApi = {
   async getChats(params: GetChatsParams) {
+    const validatedParams = getChatsSchema.parse(params);
     const response = await fetch(
-      `${API_BASE_URL}/chats?userId=${params.userId}&userRole=${params.userRole}`,
+      `${API_BASE_URL}/chats?userId=${validatedParams.userId}&userRole=${validatedParams.userRole}`,
       {
         method: 'GET',
         headers: {
@@ -53,8 +65,9 @@ export const chatApi = {
   },
 
   async getChatMessages(chatId: string, userId: string) {
+    const validatedData = getChatByIdSchema.parse({ chatId, userId });
     const response = await fetch(
-      `${API_BASE_URL}/chats/${chatId}/messages?userId=${userId}`,
+      `${API_BASE_URL}/chats/${validatedData.chatId}/messages?userId=${validatedData.userId}`,
       {
         method: 'GET',
         headers: {
@@ -71,12 +84,13 @@ export const chatApi = {
   },
 
   async sendMessage(data: SendMessageDto) {
+    const validatedData = sendMessageSchema.parse(data);
     const response = await fetch(`${API_BASE_URL}/messages`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(data),
+      body: JSON.stringify(validatedData),
     });
 
     if (!response.ok) {
@@ -88,12 +102,13 @@ export const chatApi = {
   },
 
   async createChat(data: CreateChatDto) {
+    const validatedData = createChatSchema.parse(data);
     const response = await fetch(`${API_BASE_URL}/chats`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(data),
+      body: JSON.stringify(validatedData),
     });
 
     if (!response.ok) {
@@ -104,12 +119,16 @@ export const chatApi = {
   },
 
   async closeChat(data: CloseChatDto) {
-    const response = await fetch(`${API_BASE_URL}/chats/${data.chatId}/close`, {
+    const validatedData = closeChatSchema.parse(data);
+    const response = await fetch(`${API_BASE_URL}/chats/${validatedData.chatId}/close`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ userId: data.userId }),
+      body: JSON.stringify({
+        userId: validatedData.userId,
+        userRole: validatedData.userRole,
+      }),
     });
 
     if (!response.ok) {
@@ -120,13 +139,17 @@ export const chatApi = {
   },
 
   async transferChat(data: TransferChatDto) {
-    const response = await fetch(`${API_BASE_URL}/chats/${data.chatId}/transfer`, {
+    const validatedData = transferChatSchema.parse({
+      chatId: data.chatId,
+      newAdvisorId: data.newAdvisorId,
+    });
+    const response = await fetch(`${API_BASE_URL}/chats/${validatedData.chatId}/transfer`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        newAdvisorId: data.newAdvisorId,
+        newAdvisorId: validatedData.newAdvisorId,
         currentUserId: data.currentUserId,
       }),
     });
@@ -155,7 +178,9 @@ export const chatApi = {
   },
 
   async markMessageAsRead(messageId: string) {
-    const response = await fetch(`${API_BASE_URL}/messages/${messageId}/read`, {
+    const validatedData = markMessageAsReadSchema.parse({ messageId });
+
+    const response = await fetch(`${API_BASE_URL}/messages/${validatedData.messageId}/read`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',

@@ -1,5 +1,1 @@
-export enum ChatStatus {
-    PENDING = 'PENDING',
-    ACTIVE = 'ACTIVE',
-    CLOSED = 'CLOSED'
-}
+export { ChatStatus } from '@avenir/shared/enums/ChatStatus';

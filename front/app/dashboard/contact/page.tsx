@@ -13,9 +13,9 @@ import {MessageCircle, Plus, Search} from 'lucide-react';
 import {DashboardHeader} from '@/components/dashboard-header';
 import {chatApi} from '@/lib/api/chat.api';
 import {useToast} from '@/hooks/use-toast';
-import {useWebSocket, WebSocketMessageType} from '@/contexts/WebSocketContext';
-import {mapChatFromApi, mapChatsFromApi, mapMessageFromApi, mapMessagesFromApi} from '@/lib/mapping';
-import {ChatStatus} from "@avenir/shared";
+import {useWebSocket} from '@/contexts/WebSocketContext';
+import {mapChatFromApi, mapChatsFromApi, mapMessageFromApi, mapMessagesFromApi, MessageApiDto} from '@/lib/mapping';
+import {ChatStatus, WebSocketMessageType} from "@avenir/shared/enums";
 
 export default function ContactPage() {
   const currentUser = useCurrentMockUser();
@@ -157,6 +157,7 @@ export default function ContactPage() {
       await chatApi.closeChat({
         chatId: selectedChat.id,
         userId: currentUser.id,
+        userRole: currentUser.role,
       });
 
       setChats((prev) =>
@@ -255,8 +256,8 @@ export default function ContactPage() {
 
       switch (message.type) {
         case WebSocketMessageType.NEW_MESSAGE:
-          if (message.chatId && message.data) {
-            const newMessage = mapMessageFromApi(message.data);
+          if (message.chatId && message.payload) {
+            const newMessage = mapMessageFromApi(message.payload as MessageApiDto);
 
             setChatMessages((prev) => {
               const existingMessages = prev[message.chatId!] || [];
@@ -467,6 +468,7 @@ export default function ContactPage() {
         onClose={() => setIsAssignModalOpen(false)}
         onSubmit={handleAssignAdvisor}
         isLoading={isAssigning}
+        currentAdvisorId={selectedChat?.advisorId}
       />
     </div>
   );
