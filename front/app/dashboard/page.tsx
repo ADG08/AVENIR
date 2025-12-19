@@ -8,7 +8,10 @@ import { SavingsGoalItem } from '@/components/ui/savings-goal-item';
 import { BarChart } from '@/components/ui/bar-chart';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DashboardHeader } from '@/components/dashboard-header';
-import { Search, ArrowUp, ArrowDown, Plus, ChevronLeft, ChevronRight } from 'lucide-react';
+import { AddAccountModal } from '@/components/modals/AddAccountModal';
+import { AddSavingsModal } from '@/components/modals/AddSavingsModal';
+import { DeleteAccountModal } from '@/components/modals/DeleteAccountModal';
+import { Search, ArrowUp, ArrowDown, Plus, ChevronLeft, ChevronRight, Trash2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useState, useRef, useEffect } from 'react';
 import { useLanguage } from '@/hooks/use-language';
@@ -20,6 +23,9 @@ export default function Home() {
     const [filterOpen, setFilterOpen] = useState(false);
     const [currentCardIndex, setCurrentCardIndex] = useState(0);
     const [cardDirection, setCardDirection] = useState(1);
+    const [addAccountModalOpen, setAddAccountModalOpen] = useState(false);
+    const [addSavingsModalOpen, setAddSavingsModalOpen] = useState(false);
+    const [deleteAccountModalOpen, setDeleteAccountModalOpen] = useState(false);
     const [activeFilters, setActiveFilters] = useState<{
         card: string | null;
         category: string | null;
@@ -331,10 +337,26 @@ export default function Home() {
                         >
                             <div className="mb-4 flex items-center justify-between">
                                 <h3 className="text-xl font-semibold text-gray-900">{t('dashboard.myCards')}</h3>
-                                <button className="flex cursor-pointer items-center gap-2 rounded-full bg-gray-100 px-4 py-2 text-sm font-medium text-gray-900 transition-all hover:bg-gray-200">
-                                    <Plus className="h-4 w-4" />
-                                    {t('dashboard.addCard')}
-                                </button>
+                                <div className="flex items-center gap-2">
+                                    <motion.button
+                                        onClick={() => setDeleteAccountModalOpen(true)}
+                                        whileHover={{ scale: 1.05 }}
+                                        whileTap={{ scale: 0.95 }}
+                                        className="flex cursor-pointer items-center justify-center rounded-full bg-red-100 p-2 transition-all hover:bg-red-200"
+                                        aria-label="Delete account"
+                                    >
+                                        <Trash2 className="h-4 w-4 text-red-600" />
+                                    </motion.button>
+                                    <motion.button
+                                        onClick={() => setAddAccountModalOpen(true)}
+                                        whileHover={{ scale: 1.05 }}
+                                        whileTap={{ scale: 0.95 }}
+                                        className="flex cursor-pointer items-center gap-2 rounded-full bg-gray-100 px-4 py-2 text-sm font-medium text-gray-900 transition-all hover:bg-gray-200"
+                                    >
+                                        <Plus className="h-4 w-4" />
+                                        {t('dashboard.addCard')}
+                                    </motion.button>
+                                </div>
                             </div>
 
                             <div className="space-y-3">
@@ -436,9 +458,15 @@ export default function Home() {
                         >
                             <div className="mb-4 flex items-center justify-between">
                                 <h3 className="text-xl font-semibold text-gray-900">{t('dashboard.savingsGoals')}</h3>
-                                <button className="cursor-pointer rounded-full bg-gray-100 px-5 py-2 text-sm font-medium text-gray-900 transition-all hover:bg-gray-200">
-                                    {t('dashboard.viewAll')}
-                                </button>
+                                <motion.button
+                                    onClick={() => setAddSavingsModalOpen(true)}
+                                    whileHover={{ scale: 1.05 }}
+                                    whileTap={{ scale: 0.95 }}
+                                    className="flex cursor-pointer items-center gap-2 rounded-full bg-gray-100 px-5 py-2 text-sm font-medium text-gray-900 transition-all hover:bg-gray-200"
+                                >
+                                    <Plus className="h-4 w-4" />
+                                    {t('dashboard.addAccount')}
+                                </motion.button>
                             </div>
 
                             <div className="space-y-3">
@@ -461,6 +489,10 @@ export default function Home() {
                     </div>
                 </div>
             </main>
+
+            <AddAccountModal open={addAccountModalOpen} onOpenChange={setAddAccountModalOpen} />
+            <AddSavingsModal open={addSavingsModalOpen} onOpenChange={setAddSavingsModalOpen} />
+            <DeleteAccountModal open={deleteAccountModalOpen} onOpenChange={setDeleteAccountModalOpen} />
         </div>
     );
 }

@@ -70,6 +70,7 @@
     "recentTransactions": "Transactions Récentes",
     "myCards": "Mes Cartes",
     "addCard": "Ajouter une Carte",
+    "addAccount": "Ajouter un Compte",
     "receiveFunds": "Recevoir",
     "sendMoney": "Envoyer",
     "incomeThisMonth": "Revenus ce mois",
@@ -89,7 +90,39 @@
     "activity": "Activité",
     "saving": "Épargne",
     "yearly": "Annuel",
-    "spending": "Dépenses"
+    "spending": "Dépenses",
+    "addAccountModal": {
+      "title": "Ajouter un compte courant",
+      "description": "Créez un nouveau compte courant pour gérer vos finances au quotidien.",
+      "accountName": "Nom du compte",
+      "accountNamePlaceholder": "Ex: Compte principal, Compte épargne..."
+    },
+    "addSavingsModal": {
+      "title": "Ajouter un compte d'épargne",
+      "description": "Sélectionnez le type de compte d'épargne que vous souhaitez ouvrir.",
+      "savingsType": "Type de compte d'épargne",
+      "savingsTypePlaceholder": "Sélectionnez un type de compte"
+    },
+    "deleteAccountModal": {
+      "title": "Supprimer un compte",
+      "description": "Cette action est irréversible et supprimera toutes les données associées.",
+      "selectAccount": "Compte à supprimer",
+      "selectAccountPlaceholder": "Sélectionnez un compte",
+      "confirmationText": "Je confirme la suppression de ce compte",
+      "verificationLabel": "Pour confirmer, copiez et collez le texte suivant :",
+      "verificationInput": "Tapez le texte de confirmation",
+      "verificationPlaceholder": "Collez ou tapez le texte ici",
+      "verificationError": "Le texte de confirmation ne correspond pas",
+      "verificationSuccess": "Texte de confirmation valide"
+    },
+    "savingsTypes": {
+      "livretA": "Livret A",
+      "livretJeune": "Livret Jeune",
+      "ldds": "LDDS (Livret de Développement Durable et Solidaire)",
+      "pel": "PEL (Plan Épargne Logement)",
+      "cel": "CEL (Compte Épargne Logement)",
+      "lep": "LEP (Livret d'Épargne Populaire)"
+    }
   },
   "landing": {
     "product": "Produit",
