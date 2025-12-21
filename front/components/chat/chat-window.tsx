@@ -1,10 +1,11 @@
 'use client';
 
-import { Chat, Message, UserRole } from '@/types/chat';
-import { ChatHeader } from './chat-header';
-import { ChatMessage } from './chat-message';
-import { ChatInput } from './chat-input';
-import { useEffect, useRef } from 'react';
+import {Chat, Message, UserRole} from '@/types/chat';
+import {ChatHeader} from './chat-header';
+import {ChatMessage} from './chat-message';
+import {ChatInput} from './chat-input';
+import {useEffect, useRef} from 'react';
+import {useTranslation} from 'react-i18next';
 
 interface ChatWindowProps {
   chat: Chat;
@@ -31,6 +32,7 @@ export const ChatWindow = ({
   onAssign,
   isLoading,
 }: ChatWindowProps) => {
+  const { t } = useTranslation();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -59,21 +61,21 @@ export const ChatWindow = ({
           <div className="flex h-full items-center justify-center">
             <div className="flex flex-col items-center gap-3">
               <div className="h-8 w-8 animate-spin rounded-full border-4 border-gray-200 border-t-gray-900"></div>
-              <p className="text-sm text-gray-500">Chargement des messages...</p>
+              <p className="text-sm text-gray-500">{t('chat.loadingMessages')}</p>
             </div>
           </div>
         ) : messages.length === 0 ? (
           <div className="flex h-full items-center justify-center">
             <div className="text-center">
-              <p className="text-gray-500">Aucun message pour le moment</p>
-              <p className="mt-1 text-sm text-gray-400">Envoyez un message pour démarrer la conversation</p>
+              <p className="text-gray-500">{t('chat.noMessages')}</p>
+              <p className="mt-1 text-sm text-gray-400">{t('chat.sendMessageToStart')}</p>
             </div>
           </div>
         ) : (
           <div className="space-y-1">
             {messages.map((message) => {
               const isOwnMessage = message.senderId === currentUserId;
-              const isDirector = message.sender?.role === 'DIRECTOR' && !isOwnMessage;
+              const isDirector = message.sender?.role === UserRole.DIRECTOR && !isOwnMessage;
 
               return (
                 <ChatMessage
@@ -94,8 +96,8 @@ export const ChatWindow = ({
         disabled={isClosed || isLoading}
         placeholder={
           isClosed
-            ? 'Cette conversation est fermée'
-            : 'Tapez votre message...'
+            ? t('chat.conversationClosed')
+            : t('chat.typeMessage')
         }
       />
     </div>

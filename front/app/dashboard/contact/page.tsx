@@ -13,7 +13,7 @@ import {MessageCircle, Plus, Search} from 'lucide-react';
 import {DashboardHeader} from '@/components/dashboard-header';
 import {chatApi} from '@/lib/api/chat.api';
 import {useToast} from '@/hooks/use-toast';
-import {useWebSocket} from '@/contexts/WebSocketContext';
+import {useWebSocket, WebSocketMessage} from '@/contexts/WebSocketContext';
 import {
   ChatApiDto,
   mapChatFromApi,
@@ -23,8 +23,10 @@ import {
   MessageApiDto
 } from '@/lib/mapping';
 import {ChatStatus, WebSocketMessageType} from "@avenir/shared/enums";
+import {useTranslation} from 'react-i18next';
 
 export default function ContactPage() {
+  const { t } = useTranslation();
   const currentUser = useCurrentMockUser();
   const { toast } = useToast();
   const { subscribe } = useWebSocket();
@@ -57,14 +59,14 @@ export default function ContactPage() {
     } catch (error) {
       console.error('Error loading chats:', error);
       toast({
-        title: 'Erreur',
-        description: 'Impossible de charger les conversations',
+        title: t('chat.errorLoadingChats'),
+        description: t('chat.errorLoadingChatsDescription'),
         variant: 'destructive',
       });
     } finally {
       setIsLoadingChats(false);
     }
-  }, [currentUser, toast]);
+  }, [currentUser, toast, t]);
 
   const loadMessages = useCallback(async (chatId: string) => {
     if (!currentUser) return;
@@ -81,26 +83,200 @@ export default function ContactPage() {
     } catch (error) {
       console.error('Error loading messages:', error);
       toast({
-        title: 'Erreur',
-        description: 'Impossible de charger les messages',
+        title: t('chat.errorLoadingMessages'),
+        description: t('chat.errorLoadingMessagesDescription'),
         variant: 'destructive',
       });
     } finally {
       setIsLoadingMessages(false);
     }
-  }, [currentUser, toast]);
+  }, [currentUser, toast, t]);
 
-  useEffect(() => {
-    if (currentUser) {
-      loadChats();
+  const handleNewMessage = useCallback((message: WebSocketMessage) => {
+    if (message.type !== WebSocketMessageType.NEW_MESSAGE || !message.chatId || !message.payload) return;
+
+    const newMessage = mapMessageFromApi(message.payload as MessageApiDto);
+
+    setChatMessages((prev) => {
+      const existingMessages = prev[message.chatId!] || [];
+      const messageExists = existingMessages.some(msg => msg.id === newMessage.id);
+
+      if (messageExists) {
+        return prev;
+      }
+
+      return {
+        ...prev,
+        [message.chatId!]: [...existingMessages, newMessage],
+      };
+    });
+
+    loadChats();
+
+    if (newMessage.senderId !== currentUser?.id) {
+      toast({
+        title: t('chat.newMessage'),
+        description: t('chat.newMessageFrom', { name: newMessage.sender?.firstName || 'Un utilisateur' }),
+      });
     }
-  }, [currentUser, loadChats]);
+  }, [currentUser?.id, loadChats, toast, t]);
+
+  const handleChatCreated = useCallback((message: WebSocketMessage) => {
+    if (message.type !== WebSocketMessageType.CHAT_CREATED || !message.chatId || !message.payload) return;
+
+    const chatPayload = message.payload as ChatApiDto;
+    const newChat = mapChatFromApi({
+      id: chatPayload.id || message.chatId,
+      clientId: chatPayload.clientId,
+      clientName: chatPayload.clientName,
+      advisorId: chatPayload.advisorId,
+      advisorName: chatPayload.advisorName,
+      status: chatPayload.status,
+      lastMessage: chatPayload.lastMessage,
+      lastMessageAt: chatPayload.lastMessageAt,
+      unreadCount: chatPayload.unreadCount || 0,
+      createdAt: chatPayload.createdAt,
+      updatedAt: chatPayload.updatedAt,
+    });
+
+    setChats((prev) => {
+      const chatExists = prev.some(c => c.id === newChat.id);
+      if (chatExists) {
+        return prev;
+      }
+      return [newChat, ...prev];
+    });
+
+    if (currentUser?.role === UserRole.ADVISOR || currentUser?.role === UserRole.DIRECTOR) {
+      toast({
+        title: t('chat.conversationCreated'),
+        description: t('chat.conversationCreatedBy', { name: chatPayload.clientName || 'Un client' }),
+      });
+    }
+  }, [currentUser?.role, toast, t]);
+
+  const handleChatClosed = useCallback((message: WebSocketMessage) => {
+    if (message.type !== WebSocketMessageType.CHAT_CLOSED || !message.chatId) return;
+
+    setChats((prev) =>
+      prev.map((chat) =>
+        chat.id === message.chatId ? { ...chat, status: ChatStatus.CLOSED } : chat
+      )
+    );
+
+    if (selectedChat?.id === message.chatId) {
+      setSelectedChat(null);
+      toast({
+        title: t('chat.conversationClosedSuccess'),
+        description: t('chat.conversationClosedDescription'),
+      });
+    }
+  }, [selectedChat?.id, toast, t]);
+
+  const handleChatAssigned = useCallback((message: WebSocketMessage) => {
+    if (message.type !== WebSocketMessageType.CHAT_ASSIGNED || !message.chatId) return;
+
+    loadChats();
+    toast({
+      title: t('chat.advisorAssigned'),
+      description: t('chat.advisorAssignedDescription'),
+    });
+  }, [loadChats, toast, t]);
+
+  const handleChatTransferred = useCallback((message: WebSocketMessage) => {
+    if (message.type !== WebSocketMessageType.CHAT_TRANSFERRED || !message.chatId) return;
+
+    if (currentUser?.role === UserRole.ADVISOR) {
+      chatApi.getChats({
+        userId: currentUser.id,
+        userRole: currentUser.role,
+      }).then((updatedChats) => {
+        const mappedChats = Array.isArray(updatedChats) ? mapChatsFromApi(updatedChats) : [];
+        const stillHasAccess = mappedChats.some((c: Chat) => c.id === message.chatId);
+
+        if (!stillHasAccess) {
+          setChats((prev) => prev.filter((c) => c.id !== message.chatId));
+
+          if (selectedChat?.id === message.chatId) {
+            setSelectedChat(null);
+          }
+
+          toast({
+            title: t('chat.conversationTransferred'),
+            description: t('chat.conversationTransferredDescription'),
+          });
+        } else {
+          setChats(mappedChats);
+        }
+      }).catch((error) => {
+        console.error('Error checking chat access:', error);
+      });
+    } else {
+      loadChats();
+
+      if (currentUser?.role === UserRole.DIRECTOR && selectedChat?.id === message.chatId) {
+        chatApi.getChatById(message.chatId, currentUser.id, currentUser.role)
+          .then((updatedChatData) => {
+            const updatedChat = mapChatFromApi(updatedChatData);
+            setSelectedChat(updatedChat);
+          })
+          .catch((error) => {
+            console.error('Error reloading chat:', error);
+          });
+      }
+    }
+  }, [currentUser?.id, currentUser?.role, loadChats, selectedChat?.id, toast, t]);
 
   useEffect(() => {
-    if (selectedChat && currentUser) {
+    if (!currentUser) return;
+
+    loadChats();
+
+    const unsubscribe = subscribe((message) => {
+      console.log('[ContactPage] WebSocket message received:', message);
+
+      switch (message.type) {
+        case WebSocketMessageType.NEW_MESSAGE:
+          handleNewMessage(message);
+          break;
+        case WebSocketMessageType.CHAT_CREATED:
+          handleChatCreated(message);
+          break;
+        case WebSocketMessageType.CHAT_CLOSED:
+          handleChatClosed(message);
+          break;
+        case WebSocketMessageType.CHAT_ASSIGNED:
+          handleChatAssigned(message);
+          break;
+        case WebSocketMessageType.CHAT_TRANSFERRED:
+          handleChatTransferred(message);
+          break;
+        case WebSocketMessageType.CONNECTED:
+          break;
+        default:
+          console.log('Unknown message type:', message.type);
+      }
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, [
+    currentUser,
+    loadChats,
+    subscribe,
+    handleNewMessage,
+    handleChatCreated,
+    handleChatClosed,
+    handleChatAssigned,
+    handleChatTransferred,
+  ]);
+
+  useEffect(() => {
+    if (selectedChat?.id && currentUser) {
       loadMessages(selectedChat.id);
     }
-  }, [selectedChat, currentUser, loadMessages]);
+  }, [selectedChat?.id, currentUser, loadMessages]);
 
   const handleSendMessage = async (content: string) => {
     if (!selectedChat || !currentUser) return;
@@ -114,8 +290,8 @@ export default function ContactPage() {
     } catch (error) {
       console.error('Error sending message:', error);
       toast({
-        title: 'Erreur',
-        description: "Impossible d'envoyer le message",
+        title: t('chat.errorSendingMessage'),
+        description: t('chat.errorSendingMessageDescription'),
         variant: 'destructive',
       });
     }
@@ -142,14 +318,14 @@ export default function ContactPage() {
       setIsNewChatModalOpen(false);
 
       toast({
-        title: 'Succès',
-        description: 'Conversation créée avec succès',
+        title: t('chat.conversationCreatedSuccess'),
+        description: t('chat.conversationCreatedSuccessDescription'),
       });
     } catch (error) {
       console.error('Error creating chat:', error);
       toast({
-        title: 'Erreur',
-        description: 'Impossible de créer la conversation',
+        title: t('chat.errorCreatingConversation'),
+        description: t('chat.errorCreatingConversationDescription'),
         variant: 'destructive',
       });
     } finally {
@@ -176,14 +352,14 @@ export default function ContactPage() {
       setSelectedChat(null);
 
       toast({
-        title: 'Succès',
-        description: 'Conversation fermée avec succès',
+        title: t('chat.conversationClosedSuccess'),
+        description: t('chat.conversationClosedDescription'),
       });
     } catch (error) {
       console.error('Error closing chat:', error);
       toast({
-        title: 'Erreur',
-        description: 'Impossible de fermer la conversation',
+        title: t('chat.errorClosingConversation'),
+        description: t('chat.errorClosingConversationDescription'),
         variant: 'destructive',
       });
     }
@@ -213,14 +389,14 @@ export default function ContactPage() {
       setIsTransferModalOpen(false);
 
       toast({
-        title: 'Succès',
-        description: 'Conversation transférée avec succès',
+        title: t('chat.conversationTransferredSuccess'),
+        description: t('chat.conversationTransferredSuccessDescription'),
       });
     } catch (error) {
       console.error('Error transferring chat:', error);
       toast({
-        title: 'Erreur',
-        description: 'Impossible de transférer la conversation',
+        title: t('chat.errorTransferringConversation'),
+        description: t('chat.errorTransferringConversationDescription'),
         variant: 'destructive',
       });
     } finally {
@@ -248,14 +424,14 @@ export default function ContactPage() {
       setIsAssignModalOpen(false);
 
       toast({
-        title: 'Succès',
-        description: 'Conseiller assigné avec succès',
+        title: t('chat.advisorAssignedSuccess'),
+        description: t('chat.advisorAssignedSuccessDescription'),
       });
     } catch (error) {
       console.error('Error assigning advisor:', error);
       toast({
-        title: 'Erreur',
-        description: "Impossible d'assigner le conseiller",
+        title: t('chat.errorAssigningAdvisor'),
+        description: t('chat.errorAssigningAdvisorDescription'),
         variant: 'destructive',
       });
     } finally {
@@ -263,157 +439,6 @@ export default function ContactPage() {
     }
   };
 
-  useEffect(() => {
-    if (!currentUser) return;
-
-    const unsubscribe = subscribe((message) => {
-      console.log('[ContactPage] WebSocket message received:', message);
-
-      switch (message.type) {
-        case WebSocketMessageType.NEW_MESSAGE:
-          if (message.chatId && message.payload) {
-            const newMessage = mapMessageFromApi(message.payload as MessageApiDto);
-
-            setChatMessages((prev) => {
-              const existingMessages = prev[message.chatId!] || [];
-              const messageExists = existingMessages.some(msg => msg.id === newMessage.id);
-
-              if (messageExists) {
-                return prev;
-              }
-
-              return {
-                ...prev,
-                [message.chatId!]: [...existingMessages, newMessage],
-              };
-            });
-
-            loadChats();
-            if (newMessage.senderId !== currentUser.id) {
-              toast({
-                title: 'Nouveau message',
-                description: `${newMessage.sender?.firstName || 'Un utilisateur'} a envoyé un message`,
-              });
-            }
-          }
-          break;
-
-        case WebSocketMessageType.CHAT_CREATED:
-          if (message.chatId && message.payload) {
-            const chatPayload = message.payload as ChatApiDto;
-            const newChat = mapChatFromApi({
-              id: chatPayload.id || message.chatId,
-              clientId: chatPayload.clientId,
-              clientName: chatPayload.clientName,
-              advisorId: chatPayload.advisorId,
-              advisorName: chatPayload.advisorName,
-              status: chatPayload.status,
-              lastMessage: chatPayload.lastMessage,
-              lastMessageAt: chatPayload.lastMessageAt,
-              unreadCount: chatPayload.unreadCount || 0,
-              createdAt: chatPayload.createdAt,
-              updatedAt: chatPayload.updatedAt,
-            });
-
-            setChats((prev) => {
-              const chatExists = prev.some(c => c.id === newChat.id);
-              if (chatExists) {
-                return prev;
-              }
-              return [newChat, ...prev];
-            });
-
-            if (currentUser.role === UserRole.ADVISOR || currentUser.role === UserRole.DIRECTOR) {
-              toast({
-                title: 'Nouvelle conversation',
-                description: `${chatPayload.clientName || 'Un client'} a créé une nouvelle conversation`,
-              });
-            }
-          }
-          break;
-
-        case WebSocketMessageType.CHAT_CLOSED:
-          if (message.chatId) {
-            setChats((prev) =>
-              prev.map((chat) =>
-                chat.id === message.chatId ? { ...chat, status: ChatStatus.CLOSED } : chat
-              )
-            );
-
-            if (selectedChat?.id === message.chatId) {
-              setSelectedChat(null);
-              toast({
-                title: 'Conversation fermée',
-                description: 'La conversation a été fermée',
-              });
-            }
-          }
-          break;
-        case WebSocketMessageType.CHAT_ASSIGNED:
-          if (message.chatId) {
-            loadChats();
-            toast({
-              title: 'Conseiller assigné',
-              description: 'Un conseiller a été assigné à la conversation',
-            });
-          }
-          break;
-
-        case WebSocketMessageType.CHAT_TRANSFERRED:
-          if (message.chatId) {
-            if (currentUser.role === UserRole.ADVISOR) {
-              chatApi.getChats({
-                userId: currentUser.id,
-                userRole: currentUser.role,
-              }).then((updatedChats) => {
-                const mappedChats = Array.isArray(updatedChats) ? mapChatsFromApi(updatedChats) : [];
-                const stillHasAccess = mappedChats.some((c: Chat) => c.id === message.chatId);
-
-                if (!stillHasAccess) {
-                  setChats((prev) => prev.filter((c) => c.id !== message.chatId));
-
-                  if (selectedChat?.id === message.chatId) {
-                    setSelectedChat(null);
-                  }
-
-                  toast({
-                    title: 'Conversation transférée',
-                    description: 'Cette conversation a été transférée à un autre conseiller',
-                  });
-                } else {
-                  setChats(mappedChats);
-                }
-              }).catch((error) => {
-                console.error('Error checking chat access:', error);
-              });
-            } else {
-              loadChats();
-
-              if (currentUser.role === UserRole.DIRECTOR && selectedChat?.id === message.chatId) {
-                chatApi.getChatById(message.chatId, currentUser.id, currentUser.role)
-                  .then((updatedChatData) => {
-                    const updatedChat = mapChatFromApi(updatedChatData);
-                    setSelectedChat(updatedChat);
-                  })
-                  .catch((error) => {
-                    console.error('Error reloading chat:', error);
-                  });
-              }
-            }
-          }
-          break;
-
-        case WebSocketMessageType.CONNECTED:
-          break;
-        default:
-          console.log('Unknown message type:', message.type);
-      }
-    });
-
-    return () => {
-      unsubscribe();
-    };
-  }, [currentUser, subscribe, selectedChat, loadChats, toast, isTransferModalOpen]);
 
   const filteredChats = chats;
   const currentMessages = selectedChat ? chatMessages[selectedChat.id] || [] : [];
@@ -435,8 +460,8 @@ export default function ContactPage() {
               className="rounded-2xl border border-gray-200 bg-white p-6"
             >
               <div className="mb-6 flex items-center justify-between">
-                <h2 className="text-2xl font-bold text-gray-900">Conversations</h2>
-                {currentUser.role === 'CLIENT' && (
+                <h2 className="text-2xl font-bold text-gray-900">{t('chat.conversations')}</h2>
+                {currentUser.role === UserRole.CLIENT && (
                   <motion.button
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
@@ -452,7 +477,7 @@ export default function ContactPage() {
                 <Search className="h-5 w-5 text-gray-400" />
                 <input
                   type="text"
-                  placeholder="Rechercher..."
+                  placeholder={t('common.search')}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full border-none bg-transparent text-sm text-gray-600 placeholder:text-gray-400 focus:outline-none"
@@ -463,12 +488,12 @@ export default function ContactPage() {
                 {isLoadingChats ? (
                   <div className="py-12 text-center">
                     <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-gray-200 border-t-gray-900"></div>
-                    <p className="mt-3 text-sm text-gray-500">Chargement...</p>
+                    <p className="mt-3 text-sm text-gray-500">{t('common.loading')}</p>
                   </div>
                 ) : filteredChats.length === 0 ? (
                   <div className="py-12 text-center">
                     <MessageCircle className="mx-auto h-12 w-12 text-gray-300" />
-                    <p className="mt-3 text-sm text-gray-500">Aucune conversation</p>
+                    <p className="mt-3 text-sm text-gray-500">{t('chat.noConversations')}</p>
                   </div>
                 ) : (
                   filteredChats.map((chat) => (
@@ -498,9 +523,9 @@ export default function ContactPage() {
                   currentUserRole={currentUser.role}
                   onBack={() => setSelectedChat(null)}
                   onSendMessage={handleSendMessage}
-                  onClose={currentUser.role === 'ADVISOR' ? handleCloseChat : undefined}
-                  onTransfer={currentUser.role === 'ADVISOR' ? () => setIsTransferModalOpen(true) : undefined}
-                  onAssign={currentUser.role === 'DIRECTOR' ? () => setIsAssignModalOpen(true) : undefined}
+                  onClose={currentUser.role === UserRole.ADVISOR ? handleCloseChat : undefined}
+                  onTransfer={currentUser.role === UserRole.ADVISOR ? () => setIsTransferModalOpen(true) : undefined}
+                  onAssign={currentUser.role === UserRole.DIRECTOR ? () => setIsAssignModalOpen(true) : undefined}
                   isLoading={isLoadingMessages}
                 />
               </motion.div>
@@ -513,10 +538,10 @@ export default function ContactPage() {
                 <div className="text-center">
                   <MessageCircle className="mx-auto h-16 w-16 text-gray-300" />
                   <h3 className="mt-4 text-lg font-semibold text-gray-900">
-                    Sélectionnez une conversation
+                    {t('chat.selectConversation')}
                   </h3>
                   <p className="mt-2 text-sm text-gray-500">
-                    Choisissez une conversation pour commencer à discuter
+                    {t('chat.selectConversationDescription')}
                   </p>
                 </div>
               </motion.div>

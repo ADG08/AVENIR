@@ -1,7 +1,6 @@
 import { WebSocket } from '@fastify/websocket';
 import { WebSocket as WSWebSocket } from 'ws';
-import { WebSocketMessageType } from '@avenir/shared/enums/WebSocketMessageType';
-import {UserRole} from "../../../application/schemas";
+import { WebSocketMessageType, UserRole } from '@avenir/shared/enums';
 
 export interface WebSocketClient {
     userId: string;

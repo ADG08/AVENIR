@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, UserPlus, Search } from 'lucide-react';
 import { User } from '@/types/chat';
 import { userApi } from '@/lib/api/user.api';
+import { useTranslation } from 'react-i18next';
 
 interface AssignAdvisorModalProps {
   isOpen: boolean;
@@ -21,6 +22,7 @@ export const AssignAdvisorModal = ({
   isLoading = false,
   currentAdvisorId,
 }: AssignAdvisorModalProps) => {
+  const { t } = useTranslation();
   const [advisors, setAdvisors] = useState<User[]>([]);
   const [selectedAdvisorId, setSelectedAdvisorId] = useState<string>('');
   const [searchQuery, setSearchQuery] = useState('');
@@ -92,7 +94,7 @@ export const AssignAdvisorModal = ({
                   <UserPlus className="h-5 w-5 text-blue-600" />
                 </div>
                 <h2 className="text-xl font-bold text-gray-900">
-                  Assigner un conseiller
+                  {t('chat.assignAdvisorTitle')}
                 </h2>
               </div>
               <button
@@ -105,7 +107,7 @@ export const AssignAdvisorModal = ({
 
             <div className="mb-4">
               <p className="text-sm text-gray-600">
-                Sélectionnez un conseiller pour prendre en charge cette conversation
+                {t('chat.assignAdvisorDescription')}
               </p>
             </div>
 
@@ -113,7 +115,7 @@ export const AssignAdvisorModal = ({
               <Search className="h-5 w-5 text-gray-400" />
               <input
                 type="text"
-                placeholder="Rechercher un conseiller..."
+                placeholder={t('chat.searchAdvisor')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full border-none bg-transparent text-sm text-gray-600 placeholder:text-gray-400 focus:outline-none"
@@ -124,13 +126,13 @@ export const AssignAdvisorModal = ({
               {isLoadingAdvisors ? (
                 <div className="py-8 text-center">
                   <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-gray-200 border-t-gray-900"></div>
-                  <p className="mt-3 text-sm text-gray-500">Chargement...</p>
+                  <p className="mt-3 text-sm text-gray-500">{t('common.loading')}</p>
                 </div>
               ) : filteredAdvisors.length === 0 ? (
                 <div className="py-8 text-center">
                   <UserPlus className="mx-auto h-12 w-12 text-gray-300" />
                   <p className="mt-3 text-sm text-gray-500">
-                    Aucun conseiller disponible
+                    {t('chat.noAdvisorAvailable')}
                   </p>
                 </div>
               ) : (
@@ -168,7 +170,7 @@ export const AssignAdvisorModal = ({
                             </p>
                             {isCurrentAdvisor && (
                               <span className="rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700">
-                                Déjà assigné
+                                {t('chat.alreadyAssigned')}
                               </span>
                             )}
                           </div>
@@ -191,14 +193,14 @@ export const AssignAdvisorModal = ({
                 disabled={isLoading}
                 className="flex-1 rounded-lg border border-gray-300 bg-white px-4 py-2.5 font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
               >
-                Annuler
+                {t('common.cancel')}
               </button>
               <button
                 onClick={handleSubmit}
                 disabled={!selectedAdvisorId || isLoading}
                 className="flex-1 rounded-lg bg-blue-600 px-4 py-2.5 font-medium text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
               >
-                {isLoading ? 'Assignation...' : 'Assigner'}
+                {isLoading ? t('chat.assigning') : t('chat.assign')}
               </button>
             </div>
           </motion.div>

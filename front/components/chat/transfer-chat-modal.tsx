@@ -5,6 +5,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Users, Search } from 'lucide-react';
 import { User } from '@/types/chat';
 import { userApi } from '@/lib/api/user.api';
+import { useTranslation } from 'react-i18next';
+import {UserRole} from "@avenir/shared/schemas/user.schema";
 
 interface TransferChatModalProps {
   isOpen: boolean;
@@ -21,6 +23,7 @@ export const TransferChatModal = ({
   isLoading = false,
   currentAdvisorId,
 }: TransferChatModalProps) => {
+  const { t } = useTranslation();
   const [advisors, setAdvisors] = useState<User[]>([]);
   const [selectedAdvisorId, setSelectedAdvisorId] = useState<string>('');
   const [searchQuery, setSearchQuery] = useState('');
@@ -29,7 +32,7 @@ export const TransferChatModal = ({
   const loadAdvisors = useCallback(async () => {
     try {
       setIsLoadingAdvisors(true);
-      const response = await userApi.getUsers({ role: 'ADVISOR' });
+      const response = await userApi.getUsers({ role: UserRole.ADVISOR });
       const filteredAdvisors = Array.isArray(response)
         ? response.filter((advisor: User) => advisor.id !== currentAdvisorId)
         : [];
@@ -96,7 +99,7 @@ export const TransferChatModal = ({
                   <Users className="h-5 w-5 text-blue-600" />
                 </div>
                 <h2 className="text-xl font-bold text-gray-900">
-                  Transférer la conversation
+                  {t('chat.transferConversationTitle')}
                 </h2>
               </div>
               <button
@@ -109,7 +112,7 @@ export const TransferChatModal = ({
 
             <div className="mb-4">
               <p className="text-sm text-gray-600">
-                Sélectionnez un conseiller pour transférer cette conversation
+                {t('chat.transferConversationDescription')}
               </p>
             </div>
 
@@ -117,7 +120,7 @@ export const TransferChatModal = ({
               <Search className="h-5 w-5 text-gray-400" />
               <input
                 type="text"
-                placeholder="Rechercher un conseiller..."
+                placeholder={t('chat.searchAdvisor')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full border-none bg-transparent text-sm text-gray-600 placeholder:text-gray-400 focus:outline-none"
@@ -128,13 +131,13 @@ export const TransferChatModal = ({
               {isLoadingAdvisors ? (
                 <div className="py-8 text-center">
                   <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-gray-200 border-t-gray-900"></div>
-                  <p className="mt-3 text-sm text-gray-500">Chargement...</p>
+                  <p className="mt-3 text-sm text-gray-500">{t('common.loading')}</p>
                 </div>
               ) : filteredAdvisors.length === 0 ? (
                 <div className="py-8 text-center">
                   <Users className="mx-auto h-12 w-12 text-gray-300" />
                   <p className="mt-3 text-sm text-gray-500">
-                    Aucun conseiller disponible
+                    {t('chat.noAdvisorAvailable')}
                   </p>
                 </div>
               ) : (
@@ -171,14 +174,14 @@ export const TransferChatModal = ({
                 disabled={isLoading}
                 className="flex-1 rounded-lg border border-gray-300 bg-white px-4 py-2.5 font-medium text-gray-700 transition-colors hover:bg-gray-50 hover:cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
               >
-                Annuler
+                {t('common.cancel')}
               </button>
               <button
                 onClick={handleSubmit}
                 disabled={!selectedAdvisorId || isLoading}
                 className="flex-1 rounded-lg bg-blue-600 px-4 py-2.5 font-medium text-white transition-colors hover:bg-blue-700 hover:cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
               >
-                {isLoading ? 'Transfert...' : 'Transférer'}
+                {isLoading ? t('chat.transferring') : t('chat.transfer')}
               </button>
             </div>
           </motion.div>

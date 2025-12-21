@@ -1,9 +1,10 @@
 'use client';
 
-import { Chat, UserRole } from '@/types/chat';
-import { motion } from 'framer-motion';
-import { ArrowLeft, MoreVertical, Users, CheckCircle2, UserPlus } from 'lucide-react';
-import { useState, useRef, useEffect } from 'react';
+import {Chat, ChatStatus, UserRole} from '@/types/chat';
+import {motion} from 'framer-motion';
+import {ArrowLeft, CheckCircle2, MoreVertical, UserPlus, Users} from 'lucide-react';
+import {useEffect, useRef, useState} from 'react';
+import {useTranslation} from 'react-i18next';
 
 interface ChatHeaderProps {
   chat: Chat;
@@ -15,6 +16,7 @@ interface ChatHeaderProps {
 }
 
 export const ChatHeader = ({ chat, currentUserRole, onBack, onClose, onTransfer, onAssign }: ChatHeaderProps) => {
+  const { t } = useTranslation();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -34,8 +36,19 @@ export const ChatHeader = ({ chat, currentUserRole, onBack, onClose, onTransfer,
     };
   }, [menuOpen]);
 
-  const otherUser = currentUserRole === 'CLIENT' ? chat.advisor : chat.client;
-  const canManageChat = currentUserRole !== 'CLIENT' && chat.status !== 'CLOSED';
+  const otherUser = currentUserRole === UserRole.CLIENT ? chat.advisor : chat.client;
+  const canManageChat = currentUserRole !== UserRole.CLIENT && chat.status !== ChatStatus.CLOSED;
+
+  const getStatusText = () => {
+    switch (chat.status) {
+      case ChatStatus.ACTIVE:
+        return t('chat.activeDiscussion');
+      case ChatStatus.CLOSED:
+        return t('chat.closed');
+      default:
+        return t('chat.pending');
+    }
+  };
 
   return (
     <div className="border-b border-gray-200 bg-white px-6 py-4">
@@ -58,7 +71,7 @@ export const ChatHeader = ({ chat, currentUserRole, onBack, onClose, onTransfer,
                 {otherUser?.firstName} {otherUser?.lastName}
               </h3>
               <p className="text-xs text-gray-500">
-                {chat.status === 'ACTIVE' ? 'En ligne' : chat.status === 'CLOSED' ? 'Conversation fermée' : 'En attente'}
+                {getStatusText()}
               </p>
             </div>
           </div>
@@ -81,7 +94,7 @@ export const ChatHeader = ({ chat, currentUserRole, onBack, onClose, onTransfer,
                 className="absolute right-0 top-full mt-2 w-48 rounded-xl border border-gray-200 bg-white p-2 shadow-xl z-10"
               >
                 {/* Options pour ADVISOR */}
-                {currentUserRole === 'ADVISOR' && (
+                {currentUserRole === UserRole.ADVISOR && (
                   <>
                     {onTransfer && (
                       <button
@@ -92,10 +105,10 @@ export const ChatHeader = ({ chat, currentUserRole, onBack, onClose, onTransfer,
                         className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm text-gray-700 transition-colors hover:bg-gray-100"
                       >
                         <Users className="h-4 w-4" />
-                        Transférer la conversation
+                        {t('chat.transferConversation')}
                       </button>
                     )}
-                    {onClose && chat.status === 'ACTIVE' && (
+                    {onClose && chat.status === ChatStatus.ACTIVE && (
                       <button
                         onClick={() => {
                           onClose();
@@ -104,14 +117,14 @@ export const ChatHeader = ({ chat, currentUserRole, onBack, onClose, onTransfer,
                         className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm text-gray-700 transition-colors hover:bg-gray-100"
                       >
                         <CheckCircle2 className="h-4 w-4" />
-                        Fermer la conversation
+                        {t('chat.closeConversation')}
                       </button>
                     )}
                   </>
                 )}
 
                 {/* Options pour DIRECTOR */}
-                {currentUserRole === 'DIRECTOR' && (
+                {currentUserRole === UserRole.DIRECTOR && (
                   <>
                     {onAssign && (
                       <button
@@ -122,7 +135,7 @@ export const ChatHeader = ({ chat, currentUserRole, onBack, onClose, onTransfer,
                         className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm text-gray-700 transition-colors hover:bg-gray-100"
                       >
                         <UserPlus className="h-4 w-4" />
-                        Assigner un conseiller
+                        {t('chat.assignAdvisor')}
                       </button>
                     )}
                   </>
@@ -133,11 +146,11 @@ export const ChatHeader = ({ chat, currentUserRole, onBack, onClose, onTransfer,
         )}
       </div>
 
-      {chat.status === 'CLOSED' && (
+      {chat.status === ChatStatus.CLOSED && (
         <div className="mt-3 rounded-lg bg-gray-100 px-3 py-2 text-center">
           <p className="text-sm text-gray-600 flex items-center justify-center gap-2">
             <CheckCircle2 className="h-4 w-4" />
-            Cette conversation est fermée
+            {t('chat.conversationClosed')}
           </p>
         </div>
       )}

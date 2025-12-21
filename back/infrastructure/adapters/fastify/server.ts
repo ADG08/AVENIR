@@ -58,7 +58,8 @@ const chatController = new ChatController(
     markChatMessagesAsReadUseCase,
     transferChatUseCase,
     closeChatUseCase,
-    chatRepository
+    chatRepository,
+    messageRepository
 );
 
 const messageController = new MessageController(sendMessageUseCase, markMessageAsReadUseCase, chatRepository);
@@ -111,4 +112,3 @@ process.on('SIGTERM', shutdown);
 process.on('SIGINT', shutdown);
 
 start();
-
