@@ -54,9 +54,14 @@ export class WebSocketService {
         if (userClients) {
             const payload = JSON.stringify(message);
             console.log(`[WebSocket] Envoi du message`, message);
+
+            let sentCount = 0;
             userClients.forEach(client => {
                 if (client.socket.readyState === WSWebSocket.OPEN) {
                     client.socket.send(payload);
+                    sentCount++;
+                } else {
+                    console.log(`[WebSocket] Utilisateur non connecté, message non envoyé, state: ${client.socket.readyState}`);
                 }
             });
         } else {
@@ -79,6 +84,17 @@ export class WebSocketService {
         });
     }
 
+    getConnectedDirectors(): string[] {
+        const directors: string[] = [];
+        this.clients.forEach((clients, userId) => {
+            const isDirector = clients.some(c => c.userRole === 'DIRECTOR');
+            if (isDirector) {
+                directors.push(userId);
+            }
+        });
+        return directors;
+    }
+
     notifyNewMessage(chatId: string, participantIds: string[], messageData: any): void {
         this.sendMessageToChatParticipants(participantIds, {
             type: WebSocketMessageType.NEW_MESSAGE,
@@ -95,11 +111,11 @@ export class WebSocketService {
         });
     }
 
-    notifyChatTransferred(chatId: string, participantIds: string[], newAdvisorId: string): void {
+    notifyChatTransferred(chatId: string, participantIds: string[], payload: { newAdvisorId: string; newAdvisorName: string }): void {
         this.sendMessageToChatParticipants(participantIds, {
             type: WebSocketMessageType.CHAT_TRANSFERRED,
             chatId,
-            payload: { newAdvisorId },
+            payload,
         });
     }
 

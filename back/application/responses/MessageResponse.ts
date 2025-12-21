@@ -1,4 +1,5 @@
 import { Message } from "../../domain/entities/Message";
+import { MessageType } from '@avenir/shared/enums';
 
 export class MessageResponse {
     constructor(
@@ -9,6 +10,7 @@ export class MessageResponse {
         readonly senderRole: string,
         readonly content: string,
         readonly isRead: boolean,
+        readonly type: MessageType,
         readonly createdAt: Date,
     ) {}
 
@@ -21,6 +23,7 @@ export class MessageResponse {
             message.sender.role,
             message.content,
             message.isRead,
+            message.type,
             message.createdAt,
         );
     }

@@ -1,6 +1,6 @@
 'use client';
 
-import { Message } from '@/types/chat';
+import { Message, MessageType } from '@/types/chat';
 import { motion } from 'framer-motion';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -12,6 +12,25 @@ interface ChatMessageProps {
 }
 
 export const ChatMessage = ({ message, isOwnMessage, isDirector }: ChatMessageProps) => {
+  if (message.type === MessageType.SYSTEM) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="my-4 flex justify-center"
+      >
+        <div className="flex items-center gap-2 rounded-full bg-gray-200/80 px-4 py-2 shadow-sm backdrop-blur-sm">
+          <span className="text-xs font-medium text-gray-600">
+            {message.content}
+          </span>
+          <span className="text-xs text-gray-400">
+            {format(new Date(message.createdAt), 'HH:mm', { locale: fr })}
+          </span>
+        </div>
+      </motion.div>
+    );
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}

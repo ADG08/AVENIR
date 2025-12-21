@@ -1,5 +1,5 @@
-import { Chat, Message, User, UserState } from '@/types/chat';
-import { ChatStatus, UserRole } from '@/types/enums';
+import {Chat, Message, MessageType, User, UserState} from '@/types/chat';
+import {ChatStatus, UserRole} from '@/types/enums';
 
 /**
  * DTO reçu de l'API pour un chat
@@ -29,6 +29,7 @@ export interface MessageApiDto {
   senderRole?: UserRole;
   content: string;
   isRead: boolean;
+  type?: MessageType;
   createdAt: string;
 }
 
@@ -62,6 +63,7 @@ export const mapChatFromApi = (apiChat: ChatApiDto): Chat => {
       content: apiChat.lastMessage,
       createdAt: new Date(apiChat.lastMessageAt),
       isRead: true,
+      type: MessageType.NORMAL,
     } : undefined,
     unreadCount: apiChat.unreadCount || 0,
     createdAt: new Date(apiChat.createdAt),
@@ -80,7 +82,6 @@ export const mapChatsFromApi = (apiChats: ChatApiDto[]): Chat[] => {
  * Mapper pour transformer un MessageApiDto en Message
  */
 export const mapMessageFromApi = (apiMessage: MessageApiDto): Message => {
-  // Extraire le prénom et nom du senderName
   const [firstName = '', lastName = ''] = (apiMessage.senderName || '').split(' ');
 
   return {
@@ -100,6 +101,7 @@ export const mapMessageFromApi = (apiMessage: MessageApiDto): Message => {
     } : undefined,
     content: apiMessage.content,
     isRead: apiMessage.isRead,
+    type: apiMessage.type ?? MessageType.NORMAL,
     createdAt: new Date(apiMessage.createdAt),
   };
 };

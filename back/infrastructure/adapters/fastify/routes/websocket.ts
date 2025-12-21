@@ -10,7 +10,7 @@ export const websocketRoutes: FastifyPluginAsync = async (fastify) => {
             return;
         }
 
-        console.log(`[WebSocket] Nouvelle connexion: userId=${userId}, role=${userRole}`);
+        console.log(`[WebSocket] Nouvelle connexion`);
 
         // Enregistrer le client
         webSocketService.registerClient(userId, userRole, socket);
@@ -41,17 +41,20 @@ export const websocketRoutes: FastifyPluginAsync = async (fastify) => {
         });
 
         socket.on('error', (error: Error) => {
-            console.error(`[WebSocket] Erreur pour userId=${userId}:`, error);
+            console.error(error.message);
         });
 
         socket.on('close', () => {
-            console.log(`[WebSocket] Connexion fermée pour userId=${userId}`);
+            console.log(`[WebSocket] Connexion fermée`);
         });
     });
 
     fastify.get('/ws/status', async () => {
+        const connectedCount = webSocketService.getConnectedClientsCount();
+        const connectedUsers = webSocketService.getConnectedClients();
         return {
-            connected: webSocketService.getConnectedClientsCount(),
+            connected: connectedCount,
+            users: connectedUsers,
             timestamp: new Date().toISOString(),
         };
     });

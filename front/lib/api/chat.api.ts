@@ -64,6 +64,26 @@ export const chatApi = {
     return response.json();
   },
 
+  async getChatById(chatId: string, userId: string, userRole: string) {
+    const validatedData = getChatByIdSchema.parse({ chatId, userId });
+    const response = await fetch(
+      `${API_BASE_URL}/chats/${validatedData.chatId}?userId=${validatedData.userId}&userRole=${userRole}`,
+      {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    if (!response.ok) {
+      console.error('[chatApi.getChatById] Error:', { chatId, userId, status: response.status });
+      throw new Error(`Failed to fetch chat: ${response.status} ${response.statusText}`);
+    }
+
+    return response.json();
+  },
+
   async getChatMessages(chatId: string, userId: string) {
     const validatedData = getChatByIdSchema.parse({ chatId, userId });
     const response = await fetch(

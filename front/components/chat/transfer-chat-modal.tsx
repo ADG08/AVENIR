@@ -41,11 +41,14 @@ export const TransferChatModal = ({
     }
   }, [currentAdvisorId]);
 
+  // Charger les advisors quand la modal s'ouvre ou que currentAdvisorId change
   useEffect(() => {
     if (isOpen) {
       loadAdvisors();
+      setSelectedAdvisorId('');
+      setSearchQuery('');
     }
-  }, [isOpen, loadAdvisors]);
+  }, [isOpen, currentAdvisorId, loadAdvisors]);
 
   const handleSubmit = () => {
     if (selectedAdvisorId) {

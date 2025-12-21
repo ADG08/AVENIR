@@ -19,7 +19,6 @@ import { TransferChatUseCase } from '@avenir/application/usecases/chat/TransferC
 import { SendMessageUseCase } from '@avenir/application/usecases/chat/SendMessageUseCase';
 import { CloseChatUseCase } from '@avenir/application/usecases/chat/CloseChatUseCase';
 import { RepositoryFactory } from '../../factories/RepositoryFactory';
-import { databaseConfig } from '../../config/database.config';
 import { GetChatByIdUseCase } from "@avenir/application/usecases/chat/GetChatByIdUseCase";
 import { MarkMessageAsReadUseCase } from "@avenir/application/usecases/chat/MarkMessageAsReadUseCase";
 import { MarkChatMessagesAsReadUseCase } from "@avenir/application/usecases/chat/MarkChatMessagesAsReadUseCase";
@@ -46,7 +45,7 @@ const getChatsUseCase = new GetChatsUseCase(chatRepository, messageRepository);
 const getChatByIdUseCase = new GetChatByIdUseCase(chatRepository, messageRepository);
 const getChatMessagesUseCase = new GetChatMessagesUseCase(chatRepository, messageRepository);
 const markChatMessagesAsReadUseCase = new MarkChatMessagesAsReadUseCase(chatRepository, messageRepository);
-const transferChatUseCase = new TransferChatUseCase(chatRepository, userRepository);
+const transferChatUseCase = new TransferChatUseCase(chatRepository, userRepository, messageRepository);
 const closeChatUseCase = new CloseChatUseCase(chatRepository);
 const sendMessageUseCase = new SendMessageUseCase(chatRepository, messageRepository, userRepository);
 const markMessageAsReadUseCase = new MarkMessageAsReadUseCase(messageRepository);
@@ -78,7 +77,7 @@ async function setupRoutes() {
     // Routes API REST
     await fastify.register(healthRoutes, { prefix: '/api' });
     await fastify.register(userRoutes, { prefix: '/api', userController });
-    await fastify.register(chatRoutes, { prefix: '/api', chatController });
+    await fastify.register(chatRoutes, { prefix: '/api', chatController, messageRepository, chatRepository });
     await fastify.register(messageRoutes, { prefix: '/api', messageController });
 
     // Route WebSocket
@@ -89,9 +88,6 @@ const start = async () => {
     try {
         await setupRoutes();
         await fastify.listen({ port: 3001, host: '0.0.0.0' });
-        console.log(`Serveur Fastify démarré sur http://localhost:3001`);
-        console.log(`WebSocket disponible sur ws://localhost:3001/api/ws`);
-        console.log(`Base de données: ${databaseConfig.type}`);
     } catch (err) {
         fastify.log.error(err);
         process.exit(1);

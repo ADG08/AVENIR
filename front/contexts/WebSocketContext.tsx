@@ -56,6 +56,7 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     const subscribersRef = useRef<Set<(message: WebSocketMessage) => void>>(new Set());
     const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const reconnectAttemptsRef = useRef(0);
+    const currentUserIdRef = useRef<string | null>(null);
 
     const connect = useCallback(() => {
         if (!currentUser) {
@@ -153,15 +154,26 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }, []);
 
     useEffect(() => {
+        const userId = currentUser?.id || null;
+
+        if (currentUserIdRef.current === userId) {
+            return;
+        }
+        currentUserIdRef.current = userId;
+
         if (currentUser) {
+            console.log('[WebSocket] Connecting with user');
             connect();
+        } else {
+            console.log('[WebSocket] No current user, disconnecting');
+            disconnect();
         }
 
         return () => {
             disconnect();
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [currentUser]);
+    }, [currentUser?.id]);
 
     return (
         <WebSocketContext.Provider value={{ isConnected, sendMessage, subscribe }}>

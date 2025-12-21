@@ -1,6 +1,6 @@
 // Types partagés pour le système de chat
-import { UserRole, UserState, ChatStatus } from './enums';
-export { UserRole, UserState, ChatStatus };
+import { UserRole, UserState, ChatStatus, MessageType } from './enums';
+export { UserRole, UserState, ChatStatus, MessageType };
 
 export interface User {
   id: string;
@@ -21,6 +21,7 @@ export interface Message {
   sender?: User;
   content: string;
   isRead: boolean;
+  type: MessageType;
   createdAt: Date;
 }
 

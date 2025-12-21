@@ -39,8 +39,8 @@ export class MySQLMessageRepository implements MessageRepository {
 
     async add(message: Message): Promise<Message> {
         const query = `
-            INSERT INTO messages (id, chat_id, sender_id, content, is_read, created_at)
-            VALUES (?, ?, ?, ?, ?, ?)
+            INSERT INTO messages (id, chat_id, sender_id, content, is_read, type, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
         `;
 
         await this.connection.execute(query, [
@@ -49,6 +49,7 @@ export class MySQLMessageRepository implements MessageRepository {
             message.sender.id,
             message.content,
             message.isRead,
+            message.type,
             message.createdAt
         ]);
 
@@ -58,7 +59,8 @@ export class MySQLMessageRepository implements MessageRepository {
             message.sender,
             message.content,
             message.isRead,
-            message.createdAt
+            message.createdAt,
+            message.type
         );
     }
 
@@ -136,7 +138,8 @@ export class MySQLMessageRepository implements MessageRepository {
             sender,
             row.content,
             row.is_read,
-            row.created_at
+            row.created_at,
+            row.type || 'NORMAL'
         );
     }
 }

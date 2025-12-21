@@ -39,8 +39,8 @@ export class PostgresMessageRepository implements MessageRepository {
 
     async add(message: Message): Promise<Message> {
         const query = `
-            INSERT INTO messages (id, chat_id, sender_id, content, is_read, created_at)
-            VALUES ($1, $2, $3, $4, $5, $6)
+            INSERT INTO messages (id, chat_id, sender_id, content, is_read, type, created_at)
+            VALUES ($1, $2, $3, $4, $5, $6, $7)
             RETURNING *
         `;
 
@@ -50,6 +50,7 @@ export class PostgresMessageRepository implements MessageRepository {
             message.sender.id,
             message.content,
             message.isRead,
+            message.type,
             message.createdAt
         ]);
 
@@ -59,7 +60,8 @@ export class PostgresMessageRepository implements MessageRepository {
             message.sender,
             result.rows[0].content,
             result.rows[0].is_read,
-            result.rows[0].created_at
+            result.rows[0].created_at,
+            result.rows[0].type
         );
     }
 
@@ -137,7 +139,8 @@ export class PostgresMessageRepository implements MessageRepository {
             sender,
             row.content,
             row.is_read,
-            row.created_at
+            row.created_at,
+            row.type || 'NORMAL'
         );
     }
 }

@@ -187,7 +187,7 @@ export default function ContactPage() {
 
     try {
       setIsTransferring(true);
-      await chatApi.transferChat({
+      const response = await chatApi.transferChat({
         chatId: selectedChat.id,
         newAdvisorId,
         currentUserId: currentUser.id,
@@ -195,7 +195,14 @@ export default function ContactPage() {
 
       await loadChats();
 
-      setSelectedChat(null);
+      if (currentUser.role === UserRole.ADVISOR) {
+        setSelectedChat(null);
+      } else {
+        const updatedChat = mapChatFromApi(response);
+        setSelectedChat(updatedChat);
+        await loadMessages(updatedChat.id);
+      }
+
       setIsTransferModalOpen(false);
 
       toast({
@@ -219,16 +226,17 @@ export default function ContactPage() {
 
     try {
       setIsAssigning(true);
-      await chatApi.assignAdvisor({
+      const response = await chatApi.assignAdvisor({
         chatId: selectedChat.id,
         advisorId,
       });
 
       await loadChats();
 
-      if (selectedChat) {
-        await loadMessages(selectedChat.id);
-      }
+      const updatedChat = mapChatFromApi(response);
+      setSelectedChat(updatedChat);
+
+      await loadMessages(updatedChat.id);
 
       setIsAssignModalOpen(false);
 
@@ -311,14 +319,44 @@ export default function ContactPage() {
 
         case WebSocketMessageType.CHAT_TRANSFERRED:
           if (message.chatId) {
-            loadChats();
+            if (currentUser.role === UserRole.ADVISOR) {
+              chatApi.getChats({
+                userId: currentUser.id,
+                userRole: currentUser.role,
+              }).then((updatedChats) => {
+                const mappedChats = Array.isArray(updatedChats) ? mapChatsFromApi(updatedChats) : [];
+                const stillHasAccess = mappedChats.some((c: Chat) => c.id === message.chatId);
 
-            if (selectedChat?.id === message.chatId && currentUser.role === UserRole.ADVISOR) {
-              setSelectedChat(null);
-              toast({
-                title: 'Conversation transférée',
-                description: 'La conversation a été transférée à un autre conseiller',
+                if (!stillHasAccess) {
+                  setChats((prev) => prev.filter((c) => c.id !== message.chatId));
+
+                  if (selectedChat?.id === message.chatId) {
+                    setSelectedChat(null);
+                  }
+
+                  toast({
+                    title: 'Conversation transférée',
+                    description: 'Cette conversation a été transférée à un autre conseiller',
+                  });
+                } else {
+                  setChats(mappedChats);
+                }
+              }).catch((error) => {
+                console.error('Error checking chat access:', error);
               });
+            } else {
+              loadChats();
+
+              if (currentUser.role === UserRole.DIRECTOR && selectedChat?.id === message.chatId) {
+                chatApi.getChatById(message.chatId, currentUser.id, currentUser.role)
+                  .then((updatedChatData) => {
+                    const updatedChat = mapChatFromApi(updatedChatData);
+                    setSelectedChat(updatedChat);
+                  })
+                  .catch((error) => {
+                    console.error('Error reloading chat:', error);
+                  });
+              }
             }
           }
           break;
@@ -326,14 +364,14 @@ export default function ContactPage() {
         case WebSocketMessageType.CONNECTED:
           break;
         default:
-          console.log('[ContactPage] Unknown message type:', message.type);
+          console.log('Unknown message type:', message.type);
       }
     });
 
     return () => {
       unsubscribe();
     };
-  }, [currentUser, subscribe, selectedChat, loadChats, toast]);
+  }, [currentUser, subscribe, selectedChat, loadChats, toast, isTransferModalOpen]);
 
   const filteredChats = chats;
   const currentMessages = selectedChat ? chatMessages[selectedChat.id] || [] : [];

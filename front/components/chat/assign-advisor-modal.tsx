@@ -41,8 +41,10 @@ export const AssignAdvisorModal = ({
   useEffect(() => {
     if (isOpen) {
       loadAdvisors();
+      setSelectedAdvisorId('');
+      setSearchQuery('');
     }
-  }, [isOpen, loadAdvisors]);
+  }, [isOpen, currentAdvisorId, loadAdvisors]);
 
   const handleSubmit = () => {
     if (selectedAdvisorId) {

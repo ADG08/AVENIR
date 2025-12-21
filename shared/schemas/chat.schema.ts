@@ -6,10 +6,10 @@ export { UserRole, ChatStatus };
 const idSchema = z.string().min(1, 'ID cannot be empty').refine(
     (id) => {
         const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-        const mockIdRegex = /^(client|adv|dir|chat|msg)-\d{3,}$/i;
+        const mockIdRegex = /^(client|adv|dir|chat|msg)(-[a-z0-9]+)+$/i;
         return uuidRegex.test(id) || mockIdRegex.test(id);
     },
-    { message: 'Invalid ID format (must be UUID or mock ID like client-001)' }
+    { message: 'Invalid ID format (must be UUID or mock ID like client-001 or chat-pending-1)' }
 );
 
 // SCHÉMAS DE VALIDATION CHAT
