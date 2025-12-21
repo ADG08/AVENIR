@@ -1,6 +1,7 @@
 import { WebSocket } from '@fastify/websocket';
 import { WebSocket as WSWebSocket } from 'ws';
 import { WebSocketMessageType } from '@avenir/shared/enums/WebSocketMessageType';
+import {UserRole} from "../../../application/schemas";
 
 export interface WebSocketClient {
     userId: string;
@@ -77,7 +78,7 @@ export class WebSocketService {
 
     sendToAllAdvisors(message: ChatMessage): void {
         this.clients.forEach((clients, userId) => {
-            const isAdvisor = clients.some(c => c.userRole === 'ADVISOR');
+            const isAdvisor = clients.some(c => c.userRole === UserRole.ADVISOR);
             if (isAdvisor) {
                 this.sendMessageToUser(userId, message);
             }
@@ -87,7 +88,7 @@ export class WebSocketService {
     getConnectedDirectors(): string[] {
         const directors: string[] = [];
         this.clients.forEach((clients, userId) => {
-            const isDirector = clients.some(c => c.userRole === 'DIRECTOR');
+            const isDirector = clients.some(c => c.userRole === UserRole.DIRECTOR);
             if (isDirector) {
                 directors.push(userId);
             }
@@ -95,11 +96,30 @@ export class WebSocketService {
         return directors;
     }
 
+    getConnectedAdvisors(): string[] {
+        const advisors: string[] = [];
+        this.clients.forEach((clients, userId) => {
+            const isAdvisor = clients.some(c => c.userRole === UserRole.ADVISOR);
+            if (isAdvisor) {
+                advisors.push(userId);
+            }
+        });
+        return advisors;
+    }
+
     notifyNewMessage(chatId: string, participantIds: string[], messageData: any): void {
         this.sendMessageToChatParticipants(participantIds, {
             type: WebSocketMessageType.NEW_MESSAGE,
             chatId,
             payload: messageData,
+        });
+    }
+
+    notifyChatCreated(chatId: string, recipientIds: string[], chatData: any): void {
+        this.sendMessageToChatParticipants(recipientIds, {
+            type: WebSocketMessageType.CHAT_CREATED,
+            chatId,
+            payload: chatData,
         });
     }
 

@@ -14,7 +14,14 @@ import {DashboardHeader} from '@/components/dashboard-header';
 import {chatApi} from '@/lib/api/chat.api';
 import {useToast} from '@/hooks/use-toast';
 import {useWebSocket} from '@/contexts/WebSocketContext';
-import {mapChatFromApi, mapChatsFromApi, mapMessageFromApi, mapMessagesFromApi, MessageApiDto} from '@/lib/mapping';
+import {
+  ChatApiDto,
+  mapChatFromApi,
+  mapChatsFromApi,
+  mapMessageFromApi,
+  mapMessagesFromApi,
+  MessageApiDto
+} from '@/lib/mapping';
 import {ChatStatus, WebSocketMessageType} from "@avenir/shared/enums";
 
 export default function ContactPage() {
@@ -290,6 +297,41 @@ export default function ContactPage() {
             }
           }
           break;
+
+        case WebSocketMessageType.CHAT_CREATED:
+          if (message.chatId && message.payload) {
+            const chatPayload = message.payload as ChatApiDto;
+            const newChat = mapChatFromApi({
+              id: chatPayload.id || message.chatId,
+              clientId: chatPayload.clientId,
+              clientName: chatPayload.clientName,
+              advisorId: chatPayload.advisorId,
+              advisorName: chatPayload.advisorName,
+              status: chatPayload.status,
+              lastMessage: chatPayload.lastMessage,
+              lastMessageAt: chatPayload.lastMessageAt,
+              unreadCount: chatPayload.unreadCount || 0,
+              createdAt: chatPayload.createdAt,
+              updatedAt: chatPayload.updatedAt,
+            });
+
+            setChats((prev) => {
+              const chatExists = prev.some(c => c.id === newChat.id);
+              if (chatExists) {
+                return prev;
+              }
+              return [newChat, ...prev];
+            });
+
+            if (currentUser.role === UserRole.ADVISOR || currentUser.role === UserRole.DIRECTOR) {
+              toast({
+                title: 'Nouvelle conversation',
+                description: `${chatPayload.clientName || 'Un client'} a créé une nouvelle conversation`,
+              });
+            }
+          }
+          break;
+
         case WebSocketMessageType.CHAT_CLOSED:
           if (message.chatId) {
             setChats((prev) =>

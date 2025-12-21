@@ -1,6 +1,7 @@
 import { FastifyInstance, FastifyPluginOptions, FastifyRequest, FastifyReply } from 'fastify';
 import { ChatController } from '../controllers/ChatController';
 import { CreateChatRequest } from '@avenir/application/requests';
+import { ChatResponse } from '@avenir/application/responses';
 import { webSocketService } from '../../services/WebSocketService';
 import { MessageRepository } from '@avenir/domain/repositories/MessageRepository';
 import { ChatRepository } from '@avenir/domain/repositories/ChatRepository';
@@ -18,7 +19,52 @@ export async function chatRoutes(
     fastify.post(
         '/chats',
         async (request: FastifyRequest<{ Body: CreateChatRequest }>, reply: FastifyReply) => {
-            return chatController.createChat(request, reply);
+            let createdChat: ChatResponse | null = null;
+            let statusCode = 500;
+
+            const fakeReply = {
+                code: (code: number) => ({
+                    send: (response: any) => {
+                        statusCode = code;
+                        if (code === 201) {
+                            createdChat = response as ChatResponse;
+                        }
+                        return response;
+                    }
+                })
+            } as any;
+
+            const result = await chatController.createChat(request, fakeReply);
+
+            if (statusCode === 201 && createdChat) {
+                const chat: ChatResponse = createdChat;
+
+                const connectedAdvisors = webSocketService.getConnectedAdvisors();
+                const connectedDirectors = webSocketService.getConnectedDirectors();
+
+                const recipientIds = [...connectedAdvisors, ...connectedDirectors];
+
+                if (recipientIds.length > 0) {
+                    webSocketService.notifyChatCreated(
+                        chat.id,
+                        recipientIds,
+                        {
+                            id: chat.id,
+                            clientId: chat.clientId,
+                            clientName: chat.clientName,
+                            advisorId: chat.advisorId,
+                            advisorName: chat.advisorName,
+                            status: chat.status,
+                            lastMessage: chat.lastMessage,
+                            lastMessageAt: chat.lastMessageAt,
+                            unreadCount: chat.unreadCount,
+                            createdAt: chat.createdAt,
+                            updatedAt: chat.updatedAt,
+                        }
+                    );
+                }
+            }
+            return reply.code(statusCode).send(result);
         }
     );
 
@@ -311,4 +357,3 @@ export async function chatRoutes(
         }
     );
 }
-

@@ -18,6 +18,14 @@ export interface ChatAssignedPayload {
     advisorId: string;
 }
 
+export interface ChatCreatedPayload {
+    chatId: string;
+    clientId: string;
+    clientName: string;
+    status: string;
+    createdAt: string;
+}
+
 export interface ChatTransferredPayload {
     newAdvisorId: string;
 }
@@ -33,6 +41,7 @@ export interface PongPayload {
 export type WebSocketMessage =
     | { type: WebSocketMessageType.CONNECTED; chatId?: string; payload?: ConnectedPayload }
     | { type: WebSocketMessageType.NEW_MESSAGE; chatId: string; payload: MessageApiDto }
+    | { type: WebSocketMessageType.CHAT_CREATED; chatId: string; payload: ChatCreatedPayload }
     | { type: WebSocketMessageType.CHAT_ASSIGNED; chatId: string; payload?: ChatAssignedPayload }
     | { type: WebSocketMessageType.CHAT_TRANSFERRED; chatId: string; payload?: ChatTransferredPayload }
     | { type: WebSocketMessageType.CHAT_CLOSED; chatId: string; payload?: ChatClosedPayload }
