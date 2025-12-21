@@ -44,9 +44,9 @@ export const ChatHeader = ({ chat, currentUserRole, onBack, onClose, onTransfer,
       case ChatStatus.ACTIVE:
         return t('chat.activeDiscussion');
       case ChatStatus.CLOSED:
-        return t('chat.closed');
+        return t('chat.status.closed');
       default:
-        return t('chat.pending');
+        return t('chat.status.pending');
     }
   };
 
@@ -105,7 +105,7 @@ export const ChatHeader = ({ chat, currentUserRole, onBack, onClose, onTransfer,
                         className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm text-gray-700 transition-colors hover:bg-gray-100"
                       >
                         <Users className="h-4 w-4" />
-                        {t('chat.transferConversation')}
+                        {t('chat.actions.transferConversation')}
                       </button>
                     )}
                     {onClose && chat.status === ChatStatus.ACTIVE && (
@@ -117,7 +117,7 @@ export const ChatHeader = ({ chat, currentUserRole, onBack, onClose, onTransfer,
                         className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm text-gray-700 transition-colors hover:bg-gray-100"
                       >
                         <CheckCircle2 className="h-4 w-4" />
-                        {t('chat.closeConversation')}
+                        {t('chat.actions.closeConversation')}
                       </button>
                     )}
                   </>
@@ -135,7 +135,7 @@ export const ChatHeader = ({ chat, currentUserRole, onBack, onClose, onTransfer,
                         className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm text-gray-700 transition-colors hover:bg-gray-100"
                       >
                         <UserPlus className="h-4 w-4" />
-                        {t('chat.assignAdvisor')}
+                        {t('chat.actions.assignAdvisor')}
                       </button>
                     )}
                   </>
@@ -150,7 +150,7 @@ export const ChatHeader = ({ chat, currentUserRole, onBack, onClose, onTransfer,
         <div className="mt-3 rounded-lg bg-gray-100 px-3 py-2 text-center">
           <p className="text-sm text-gray-600 flex items-center justify-center gap-2">
             <CheckCircle2 className="h-4 w-4" />
-            {t('chat.conversationClosed')}
+            {t('chat.status.conversationClosed')}
           </p>
         </div>
       )}

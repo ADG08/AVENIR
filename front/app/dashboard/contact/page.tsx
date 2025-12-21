@@ -59,8 +59,8 @@ export default function ContactPage() {
     } catch (error) {
       console.error('Error loading chats:', error);
       toast({
-        title: t('chat.errorLoadingChats'),
-        description: t('chat.errorLoadingChatsDescription'),
+        title: t('chat.errors.title'),
+        description: t('chat.errors.loadingChats'),
         variant: 'destructive',
       });
     } finally {
@@ -83,8 +83,8 @@ export default function ContactPage() {
     } catch (error) {
       console.error('Error loading messages:', error);
       toast({
-        title: t('chat.errorLoadingMessages'),
-        description: t('chat.errorLoadingMessagesDescription'),
+        title: t('chat.errors.title'),
+        description: t('chat.errors.loadingMessages'),
         variant: 'destructive',
       });
     } finally {
@@ -115,8 +115,8 @@ export default function ContactPage() {
 
     if (newMessage.senderId !== currentUser?.id) {
       toast({
-        title: t('chat.newMessage'),
-        description: t('chat.newMessageFrom', { name: newMessage.sender?.firstName || 'Un utilisateur' }),
+        title: t('chat.message.newMessage'),
+        description: t('chat.message.newMessageFrom', { name: newMessage.sender?.firstName || 'Un utilisateur' }),
       });
     }
   }, [currentUser?.id, loadChats, toast, t]);
@@ -149,8 +149,8 @@ export default function ContactPage() {
 
     if (currentUser?.role === UserRole.ADVISOR || currentUser?.role === UserRole.DIRECTOR) {
       toast({
-        title: t('chat.conversationCreated'),
-        description: t('chat.conversationCreatedBy', { name: chatPayload.clientName || 'Un client' }),
+        title: t('chat.notifications.conversationCreated'),
+        description: t('chat.notifications.conversationCreatedBy', { name: chatPayload.clientName || 'Un client' }),
       });
     }
   }, [currentUser?.role, toast, t]);
@@ -167,8 +167,8 @@ export default function ContactPage() {
     if (selectedChat?.id === message.chatId) {
       setSelectedChat(null);
       toast({
-        title: t('chat.conversationClosedSuccess'),
-        description: t('chat.conversationClosedDescription'),
+        title: t('chat.success.title'),
+        description: t('chat.success.conversationClosed'),
       });
     }
   }, [selectedChat?.id, toast, t]);
@@ -178,8 +178,8 @@ export default function ContactPage() {
 
     loadChats();
     toast({
-      title: t('chat.advisorAssigned'),
-      description: t('chat.advisorAssignedDescription'),
+      title: t('chat.notifications.advisorAssigned'),
+      description: t('chat.notifications.advisorAssignedDescription'),
     });
   }, [loadChats, toast, t]);
 
@@ -202,8 +202,8 @@ export default function ContactPage() {
           }
 
           toast({
-            title: t('chat.conversationTransferred'),
-            description: t('chat.conversationTransferredDescription'),
+            title: t('chat.notifications.conversationTransferred'),
+            description: t('chat.notifications.conversationTransferredDescription'),
           });
         } else {
           setChats(mappedChats);
@@ -290,8 +290,8 @@ export default function ContactPage() {
     } catch (error) {
       console.error('Error sending message:', error);
       toast({
-        title: t('chat.errorSendingMessage'),
-        description: t('chat.errorSendingMessageDescription'),
+        title: t('chat.errors.title'),
+        description: t('chat.errors.sendingMessage'),
         variant: 'destructive',
       });
     }
@@ -318,14 +318,14 @@ export default function ContactPage() {
       setIsNewChatModalOpen(false);
 
       toast({
-        title: t('chat.conversationCreatedSuccess'),
-        description: t('chat.conversationCreatedSuccessDescription'),
+        title: t('chat.success.title'),
+        description: t('chat.success.conversationCreated'),
       });
     } catch (error) {
       console.error('Error creating chat:', error);
       toast({
-        title: t('chat.errorCreatingConversation'),
-        description: t('chat.errorCreatingConversationDescription'),
+        title: t('chat.errors.title'),
+        description: t('chat.errors.creatingConversation'),
         variant: 'destructive',
       });
     } finally {
@@ -352,14 +352,14 @@ export default function ContactPage() {
       setSelectedChat(null);
 
       toast({
-        title: t('chat.conversationClosedSuccess'),
-        description: t('chat.conversationClosedDescription'),
+        title: t('chat.success.title'),
+        description: t('chat.success.conversationClosed'),
       });
     } catch (error) {
       console.error('Error closing chat:', error);
       toast({
-        title: t('chat.errorClosingConversation'),
-        description: t('chat.errorClosingConversationDescription'),
+        title: t('chat.errors.title'),
+        description: t('chat.errors.closingConversation'),
         variant: 'destructive',
       });
     }
@@ -389,14 +389,14 @@ export default function ContactPage() {
       setIsTransferModalOpen(false);
 
       toast({
-        title: t('chat.conversationTransferredSuccess'),
-        description: t('chat.conversationTransferredSuccessDescription'),
+        title: t('chat.success.title'),
+        description: t('chat.success.conversationTransferred'),
       });
     } catch (error) {
       console.error('Error transferring chat:', error);
       toast({
-        title: t('chat.errorTransferringConversation'),
-        description: t('chat.errorTransferringConversationDescription'),
+        title: t('chat.errors.title'),
+        description: t('chat.errors.transferringConversation'),
         variant: 'destructive',
       });
     } finally {
@@ -424,14 +424,14 @@ export default function ContactPage() {
       setIsAssignModalOpen(false);
 
       toast({
-        title: t('chat.advisorAssignedSuccess'),
-        description: t('chat.advisorAssignedSuccessDescription'),
+        title: t('chat.success.title'),
+        description: t('chat.success.advisorAssigned'),
       });
     } catch (error) {
       console.error('Error assigning advisor:', error);
       toast({
-        title: t('chat.errorAssigningAdvisor'),
-        description: t('chat.errorAssigningAdvisorDescription'),
+        title: t('chat.errors.title'),
+        description: t('chat.errors.assigningAdvisor'),
         variant: 'destructive',
       });
     } finally {

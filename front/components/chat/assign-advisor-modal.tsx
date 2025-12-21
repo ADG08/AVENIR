@@ -94,7 +94,7 @@ export const AssignAdvisorModal = ({
                   <UserPlus className="h-5 w-5 text-blue-600" />
                 </div>
                 <h2 className="text-xl font-bold text-gray-900">
-                  {t('chat.assignAdvisorTitle')}
+                  {t('chat.modals.assign.title')}
                 </h2>
               </div>
               <button
@@ -107,7 +107,7 @@ export const AssignAdvisorModal = ({
 
             <div className="mb-4">
               <p className="text-sm text-gray-600">
-                {t('chat.assignAdvisorDescription')}
+                {t('chat.modals.assign.description')}
               </p>
             </div>
 
@@ -200,7 +200,7 @@ export const AssignAdvisorModal = ({
                 disabled={!selectedAdvisorId || isLoading}
                 className="flex-1 rounded-lg bg-blue-600 px-4 py-2.5 font-medium text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
               >
-                {isLoading ? t('chat.assigning') : t('chat.assign')}
+                {isLoading ? t('chat.actions.assigning') : t('chat.actions.assign')}
               </button>
             </div>
           </motion.div>

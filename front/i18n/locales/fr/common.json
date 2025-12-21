@@ -164,63 +164,72 @@
   "chat": {
     "conversations": "Conversations",
     "newConversation": "Nouvelle conversation",
-    "yourMessage": "Votre message",
-    "typeYourMessage": "Décrivez votre demande...",
-    "advisorWillRespond": "Un conseiller vous répondra dans les plus brefs délais",
-    "selectConversation": "Sélectionnez une conversation",
-    "selectConversationDescription": "Choisissez une conversation pour commencer à discuter",
     "noConversations": "Aucune conversation",
     "noMessages": "Aucun message pour le moment",
+    "selectConversation": "Sélectionnez une conversation",
+    "selectConversationDescription": "Choisissez une conversation pour commencer à discuter",
     "sendMessageToStart": "Envoyez un message pour démarrer la conversation",
-    "loadingMessages": "Chargement des messages...",
-    "conversationClosed": "Cette conversation est fermée",
-    "typeMessage": "Tapez votre message...",
     "activeDiscussion": "Discussion active",
-    "pending": "En attente",
-    "closed": "Conversation fermée",
-    "transferConversation": "Transférer la conversation",
-    "closeConversation": "Fermer la conversation",
-    "assignAdvisor": "Assigner un conseiller",
-    "transferConversationTitle": "Transférer la conversation",
-    "transferConversationDescription": "Sélectionnez un conseiller pour transférer cette conversation",
     "searchAdvisor": "Rechercher un conseiller...",
     "noAdvisorAvailable": "Aucun conseiller disponible",
-    "transferring": "Transfert...",
-    "transfer": "Transférer",
-    "assignAdvisorTitle": "Assigner un conseiller",
-    "assignAdvisorDescription": "Sélectionnez un conseiller pour prendre en charge cette conversation",
     "alreadyAssigned": "Déjà assigné",
-    "assigning": "Assignation...",
-    "assign": "Assigner",
-    "newMessage": "Nouveau message",
-    "newMessageFrom": "{{name}} a envoyé un message",
-    "conversationCreated": "Nouvelle conversation",
-    "conversationCreatedBy": "{{name}} a créé une nouvelle conversation",
-    "conversationTransferred": "Conversation transférée",
-    "conversationTransferredDescription": "Cette conversation a été transférée à un autre conseiller",
-    "advisorAssigned": "Conseiller assigné",
-    "advisorAssignedDescription": "Un conseiller a été assigné à la conversation",
-    "conversationClosedSuccess": "Conversation fermée",
-    "conversationClosedDescription": "La conversation a été fermée",
-    "conversationTransferredSuccess": "Conversation transférée",
-    "conversationTransferredSuccessDescription": "La conversation a été transférée avec succès",
-    "advisorAssignedSuccess": "Conseiller assigné",
-    "advisorAssignedSuccessDescription": "Le conseiller a été assigné avec succès",
-    "conversationCreatedSuccess": "Succès",
-    "conversationCreatedSuccessDescription": "Conversation créée avec succès",
-    "errorLoadingChats": "Erreur",
-    "errorLoadingChatsDescription": "Impossible de charger les conversations",
-    "errorLoadingMessages": "Erreur",
-    "errorLoadingMessagesDescription": "Impossible de charger les messages",
-    "errorSendingMessage": "Erreur",
-    "errorSendingMessageDescription": "Impossible d'envoyer le message",
-    "errorCreatingConversation": "Erreur",
-    "errorCreatingConversationDescription": "Impossible de créer la conversation",
-    "errorClosingConversation": "Erreur",
-    "errorClosingConversationDescription": "Impossible de fermer la conversation",
-    "errorTransferringConversation": "Erreur",
-    "errorTransferringConversationDescription": "Impossible de transférer la conversation",
-    "errorAssigningAdvisor": "Erreur",
-    "errorAssigningAdvisorDescription": "Impossible d'assigner le conseiller"
+    "message": {
+      "yourMessage": "Votre message",
+      "typeYourMessage": "Décrivez votre demande...",
+      "typeMessage": "Tapez votre message...",
+      "loadingMessages": "Chargement des messages...",
+      "newMessage": "Nouveau message",
+      "newMessageFrom": "{{name}} a envoyé un message"
+    },
+    "status": {
+      "pending": "En attente",
+      "closed": "Conversation fermée",
+      "conversationClosed": "Cette conversation est fermée",
+      "advisorWillRespond": "Un conseiller vous répondra dans les plus brefs délais"
+    },
+    "actions": {
+      "transfer": "Transférer",
+      "transferring": "Transfert...",
+      "transferConversation": "Transférer la conversation",
+      "assign": "Assigner",
+      "assigning": "Assignation...",
+      "assignAdvisor": "Assigner un conseiller",
+      "closeConversation": "Fermer la conversation"
+    },
+    "modals": {
+      "transfer": {
+        "title": "Transférer la conversation",
+        "description": "Sélectionnez un conseiller pour transférer cette conversation"
+      },
+      "assign": {
+        "title": "Assigner un conseiller",
+        "description": "Sélectionnez un conseiller pour prendre en charge cette conversation"
+      }
+    },
+    "notifications": {
+      "conversationCreated": "Nouvelle conversation",
+      "conversationCreatedBy": "{{name}} a créé une nouvelle conversation",
+      "conversationTransferred": "Conversation transférée",
+      "conversationTransferredDescription": "Cette conversation a été transférée à un autre conseiller",
+      "advisorAssigned": "Conseiller assigné",
+      "advisorAssignedDescription": "Un conseiller a été assigné à la conversation"
+    },
+    "success": {
+      "title": "Succès",
+      "conversationCreated": "Conversation créée avec succès",
+      "conversationClosed": "La conversation a été fermée avec succès",
+      "conversationTransferred": "La conversation a été transférée avec succès",
+      "advisorAssigned": "Le conseiller a été assigné avec succès"
+    },
+    "errors": {
+      "title": "Erreur",
+      "loadingChats": "Impossible de charger les conversations",
+      "loadingMessages": "Impossible de charger les messages",
+      "sendingMessage": "Impossible d'envoyer le message",
+      "creatingConversation": "Impossible de créer la conversation",
+      "closingConversation": "Impossible de fermer la conversation",
+      "transferringConversation": "Impossible de transférer la conversation",
+      "assigningAdvisor": "Impossible d'assigner le conseiller"
+    }
   }
 }

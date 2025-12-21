@@ -61,7 +61,7 @@ export const ChatWindow = ({
           <div className="flex h-full items-center justify-center">
             <div className="flex flex-col items-center gap-3">
               <div className="h-8 w-8 animate-spin rounded-full border-4 border-gray-200 border-t-gray-900"></div>
-              <p className="text-sm text-gray-500">{t('chat.loadingMessages')}</p>
+              <p className="text-sm text-gray-500">{t('chat.message.loadingMessages')}</p>
             </div>
           </div>
         ) : messages.length === 0 ? (
@@ -96,8 +96,8 @@ export const ChatWindow = ({
         disabled={isClosed || isLoading}
         placeholder={
           isClosed
-            ? t('chat.conversationClosed')
-            : t('chat.typeMessage')
+            ? t('chat.status.conversationClosed')
+            : t('chat.message.typeMessage')
         }
       />
     </div>

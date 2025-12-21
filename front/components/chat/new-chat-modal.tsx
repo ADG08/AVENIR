@@ -53,7 +53,7 @@ export const NewChatModal = ({ isOpen, onClose, onSubmit, isLoading }: NewChatMo
               {/* Header */}
               <div className="flex items-center justify-between border-b border-gray-100 p-6">
                 <h2 className="text-xl font-semibold text-gray-900">
-                  {t('chat.newConversation', 'Nouvelle conversation')}
+                  {t('chat.newConversation')}
                 </h2>
                 <button
                   onClick={handleClose}
@@ -71,17 +71,14 @@ export const NewChatModal = ({ isOpen, onClose, onSubmit, isLoading }: NewChatMo
                     htmlFor="initial-message"
                     className="mb-2 block text-sm font-medium text-gray-700"
                   >
-                    {t('chat.yourMessage', 'Votre message')}
+                    {t('chat.message.yourMessage')}
                   </label>
                   <textarea
                     id="initial-message"
                     rows={6}
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
-                    placeholder={t(
-                      'chat.typeYourMessage',
-                      'Décrivez votre demande...'
-                    )}
+                    placeholder={t('chat.message.typeYourMessage')}
                     className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-gray-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-gray-900/10"
                     disabled={isLoading}
                     autoFocus
