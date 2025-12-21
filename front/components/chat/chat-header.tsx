@@ -38,6 +38,7 @@ export const ChatHeader = ({ chat, currentUserRole, onBack, onClose, onTransfer,
 
   const otherUser = currentUserRole === UserRole.CLIENT ? chat.advisor : chat.client;
   const canManageChat = currentUserRole !== UserRole.CLIENT && chat.status !== ChatStatus.CLOSED;
+  const canShowMenu = canManageChat && chat.status !== ChatStatus.PENDING;
 
   const getStatusText = () => {
     switch (chat.status) {
@@ -77,7 +78,7 @@ export const ChatHeader = ({ chat, currentUserRole, onBack, onClose, onTransfer,
           </div>
         </div>
 
-        {canManageChat && (
+        {canShowMenu && (
           <div className="relative" ref={menuRef}>
             <button
               onClick={() => setMenuOpen(!menuOpen)}
