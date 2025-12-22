@@ -17,6 +17,7 @@
     "next": "Suivant",
     "previous": "Précédent",
     "send": "Envoyer",
+    "optional": "Optionnel",
     "sending": "Envoi..."
   },
   "home": {
@@ -72,7 +73,8 @@
     "recentTransactions": "Transactions Récentes",
     "myCards": "Mes Cartes",
     "addCard": "Ajouter une Carte",
-    "receiveFunds": "Recevoir",
+    "addAccount": "Ajouter un Compte",
+    "viewAllTransactions": "Voir Tout",
     "sendMoney": "Envoyer",
     "incomeThisMonth": "Revenus ce mois",
     "expensesThisMonth": "Dépenses ce mois",
@@ -92,7 +94,57 @@
     "saving": "Épargne",
     "contact": "Contact",
     "yearly": "Annuel",
-    "spending": "Dépenses"
+    "spending": "Dépenses",
+    "addAccountModal": {
+      "title": "Ajouter un compte courant",
+      "description": "Créez un nouveau compte courant pour gérer vos finances au quotidien.",
+      "accountName": "Nom du compte",
+      "accountNamePlaceholder": "Ex: Compte principal, Compte épargne..."
+    },
+    "addSavingsModal": {
+      "title": "Ajouter un compte d'épargne",
+      "description": "Sélectionnez le type de compte d'épargne que vous souhaitez ouvrir.",
+      "savingsType": "Type de compte d'épargne",
+      "savingsTypePlaceholder": "Sélectionnez un type de compte"
+    },
+    "deleteAccountModal": {
+      "title": "Supprimer un compte",
+      "description": "Cette action est irréversible et supprimera toutes les données associées.",
+      "selectAccount": "Compte à supprimer",
+      "selectAccountPlaceholder": "Sélectionnez un compte",
+      "confirmationText": "Je confirme la suppression de ce compte",
+      "verificationLabel": "Pour confirmer, copiez et collez le texte suivant :",
+      "verificationInput": "Tapez le texte de confirmation",
+      "verificationPlaceholder": "Collez ou tapez le texte ici",
+      "verificationError": "Le texte de confirmation ne correspond pas",
+      "verificationSuccess": "Texte de confirmation valide"
+    },
+    "editAccountNameModal": {
+      "title": "Modifier le nom du compte",
+      "description": "Changez le nom de votre compte pour mieux l'identifier.",
+      "accountName": "Nom du compte",
+      "accountNamePlaceholder": "Ex: Compte Principal, Compte Épargne..."
+    },
+    "sendMoneyModal": {
+      "title": "Envoyer de l'argent",
+      "description": "Transférez de l'argent vers vos comptes ou vers des bénéficiaires enregistrés.",
+      "sourceAccount": "Depuis le compte",
+      "sourceAccountPlaceholder": "Sélectionnez le compte source",
+      "destination": "Vers",
+      "destinationPlaceholder": "Sélectionnez un destinataire",
+      "amount": "Montant",
+      "descriptionPlaceholder": "Ex: Remboursement, Cadeau...",
+      "myAccounts": "Mes comptes",
+      "savedRIBs": "RIB enregistrés"
+    },
+    "savingsTypes": {
+      "livretA": "Livret A",
+      "livretJeune": "Livret Jeune",
+      "ldds": "LDDS (Livret de Développement Durable et Solidaire)",
+      "pel": "PEL (Plan Épargne Logement)",
+      "cel": "CEL (Compte Épargne Logement)",
+      "lep": "LEP (Livret d'Épargne Populaire)"
+    }
   },
   "landing": {
     "product": "Produit",

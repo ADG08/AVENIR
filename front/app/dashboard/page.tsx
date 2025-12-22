@@ -6,9 +6,17 @@ import { TransactionItem } from '@/components/ui/transaction-item';
 import { CreditCard } from '@/components/ui/credit-card';
 import { SavingsGoalItem } from '@/components/ui/savings-goal-item';
 import { BarChart } from '@/components/ui/bar-chart';
+import { FilterToggleButton } from '@/components/ui/filter-toggle-button';
+import { ActionButton } from '@/components/ui/action-button';
+import { StatRow } from '@/components/ui/stat-row';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DashboardHeader } from '@/components/dashboard-header';
-import { Search, ArrowUp, ArrowDown, Plus, ChevronLeft, ChevronRight } from 'lucide-react';
+import { AddAccountModal } from '@/components/modals/AddAccountModal';
+import { AddSavingsModal } from '@/components/modals/AddSavingsModal';
+import { DeleteAccountModal } from '@/components/modals/DeleteAccountModal';
+import { EditAccountNameModal } from '@/components/modals/EditAccountNameModal';
+import { SendMoneyModal } from '@/components/modals/SendMoneyModal';
+import { Search, ArrowUp, ArrowDown, Plus, ChevronLeft, ChevronRight, Trash2, List } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useState, useRef, useEffect } from 'react';
 import { useLanguage } from '@/hooks/use-language';
@@ -20,6 +28,11 @@ export default function Home() {
     const [filterOpen, setFilterOpen] = useState(false);
     const [currentCardIndex, setCurrentCardIndex] = useState(0);
     const [cardDirection, setCardDirection] = useState(1);
+    const [addAccountModalOpen, setAddAccountModalOpen] = useState(false);
+    const [addSavingsModalOpen, setAddSavingsModalOpen] = useState(false);
+    const [deleteAccountModalOpen, setDeleteAccountModalOpen] = useState(false);
+    const [editAccountNameModalOpen, setEditAccountNameModalOpen] = useState(false);
+    const [sendMoneyModalOpen, setSendMoneyModalOpen] = useState(false);
     const [activeFilters, setActiveFilters] = useState<{
         card: string | null;
         category: string | null;
@@ -30,6 +43,7 @@ export default function Home() {
         status: null,
     });
     const filterRef = useRef<HTMLDivElement>(null);
+    const transactionsRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -48,8 +62,24 @@ export default function Home() {
     }, [filterOpen]);
 
     const cards = [
-        { cardNumber: '****4329', cardType: 'VISA', expiryDate: '09/28' },
-        { cardNumber: '****8765', cardType: 'Mastercard', expiryDate: '12/26' },
+        {
+            cardNumber: '****4329',
+            cardType: 'VISA',
+            expiryDate: '09/28',
+            firstName: 'Jean',
+            lastName: 'Dupont',
+            accountName: 'Compte Principal',
+            cvv: '123'
+        },
+        {
+            cardNumber: '****8765',
+            cardType: 'Mastercard',
+            expiryDate: '12/26',
+            firstName: 'Jean',
+            lastName: 'Dupont',
+            accountName: 'Compte Secondaire',
+            cvv: '456'
+        },
     ];
 
     const nextCard = () => {
@@ -131,6 +161,10 @@ export default function Home() {
 
     const hasActiveFilters = activeFilters.card || activeFilters.category || activeFilters.status;
 
+    const handleViewAllTransactions = () => {
+        transactionsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
+
     return (
         <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
             <DashboardHeader activeTab={activeTab} setActiveTab={setActiveTab} />
@@ -181,6 +215,7 @@ export default function Home() {
                         </motion.div>
 
                         <motion.div
+                            ref={transactionsRef}
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.1 }}
@@ -226,24 +261,14 @@ export default function Home() {
                                                     <div>
                                                         <label className="mb-2 block text-xs font-medium text-gray-700">Card</label>
                                                         <div className="flex flex-wrap gap-2">
-                                                            <button
-                                                                onClick={() => setActiveFilters({ ...activeFilters, card: activeFilters.card === 'VISA' ? null : 'VISA' })}
-                                                                className={`cursor-pointer rounded-full px-3 py-1 text-xs font-medium transition-colors ${activeFilters.card === 'VISA'
-                                                                    ? 'bg-blue-600 text-white'
-                                                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                                                                    }`}
-                                                            >
-                                                                VISA
-                                                            </button>
-                                                            <button
-                                                                onClick={() => setActiveFilters({ ...activeFilters, card: activeFilters.card === 'Mastercard' ? null : 'Mastercard' })}
-                                                                className={`cursor-pointer rounded-full px-3 py-1 text-xs font-medium transition-colors ${activeFilters.card === 'Mastercard'
-                                                                    ? 'bg-blue-600 text-white'
-                                                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                                                                    }`}
-                                                            >
-                                                                Mastercard
-                                                            </button>
+                                                            {['VISA', 'Mastercard'].map((card) => (
+                                                                <FilterToggleButton
+                                                                    key={card}
+                                                                    value={card}
+                                                                    isActive={activeFilters.card === card}
+                                                                    onClick={() => setActiveFilters({ ...activeFilters, card: activeFilters.card === card ? null : card })}
+                                                                />
+                                                            ))}
                                                         </div>
                                                     </div>
 
@@ -251,16 +276,12 @@ export default function Home() {
                                                         <label className="mb-2 block text-xs font-medium text-gray-700">Category</label>
                                                         <div className="flex flex-wrap gap-2">
                                                             {[t('dashboard.electronics'), 'Food & Drink', 'Transport', 'Entertainment', 'Health', 'Shopping'].map((cat) => (
-                                                                <button
+                                                                <FilterToggleButton
                                                                     key={cat}
+                                                                    value={cat}
+                                                                    isActive={activeFilters.category === cat}
                                                                     onClick={() => setActiveFilters({ ...activeFilters, category: activeFilters.category === cat ? null : cat })}
-                                                                    className={`cursor-pointer rounded-full px-3 py-1 text-xs font-medium transition-colors ${activeFilters.category === cat
-                                                                        ? 'bg-blue-600 text-white'
-                                                                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                                                                        }`}
-                                                                >
-                                                                    {cat}
-                                                                </button>
+                                                                />
                                                             ))}
                                                         </div>
                                                     </div>
@@ -269,16 +290,12 @@ export default function Home() {
                                                         <label className="mb-2 block text-xs font-medium text-gray-700">Status</label>
                                                         <div className="flex flex-wrap gap-2">
                                                             {['Success', 'Pending', 'Failed'].map((status) => (
-                                                                <button
+                                                                <FilterToggleButton
                                                                     key={status}
+                                                                    value={status}
+                                                                    isActive={activeFilters.status === status}
                                                                     onClick={() => setActiveFilters({ ...activeFilters, status: activeFilters.status === status ? null : status })}
-                                                                    className={`cursor-pointer rounded-full px-3 py-1 text-xs font-medium transition-colors ${activeFilters.status === status
-                                                                        ? 'bg-blue-600 text-white'
-                                                                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                                                                        }`}
-                                                                >
-                                                                    {status}
-                                                                </button>
+                                                                />
                                                             ))}
                                                         </div>
                                                     </div>
@@ -331,10 +348,26 @@ export default function Home() {
                         >
                             <div className="mb-4 flex items-center justify-between">
                                 <h3 className="text-xl font-semibold text-gray-900">{t('dashboard.myCards')}</h3>
-                                <button className="flex cursor-pointer items-center gap-2 rounded-full bg-gray-100 px-4 py-2 text-sm font-medium text-gray-900 transition-all hover:bg-gray-200">
-                                    <Plus className="h-4 w-4" />
-                                    {t('dashboard.addCard')}
-                                </button>
+                                <div className="flex items-center gap-2">
+                                    <motion.button
+                                        onClick={() => setDeleteAccountModalOpen(true)}
+                                        whileHover={{ scale: 1.05 }}
+                                        whileTap={{ scale: 0.95 }}
+                                        className="flex cursor-pointer items-center justify-center rounded-full bg-red-100 p-2 transition-all hover:bg-red-200"
+                                        aria-label="Delete account"
+                                    >
+                                        <Trash2 className="h-4 w-4 text-red-600" />
+                                    </motion.button>
+                                    <motion.button
+                                        onClick={() => setAddAccountModalOpen(true)}
+                                        whileHover={{ scale: 1.05 }}
+                                        whileTap={{ scale: 0.95 }}
+                                        className="flex cursor-pointer items-center gap-2 rounded-full bg-gray-100 px-4 py-2 text-sm font-medium text-gray-900 transition-all hover:bg-gray-200"
+                                    >
+                                        <Plus className="h-4 w-4" />
+                                        {t('dashboard.addCard')}
+                                    </motion.button>
+                                </div>
                             </div>
 
                             <div className="space-y-3">
@@ -372,6 +405,11 @@ export default function Home() {
                                             cardNumber={cards[currentCardIndex].cardNumber}
                                             cardType={cards[currentCardIndex].cardType}
                                             expiryDate={cards[currentCardIndex].expiryDate}
+                                            firstName={cards[currentCardIndex].firstName}
+                                            lastName={cards[currentCardIndex].lastName}
+                                            accountName={cards[currentCardIndex].accountName}
+                                            cvv={cards[currentCardIndex].cvv}
+                                            onEditAccountName={() => setEditAccountNameModalOpen(true)}
                                         />
                                     </motion.div>
 
@@ -400,31 +438,29 @@ export default function Home() {
                             </div>
 
                             <div className="mt-4 grid grid-cols-2 gap-3">
-                                <button className="flex cursor-pointer items-center justify-center gap-2 rounded-full border border-gray-200 bg-white px-6 py-3 transition-all hover:bg-gray-50">
-                                    <ArrowDown className="h-5 w-5 text-gray-700" />
-                                    <span className="text-base font-medium text-gray-900">{t('dashboard.receiveFunds')}</span>
-                                </button>
-                                <button className="flex cursor-pointer items-center justify-center gap-2 rounded-full border border-gray-200 bg-white px-6 py-3 transition-all hover:bg-gray-50">
-                                    <ArrowUp className="h-5 w-5 text-gray-700" />
-                                    <span className="text-base font-medium text-gray-900">{t('dashboard.sendMoney')}</span>
-                                </button>
+                                <ActionButton
+                                    icon={List}
+                                    label={t('dashboard.viewAllTransactions')}
+                                    onClick={handleViewAllTransactions}
+                                />
+                                <ActionButton
+                                    icon={ArrowUp}
+                                    label={t('dashboard.sendMoney')}
+                                    onClick={() => setSendMoneyModalOpen(true)}
+                                />
                             </div>
 
                             <div className="mt-4 space-y-4">
-                                <div className="flex items-center gap-3">
-                                    <div className="flex h-10 w-10 items-center justify-center rounded-full border">
-                                        <ArrowUp className="h-5 w-5 text-gray-600" />
-                                    </div>
-                                    <span className="flex-1 text-base font-medium text-gray-700">{t('dashboard.incomeThisMonth')}</span>
-                                    <span className="text-lg font-semibold financial-amount text-gray-900">$2,873.00</span>
-                                </div>
-                                <div className="flex items-center gap-3">
-                                    <div className="flex h-10 w-10 items-center justify-center rounded-full border">
-                                        <ArrowDown className="h-5 w-5 text-gray-600" />
-                                    </div>
-                                    <span className="flex-1 text-base font-medium text-gray-700">{t('dashboard.expensesThisMonth')}</span>
-                                    <span className="text-lg font-semibold financial-amount text-gray-900">$1,924.00</span>
-                                </div>
+                                <StatRow
+                                    icon={ArrowUp}
+                                    label={t('dashboard.incomeThisMonth')}
+                                    amount="$2,873.00"
+                                />
+                                <StatRow
+                                    icon={ArrowDown}
+                                    label={t('dashboard.expensesThisMonth')}
+                                    amount="$1,924.00"
+                                />
                             </div>
                         </motion.div>
 
@@ -436,9 +472,15 @@ export default function Home() {
                         >
                             <div className="mb-4 flex items-center justify-between">
                                 <h3 className="text-xl font-semibold text-gray-900">{t('dashboard.savingsGoals')}</h3>
-                                <button className="cursor-pointer rounded-full bg-gray-100 px-5 py-2 text-sm font-medium text-gray-900 transition-all hover:bg-gray-200">
-                                    {t('dashboard.viewAll')}
-                                </button>
+                                <motion.button
+                                    onClick={() => setAddSavingsModalOpen(true)}
+                                    whileHover={{ scale: 1.05 }}
+                                    whileTap={{ scale: 0.95 }}
+                                    className="flex cursor-pointer items-center gap-2 rounded-full bg-gray-100 px-5 py-2 text-sm font-medium text-gray-900 transition-all hover:bg-gray-200"
+                                >
+                                    <Plus className="h-4 w-4" />
+                                    {t('dashboard.addAccount')}
+                                </motion.button>
                             </div>
 
                             <div className="space-y-3">
@@ -461,6 +503,16 @@ export default function Home() {
                     </div>
                 </div>
             </main>
+
+            <AddAccountModal open={addAccountModalOpen} onOpenChange={setAddAccountModalOpen} />
+            <AddSavingsModal open={addSavingsModalOpen} onOpenChange={setAddSavingsModalOpen} />
+            <DeleteAccountModal open={deleteAccountModalOpen} onOpenChange={setDeleteAccountModalOpen} />
+            <EditAccountNameModal
+                open={editAccountNameModalOpen}
+                onOpenChange={setEditAccountNameModalOpen}
+                currentName={cards[currentCardIndex]?.accountName || ''}
+            />
+            <SendMoneyModal open={sendMoneyModalOpen} onOpenChange={setSendMoneyModalOpen} />
         </div>
     );
 }

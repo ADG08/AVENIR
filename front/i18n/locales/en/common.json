@@ -17,6 +17,7 @@
     "next": "Next",
     "previous": "Previous",
     "send": "Send",
+    "optional": "Optional",
     "sending": "Sending..."
   },
   "home": {
@@ -72,7 +73,8 @@
     "recentTransactions": "Recent Transaction",
     "myCards": "My Cards",
     "addCard": "Add Card",
-    "receiveFunds": "Receive",
+    "addAccount": "Add Account",
+    "viewAllTransactions": "View All",
     "sendMoney": "Send",
     "incomeThisMonth": "Income this month",
     "expensesThisMonth": "Expenses this month",
@@ -92,7 +94,57 @@
     "saving": "Saving",
     "contact": "Contact",
     "yearly": "Yearly",
-    "spending": "Spending"
+    "spending": "Spending",
+    "addAccountModal": {
+      "title": "Add Current Account",
+      "description": "Create a new current account to manage your daily finances.",
+      "accountName": "Account Name",
+      "accountNamePlaceholder": "e.g., Main Account, Savings Account..."
+    },
+    "addSavingsModal": {
+      "title": "Add Savings Account",
+      "description": "Select the type of savings account you want to open.",
+      "savingsType": "Savings Account Type",
+      "savingsTypePlaceholder": "Select an account type"
+    },
+    "deleteAccountModal": {
+      "title": "Delete Account",
+      "description": "This action is irreversible and will delete all associated data.",
+      "selectAccount": "Account to delete",
+      "selectAccountPlaceholder": "Select an account",
+      "confirmationText": "I confirm the deletion of this account",
+      "verificationLabel": "To confirm, copy and paste the following text:",
+      "verificationInput": "Type the confirmation text",
+      "verificationPlaceholder": "Paste or type the text here",
+      "verificationError": "Confirmation text does not match",
+      "verificationSuccess": "Valid confirmation text"
+    },
+    "editAccountNameModal": {
+      "title": "Edit Account Name",
+      "description": "Change your account name to better identify it.",
+      "accountName": "Account Name",
+      "accountNamePlaceholder": "e.g., Main Account, Savings Account..."
+    },
+    "sendMoneyModal": {
+      "title": "Send Money",
+      "description": "Transfer money to your accounts or registered beneficiaries.",
+      "sourceAccount": "From account",
+      "sourceAccountPlaceholder": "Select source account",
+      "destination": "To",
+      "destinationPlaceholder": "Select a recipient",
+      "amount": "Amount",
+      "descriptionPlaceholder": "e.g., Refund, Gift...",
+      "myAccounts": "My accounts",
+      "savedRIBs": "Saved RIBs"
+    },
+    "savingsTypes": {
+      "livretA": "Livret A",
+      "livretJeune": "Livret Jeune",
+      "ldds": "LDDS (Sustainable Development Savings Account)",
+      "pel": "PEL (Housing Savings Plan)",
+      "cel": "CEL (Housing Savings Account)",
+      "lep": "LEP (Popular Savings Account)"
+    }
   },
   "landing": {
     "product": "Product",
