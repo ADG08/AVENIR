@@ -513,7 +513,7 @@ export default function ContactPage() {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="rounded-2xl border border-gray-200 bg-white p-6"
+              className="rounded-2xl border border-gray-200 bg-white p-6 h-[calc(100vh-140px)]"
             >
               <div className="mb-6 flex items-center justify-between">
                 <div>
@@ -602,7 +602,7 @@ export default function ContactPage() {
                 </label>
               </motion.div>
 
-              <div className="space-y-2 max-h-[calc(100vh-480px)] overflow-y-auto">
+              <div className="space-y-2 max-h-[calc(100vh-410px)] overflow-y-auto">
                 {isLoadingChats ? (
                   <div className="py-12 text-center">
                     <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-gray-200 border-t-gray-900"></div>
