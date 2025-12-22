@@ -93,6 +93,7 @@
     "activity": "Activité",
     "saving": "Épargne",
     "contact": "Contact",
+    "clients": "Mes clients",
     "yearly": "Annuel",
     "spending": "Dépenses",
     "receiveFunds": "Recevoir",
@@ -215,6 +216,55 @@
       "error": "Une erreur est survenue lors de la connexion"
     }
   },
+  "clients": {
+    "myClients": "Mes clients",
+    "noClients": "Aucun client",
+    "noClientsDescription": "Vous n'avez pas encore de clients assignés",
+    "clientDetails": "Détails du client",
+    "activeChats": "Discussions actives",
+    "noActiveChats": "Aucune discussion active avec ce client",
+    "openChat": "Ouvrir la discussion",
+    "sendNotification": "Envoyer une notification",
+    "grantLoan": "Octroyer un crédit",
+    "clientSince": "Client depuis",
+    "totalLoans": "Crédits en cours",
+    "notification": {
+      "title": "Envoyer une notification",
+      "titlePlaceholder": "Titre de la notification",
+      "message": "Message",
+      "messagePlaceholder": "Votre message...",
+      "send": "Envoyer",
+      "sending": "Envoi...",
+      "success": "Notification envoyée avec succès",
+      "error": "Erreur lors de l'envoi de la notification"
+    },
+    "loan": {
+      "title": "Octroyer un crédit",
+      "name": "Nom du crédit",
+      "namePlaceholder": "Ex: Crédit immobilier, Crédit auto...",
+      "amount": "Montant du crédit",
+      "amountPlaceholder": "Ex: 10000",
+      "duration": "Durée (en mois)",
+      "durationPlaceholder": "Ex: 60",
+      "interestRate": "Taux d'intérêt annuel (%)",
+      "interestRatePlaceholder": "Ex: 3.5",
+      "insuranceRate": "Taux d'assurance (%)",
+      "insuranceRatePlaceholder": "Ex: 0.36",
+      "monthlyPayment": "Mensualité",
+      "totalCost": "Coût total",
+      "totalInterest": "Intérêts totaux",
+      "insuranceCost": "Coût de l'assurance",
+      "grant": "Octroyer",
+      "granting": "Octroi en cours...",
+      "success": "Crédit octroyé avec succès",
+      "error": "Erreur lors de l'octroi du crédit",
+      "calculate": "Calculer",
+      "summary": "Récapitulatif du crédit"
+    },
+    "errors": {
+      "loadingClients": "Impossible de charger la liste des clients"
+    }
+  },
   "chat": {
     "conversations": "Conversations",
     "newConversation": "Nouvelle conversation",
@@ -289,7 +339,8 @@
       "creatingConversation": "Impossible de créer la conversation",
       "closingConversation": "Impossible de fermer la conversation",
       "transferringConversation": "Impossible de transférer la conversation",
-      "assigningAdvisor": "Impossible d'assigner le conseiller"
+      "assigningAdvisor": "Impossible d'assigner le conseiller",
+      "chatNotFound": "Cette conversation n'existe pas ou vous n'y avez pas accès"
     }
   }
 }

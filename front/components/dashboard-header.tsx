@@ -6,6 +6,9 @@ import { Search, Bell, User, Menu, X } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useState } from 'react';
 import { useLanguage } from '@/hooks/use-language';
+import { useCurrentMockUser } from '@/components/dev-user-switcher';
+import { UserRole } from '@/types/chat';
+import { useRouter } from 'next/navigation';
 
 interface DashboardHeaderProps {
     activeTab: string;
@@ -14,19 +17,40 @@ interface DashboardHeaderProps {
 
 export const DashboardHeader = ({ activeTab, setActiveTab }: DashboardHeaderProps) => {
     const { t, i18n, toggleLanguage } = useLanguage();
+    const currentUser = useCurrentMockUser();
+    const router = useRouter();
     const [hoveredTab, setHoveredTab] = useState<string | null>(null);
     const [activeIcon, setActiveIcon] = useState<string | null>(null);
     const [hoveredIcon, setHoveredIcon] = useState<string | null>(null);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-    const navItems = [
-        { id: 'overview', label: t('dashboard.overview'), href: '/dashboard' },
-        { id: 'investment', label: t('dashboard.investment'), href: '/dashboard' },
-        { id: 'card', label: t('dashboard.card'), href: '/dashboard' },
-        { id: 'activity', label: t('dashboard.activity'), href: '/dashboard' },
-        { id: 'saving', label: t('dashboard.saving'), href: '/dashboard' },
-        { id: 'contact', label: t('dashboard.contact'), href: '/dashboard/contact' },
-    ];
+    let navItems = [];
+    switch (currentUser?.role) {
+        case UserRole.DIRECTOR:
+            navItems = [
+                { id: 'investment', label: t('dashboard.investment'), href: '/dashboard' },
+                { id: 'activity', label: t('dashboard.activity'), href: '/dashboard' },
+                { id: 'contact', label: t('dashboard.contact'), href: '/dashboard/contact' },
+            ];
+            break;
+        case UserRole.ADVISOR:
+            navItems = [
+                { id: 'activity', label: t('dashboard.activity'), href: '/dashboard' },
+                { id: 'clients', label: t('dashboard.clients'), href: '/dashboard/clients' },
+                { id: 'contact', label: t('dashboard.contact'), href: '/dashboard/contact' },
+            ];
+            break;
+        default:
+            navItems = [
+                { id: 'overview', label: t('dashboard.overview'), href: '/dashboard' },
+                { id: 'investment', label: t('dashboard.investment'), href: '/dashboard' },
+                { id: 'card', label: t('dashboard.card'), href: '/dashboard' },
+                { id: 'activity', label: t('dashboard.activity'), href: '/dashboard' },
+                { id: 'saving', label: t('dashboard.saving'), href: '/dashboard' },
+                { id: 'contact', label: t('dashboard.contact'), href: '/dashboard/contact' },
+            ];
+            break;
+    }
 
     const handleLanguageToggle = () => {
         setActiveIcon('lang');
@@ -192,6 +216,7 @@ export const DashboardHeader = ({ activeTab, setActiveTab }: DashboardHeaderProp
                                         onClick={() => {
                                             setActiveTab(item.id);
                                             setMobileMenuOpen(false);
+                                            router.push(item.href);
                                         }}
                                         className={`cursor-pointer rounded-lg px-4 py-3 text-left text-sm font-medium transition-colors ${
                                             isActive ? 'bg-gray-900 text-white' : 'text-gray-600 hover:bg-gray-100'

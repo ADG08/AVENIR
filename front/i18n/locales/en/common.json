@@ -93,6 +93,7 @@
     "activity": "Activity",
     "saving": "Saving",
     "contact": "Contact",
+    "clients": "My clients",
     "yearly": "Yearly",
     "spending": "Spending",
     "receiveFunds": "Receive",
@@ -215,6 +216,55 @@
       "error": "An error occurred during login"
     }
   },
+  "clients": {
+    "myClients": "My clients",
+    "noClients": "No clients",
+    "noClientsDescription": "You don't have any assigned clients yet",
+    "clientDetails": "Client details",
+    "activeChats": "Active discussions",
+    "noActiveChats": "No active discussions with this client",
+    "openChat": "Open discussion",
+    "sendNotification": "Send notification",
+    "grantLoan": "Grant loan",
+    "clientSince": "Client since",
+    "totalLoans": "Active loans",
+    "notification": {
+      "title": "Send notification",
+      "titlePlaceholder": "Notification title",
+      "message": "Message",
+      "messagePlaceholder": "Your message...",
+      "send": "Send",
+      "sending": "Sending...",
+      "success": "Notification sent successfully",
+      "error": "Error sending notification"
+    },
+    "loan": {
+      "title": "Grant loan",
+      "name": "Loan name",
+      "namePlaceholder": "Ex: Home loan, Car loan...",
+      "amount": "Loan amount",
+      "amountPlaceholder": "Ex: 10000",
+      "duration": "Duration (months)",
+      "durationPlaceholder": "Ex: 60",
+      "interestRate": "Annual interest rate (%)",
+      "interestRatePlaceholder": "Ex: 3.5",
+      "insuranceRate": "Insurance rate (%)",
+      "insuranceRatePlaceholder": "Ex: 0.36",
+      "monthlyPayment": "Monthly payment",
+      "totalCost": "Total cost",
+      "totalInterest": "Total interest",
+      "insuranceCost": "Insurance cost",
+      "grant": "Grant",
+      "granting": "Granting...",
+      "success": "Loan granted successfully",
+      "error": "Error granting loan",
+      "calculate": "Calculate",
+      "summary": "Loan summary"
+    },
+    "errors": {
+      "loadingClients": "Unable to load clients list"
+    }
+  },
   "chat": {
     "conversations": "Conversations",
     "newConversation": "New conversation",
@@ -289,7 +339,8 @@
       "creatingConversation": "Unable to create conversation",
       "closingConversation": "Unable to close conversation",
       "transferringConversation": "Unable to transfer conversation",
-      "assigningAdvisor": "Unable to assign advisor"
+      "assigningAdvisor": "Unable to assign advisor",
+      "chatNotFound": "This conversation doesn't exist or you don't have access to it"
     }
   }
 }
