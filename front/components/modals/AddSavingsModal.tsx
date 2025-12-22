@@ -16,13 +16,13 @@ type AddSavingsModalProps = {
 };
 
 const SAVINGS_TYPES = [
-    { value: 'livret-a', labelKey: 'dashboard.savingsTypes.livretA' },
-    { value: 'livret-jeune', labelKey: 'dashboard.savingsTypes.livretJeune' },
-    { value: 'ldds', labelKey: 'dashboard.savingsTypes.ldds' },
-    { value: 'pel', labelKey: 'dashboard.savingsTypes.pel' },
-    { value: 'cel', labelKey: 'dashboard.savingsTypes.cel' },
-    { value: 'lep', labelKey: 'dashboard.savingsTypes.lep' },
-];
+    { value: 'livret-a', labelKey: 'dashboard.savingsTypes.livretA' as const },
+    { value: 'livret-jeune', labelKey: 'dashboard.savingsTypes.livretJeune' as const },
+    { value: 'ldds', labelKey: 'dashboard.savingsTypes.ldds' as const },
+    { value: 'pel', labelKey: 'dashboard.savingsTypes.pel' as const },
+    { value: 'cel', labelKey: 'dashboard.savingsTypes.cel' as const },
+    { value: 'lep', labelKey: 'dashboard.savingsTypes.lep' as const },
+] as const;
 
 const addSavingsSchema = z.object({
     savingsType: z.string().min(1, 'Le type de compte d\'épargne est requis'),

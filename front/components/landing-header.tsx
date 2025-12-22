@@ -6,9 +6,11 @@ import { Package, Grid, Users, Info } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useState } from 'react';
 import { useLanguage } from '@/hooks/use-language';
+import { useAuth } from '@/contexts/AuthContext';
 
 export const LandingHeader = () => {
     const { t } = useLanguage();
+    const { isAuthenticated, isLoading } = useAuth();
     const [hoveredItem, setHoveredItem] = useState<string | null>(null);
     const [activeItem, setActiveItem] = useState<string>('product');
 
@@ -66,23 +68,55 @@ export const LandingHeader = () => {
                 </nav>
 
                 <div className="flex items-center gap-4">
-                    <Link
-                        href="/login"
-                        className="hidden text-sm font-light text-gray-700 transition-colors hover:text-gray-900 md:block"
-                    >
-                        {t('landing.signIn')}
-                    </Link>
-                    <motion.div
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                    >
-                        <Link
-                            href="/register"
-                            className="block rounded-full bg-gray-900 px-6 py-2.5 text-sm font-light text-white transition-all hover:bg-gray-800"
-                        >
-                            {t('landing.openAccount')}
-                        </Link>
-                    </motion.div>
+                    {!isLoading && (
+                        <>
+                            {isAuthenticated ? (
+                                <motion.div
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    transition={{ duration: 0.3 }}
+                                    whileHover={{ scale: 1.02 }}
+                                    whileTap={{ scale: 0.98 }}
+                                >
+                                    <Link
+                                        href="/dashboard"
+                                        className="block rounded-full bg-gray-900 px-6 py-2.5 text-sm font-light text-white transition-all hover:bg-gray-800"
+                                    >
+                                        {t('landing.accessAccount')}
+                                    </Link>
+                                </motion.div>
+                            ) : (
+                                <>
+                                    <motion.div
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 1 }}
+                                        transition={{ duration: 0.3 }}
+                                    >
+                                        <Link
+                                            href="/login"
+                                            className="hidden text-sm font-light text-gray-700 transition-colors hover:text-gray-900 md:block"
+                                        >
+                                            {t('landing.signIn')}
+                                        </Link>
+                                    </motion.div>
+                                    <motion.div
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 1 }}
+                                        transition={{ duration: 0.3 }}
+                                        whileHover={{ scale: 1.02 }}
+                                        whileTap={{ scale: 0.98 }}
+                                    >
+                                        <Link
+                                            href="/register"
+                                            className="block rounded-full bg-gray-900 px-6 py-2.5 text-sm font-light text-white transition-all hover:bg-gray-800"
+                                        >
+                                            {t('landing.openAccount')}
+                                        </Link>
+                                    </motion.div>
+                                </>
+                            )}
+                        </>
+                    )}
                 </div>
             </div>
         </header>

@@ -50,6 +50,21 @@ services:
     networks:
       - avenir-network
 
+  # Mailpit - Serveur SMTP de test pour les emails 
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: avenir-mailpit
+    profiles: ["postgres", "mysql", "all"]
+    ports:
+      - "1025:1025"  # SMT
+      - "8025:8025"  # Web
+    environment:
+      MP_SMTP_AUTH_ACCEPT_ANY: 1
+      MP_SMTP_AUTH_ALLOW_INSECURE: 1
+    networks:
+      - avenir-network
+    restart: unless-stopped
+
 networks:
   avenir-network:
     driver: bridge

@@ -8,8 +8,11 @@ CREATE TABLE IF NOT EXISTS users (
     passcode VARCHAR(255) NOT NULL,
     role VARCHAR(50) NOT NULL CHECK (role IN ('DIRECTOR', 'ADVISOR', 'CLIENT')),
     state VARCHAR(50) NOT NULL CHECK (state IN ('ACTIVE', 'INACTIVE', 'BANNED')),
+    verification_token VARCHAR(255),
+    verified_at TIMESTAMP NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_users_verification_token (verification_token)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Table Accounts

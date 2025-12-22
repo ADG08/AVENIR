@@ -6,5 +6,7 @@ export interface UserRepository {
     update(user: User): Promise<void>;
     getById(id: string): Promise<User | null>;
     getByEmail(email: string): Promise<User | null>;
+    getByIdentityNumber(identityNumber: string): Promise<User | null>;
+    getByVerificationToken(token: string): Promise<User | null>;
     getAll(): Promise<User[]>;
 }

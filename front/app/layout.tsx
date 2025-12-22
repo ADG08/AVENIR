@@ -5,6 +5,7 @@ import { TRPCProvider } from "@/lib/trpc/Provider";
 import { Toaster } from "@/components/ui/toaster";
 import ClientProviders from "@/components/client-providers";
 import { WebSocketProvider } from "@/contexts/WebSocketContext";
+import { AuthProvider } from "@/contexts/AuthContext";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -36,11 +37,13 @@ export default function RootLayout({
         className={`${inter.variable} ${manrope.variable} font-sans antialiased overflow-x-hidden`}
       >
         <TRPCProvider>
-          <WebSocketProvider>
-            {children}
-            <Toaster />
-            <ClientProviders />
-          </WebSocketProvider>
+          <AuthProvider>
+            <WebSocketProvider>
+              {children}
+              <Toaster />
+              <ClientProviders />
+            </WebSocketProvider>
+          </AuthProvider>
         </TRPCProvider>
       </body>
     </html>

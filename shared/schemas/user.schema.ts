@@ -1,25 +1,17 @@
 import { z } from 'zod';
+import { UserRole } from '../enums/UserRole';
+import { UserState } from '../enums/UserState';
 
-export enum UserRole {
-    DIRECTOR = 'DIRECTOR',
-    ADVISOR = 'ADVISOR',
-    CLIENT = 'CLIENT'
-}
+export const UserRoleSchema = z.enum(UserRole);
+export const UserStateSchema = z.enum(UserState);
 
-export enum UserState {
-    ACTIVE = 'ACTIVE',
-    INACTIVE = 'INACTIVE',
-    BANNED = 'BANNED'
-}
-
-// SCHÉMAS DE VALIDATION USER
 export const addUserSchema = z.object({
     firstName: z.string().min(1, 'First name is required').max(100, 'First name is too long'),
     lastName: z.string().min(1, 'Last name is required').max(100, 'Last name is too long'),
     email: z.email('Invalid email format'),
     identityNumber: z.string().min(1, 'Identity number is required'),
     passcode: z.string().min(4, 'Passcode must be at least 4 characters'),
-    role: z.enum(UserRole),
+    role: UserRoleSchema,
 });
 
 export const getUserSchema = z.object({
@@ -31,7 +23,7 @@ export const updateUserSchema = z.object({
     firstName: z.string().min(1).max(100).optional(),
     lastName: z.string().min(1).max(100).optional(),
     email: z.email('Invalid email format').optional(),
-    state: z.enum(UserState).optional(),
+    state: UserStateSchema.optional(),
 });
 
 export type AddUserInput = z.infer<typeof addUserSchema>;

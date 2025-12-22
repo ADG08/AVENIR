@@ -6,7 +6,7 @@ import { X, Users, Search } from 'lucide-react';
 import { User } from '@/types/chat';
 import { userApi } from '@/lib/api/user.api';
 import { useTranslation } from 'react-i18next';
-import {UserRole} from "@avenir/shared/schemas/user.schema";
+import { UserRole } from '@avenir/shared';
 
 interface TransferChatModalProps {
   isOpen: boolean;
