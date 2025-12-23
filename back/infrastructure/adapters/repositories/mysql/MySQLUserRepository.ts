@@ -1,11 +1,11 @@
-import { Pool as MySQLPool } from 'mysql2/promise';
+import { Pool as MySQLPool, RowDataPacket } from 'mysql2/promise';
 import { User } from '../../../../domain/entities/User';
 import { UserRepository } from '../../../../domain/repositories/UserRepository';
 import { UserRole } from '../../../../domain/enumerations/UserRole';
 import { UserState } from '../../../../domain/enumerations/UserState';
 
 export class MySQLUserRepository implements UserRepository {
-    constructor(private pool: MySQLPool) {}
+    constructor(private pool: MySQLPool) { }
 
     async add(user: User): Promise<User> {
         const insertQuery = `
@@ -46,11 +46,12 @@ export class MySQLUserRepository implements UserRepository {
     async update(user: User): Promise<void> {
         const query = `
             UPDATE users
-            SET first_name = ?, last_name = ?, email = ?, 
-                identity_number = ?, passcode = ?, role = ?, state = ?
+            SET first_name = ?, last_name = ?, email = ?,
+                identity_number = ?, passcode = ?, role = ?, state = ?,
+                verification_token = ?, verified_at = ?
             WHERE id = ?
         `;
-        
+
         try {
             await this.pool.execute(query, [
                 user.firstName,
@@ -60,6 +61,8 @@ export class MySQLUserRepository implements UserRepository {
                 user.passcode,
                 user.role,
                 user.state,
+                user.verificationToken || null,
+                user.verifiedAt || null,
                 user.id
             ]);
         } catch (error) {
@@ -71,7 +74,7 @@ export class MySQLUserRepository implements UserRepository {
     async getById(id: string): Promise<User | null> {
         try {
             const [rows] = await this.pool.execute('SELECT * FROM users WHERE id = ?', [id]);
-            const results = rows as any[];
+            const results = rows as RowDataPacket[];
             return results.length === 0 ? null : this.mapRowToUser(results[0]);
         } catch (error) {
             console.error('MySQL error:', error);
@@ -82,7 +85,7 @@ export class MySQLUserRepository implements UserRepository {
     async getByEmail(email: string): Promise<User | null> {
         try {
             const [rows] = await this.pool.execute('SELECT * FROM users WHERE email = ?', [email]);
-            const results = rows as any[];
+            const results = rows as RowDataPacket[];
             return results.length === 0 ? null : this.mapRowToUser(results[0]);
         } catch (error) {
             console.error('MySQL error:', error);
@@ -93,7 +96,7 @@ export class MySQLUserRepository implements UserRepository {
     async getByIdentityNumber(identityNumber: string): Promise<User | null> {
         try {
             const [rows] = await this.pool.execute('SELECT * FROM users WHERE identity_number = ?', [identityNumber]);
-            const results = rows as any[];
+            const results = rows as RowDataPacket[];
             return results.length === 0 ? null : this.mapRowToUser(results[0]);
         } catch (error) {
             console.error('MySQL error:', error);
@@ -104,7 +107,7 @@ export class MySQLUserRepository implements UserRepository {
     async getAll(): Promise<User[]> {
         try {
             const [rows] = await this.pool.execute('SELECT * FROM users ORDER BY created_at DESC');
-            const results = rows as any[];
+            const results = rows as RowDataPacket[];
             return results.map(row => this.mapRowToUser(row));
         } catch (error) {
             console.error('MySQL error:', error);
@@ -115,7 +118,7 @@ export class MySQLUserRepository implements UserRepository {
     async getByVerificationToken(token: string): Promise<User | null> {
         try {
             const [rows] = await this.pool.execute('SELECT * FROM users WHERE verification_token = ?', [token]);
-            const results = rows as any[];
+            const results = rows as RowDataPacket[];
             return results.length === 0 ? null : this.mapRowToUser(results[0]);
         } catch (error) {
             console.error('MySQL error:', error);
@@ -123,7 +126,7 @@ export class MySQLUserRepository implements UserRepository {
         }
     }
 
-    private mapRowToUser(row: any): User {
+    private mapRowToUser(row: RowDataPacket): User {
         return new User(
             row.id,
             row.first_name,

@@ -37,11 +37,12 @@ const dbContext = RepositoryFactory.createDatabaseContext();
 
 // User
 const userRepository = dbContext.userRepository;
+const accountRepository = dbContext.accountRepository;
 const emailService = new NodemailerEmailService();
 const getUserUseCase = new GetUserUseCase(userRepository);
 const getUsersUseCase = new GetUsersUseCase(userRepository);
 const addUserUseCase = new AddUserUseCase(userRepository);
-const registerUserUseCase = new RegisterUserUseCase(userRepository, emailService);
+const registerUserUseCase = new RegisterUserUseCase(userRepository, accountRepository, emailService);
 const verifyEmailUseCase = new VerifyEmailUseCase(userRepository, emailService);
 const loginUserUseCase = new LoginUserUseCase(userRepository);
 const userController = new UserController(getUserUseCase, getUsersUseCase, addUserUseCase, registerUserUseCase, verifyEmailUseCase, loginUserUseCase);

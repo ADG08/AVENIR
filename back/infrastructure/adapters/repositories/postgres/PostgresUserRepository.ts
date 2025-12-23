@@ -3,9 +3,10 @@ import { User } from '../../../../domain/entities/User';
 import { UserRepository } from '../../../../domain/repositories/UserRepository';
 import { UserRole } from '../../../../domain/enumerations/UserRole';
 import { UserState } from '../../../../domain/enumerations/UserState';
+import { RowDataPacket } from 'mysql2/promise';
 
 export class PostgresUserRepository implements UserRepository {
-    constructor(private pool: Pool) {}
+    constructor(private pool: Pool) { }
 
     async add(user: User): Promise<User> {
         const query = `
@@ -47,11 +48,12 @@ export class PostgresUserRepository implements UserRepository {
     async update(user: User): Promise<void> {
         const query = `
             UPDATE users
-            SET first_name = $2, last_name = $3, email = $4, 
-                identity_number = $5, passcode = $6, role = $7, state = $8
+            SET first_name = $2, last_name = $3, email = $4,
+                identity_number = $5, passcode = $6, role = $7, state = $8,
+                verification_token = $9, verified_at = $10
             WHERE id = $1
         `;
-        
+
         try {
             await this.pool.query(query, [
                 user.id,
@@ -61,7 +63,9 @@ export class PostgresUserRepository implements UserRepository {
                 user.identityNumber,
                 user.passcode,
                 user.role,
-                user.state
+                user.state,
+                user.verificationToken || null,
+                user.verifiedAt || null
             ]);
         } catch (error) {
             console.error('PostgreSQL error:', error);
@@ -119,7 +123,7 @@ export class PostgresUserRepository implements UserRepository {
         }
     }
 
-    private mapRowToUser(row: any): User {
+    private mapRowToUser(row: RowDataPacket): User {
         return new User(
             row.id,
             row.first_name,
