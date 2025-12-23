@@ -48,9 +48,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setUser(userData?.user || null);
     } catch (error: any) {
       setUser(null);
+      // Clear cookies on authentication failure
+      api.clearCookies();
+
       // Only redirect if on a protected page
       if (error?.status === 401 && !isPublicPath(window.location.pathname)) {
-        router.push('/');
+        router.push('/login');
       }
     } finally {
       setIsLoading(false);
@@ -66,14 +69,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     // Refresh token every 10 minutes
     const interval = setInterval(async () => {
-      try {
-        await api.refreshToken();
-      } catch (error: any) {
-        // If token refresh fails with 401, log out and redirect to home
-        if (error?.status === 401) {
-          setUser(null);
-          router.push('/');
-        }
+      const refreshSuccess = await api.refreshToken();
+
+      // If token refresh fails, clear cookies and redirect to login
+      if (!refreshSuccess) {
+        api.clearCookies();
+        setUser(null);
+        router.push('/login');
       }
     }, 10 * 60 * 1000);
 
@@ -86,8 +88,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const logout = useCallback(async () => {
     await api.logout();
+    api.clearCookies();
     setUser(null);
-  }, []);
+    router.push('/login');
+  }, [router]);
 
   return (
     <AuthContext.Provider
