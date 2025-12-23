@@ -190,29 +190,6 @@ export const DashboardHeader = ({ activeTab, setActiveTab }: DashboardHeaderProp
                             <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-red-500"></span>
                         </button>
                     )}
-
-                    <button
-                        onMouseEnter={() => setHoveredIcon('user')}
-                        onMouseLeave={() => setHoveredIcon(null)}
-                        onClick={() => setActiveIcon('user')}
-                        className="relative z-10 flex h-10 w-10 cursor-pointer items-center justify-center rounded-full transition-colors duration-200"
-                    >
-                        {(hoveredIcon === 'user' || activeIcon === 'user') && (
-                            <motion.div
-                                layoutId="iconBackground"
-                                className="absolute inset-0 rounded-full bg-gray-900"
-                                style={{ zIndex: -1 }}
-                                transition={{
-                                    type: 'spring',
-                                    stiffness: 380,
-                                    damping: 30,
-                                }}
-                            />
-                        )}
-                        <User
-                            className={`h-5 w-5 ${hoveredIcon === 'user' || activeIcon === 'user' ? 'text-white' : 'text-gray-600'}`}
-                        />
-                    </button>
                     <div ref={userMenuRef} className="relative">
                         <button
                             onMouseEnter={() => setHoveredIcon('user')}
