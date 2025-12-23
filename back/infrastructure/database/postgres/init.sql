@@ -10,6 +10,19 @@ CREATE TABLE IF NOT EXISTS users (
     passcode VARCHAR(255) NOT NULL,
     role VARCHAR(50) NOT NULL CHECK (role IN ('DIRECTOR', 'ADVISOR', 'CLIENT')),
     state VARCHAR(50) NOT NULL CHECK (state IN ('ACTIVE', 'INACTIVE', 'BANNED')),
+    verification_token VARCHAR(255),
+    verified_at TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Table SavingRates (must be created before accounts)
+CREATE TABLE IF NOT EXISTS saving_rates (
+    id VARCHAR(255) PRIMARY KEY,
+    name VARCHAR(50) NOT NULL CHECK (name IN ('STANDARD', 'PREMIUM', 'GOLD')),
+    rate DECIMAL(5, 2) NOT NULL,
+    min_amount DECIMAL(15, 2) NOT NULL,
+    description TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
@@ -18,9 +31,16 @@ CREATE TABLE IF NOT EXISTS users (
 CREATE TABLE IF NOT EXISTS accounts (
     id VARCHAR(255) PRIMARY KEY,
     user_id VARCHAR(255) NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    type VARCHAR(50) NOT NULL CHECK (type IN ('CHECKING', 'SAVINGS', 'INVESTMENT')),
+    iban VARCHAR(34) UNIQUE NOT NULL,
+    name VARCHAR(255),
+    type VARCHAR(50) NOT NULL CHECK (type IN ('CURRENT', 'SAVINGS')),
     balance DECIMAL(15, 2) NOT NULL DEFAULT 0.00,
     currency VARCHAR(3) NOT NULL DEFAULT 'EUR',
+    card_number VARCHAR(16) UNIQUE,
+    card_holder_name VARCHAR(255),
+    card_expiry_date VARCHAR(5),
+    card_cvv VARCHAR(3),
+    saving_rate_id VARCHAR(255) REFERENCES saving_rates(id),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
@@ -82,26 +102,6 @@ CREATE TABLE IF NOT EXISTS messages (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
--- Index pour améliorer les performances
-CREATE INDEX IF NOT EXISTS idx_chats_client_id ON chats(client_id);
-CREATE INDEX IF NOT EXISTS idx_chats_advisor_id ON chats(advisor_id);
-CREATE INDEX IF NOT EXISTS idx_chats_status ON chats(status);
-CREATE INDEX IF NOT EXISTS idx_messages_chat_id ON messages(chat_id);
-CREATE INDEX IF NOT EXISTS idx_messages_sender_id ON messages(sender_id);
-CREATE INDEX IF NOT EXISTS idx_messages_is_read ON messages(is_read);
-CREATE INDEX IF NOT EXISTS idx_messages_created_at ON messages(created_at);
-
--- Table SavingRates
-CREATE TABLE IF NOT EXISTS saving_rates (
-    id VARCHAR(255) PRIMARY KEY,
-    name VARCHAR(50) NOT NULL CHECK (name IN ('STANDARD', 'PREMIUM', 'GOLD')),
-    rate DECIMAL(5, 2) NOT NULL,
-    min_amount DECIMAL(15, 2) NOT NULL,
-    description TEXT,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-);
-
 -- Table Actions (historique des actions utilisateur)
 CREATE TABLE IF NOT EXISTS actions (
     id VARCHAR(255) PRIMARY KEY,
@@ -119,6 +119,13 @@ CREATE INDEX IF NOT EXISTS idx_loans_user_id ON loans(user_id);
 CREATE INDEX IF NOT EXISTS idx_orders_user_id ON orders(user_id);
 CREATE INDEX IF NOT EXISTS idx_actions_user_id ON actions(user_id);
 CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+CREATE INDEX IF NOT EXISTS idx_chats_client_id ON chats(client_id);
+CREATE INDEX IF NOT EXISTS idx_chats_advisor_id ON chats(advisor_id);
+CREATE INDEX IF NOT EXISTS idx_chats_status ON chats(status);
+CREATE INDEX IF NOT EXISTS idx_messages_chat_id ON messages(chat_id);
+CREATE INDEX IF NOT EXISTS idx_messages_sender_id ON messages(sender_id);
+CREATE INDEX IF NOT EXISTS idx_messages_is_read ON messages(is_read);
+CREATE INDEX IF NOT EXISTS idx_messages_created_at ON messages(created_at);
 
 -- Trigger pour mettre à jour automatiquement updated_at
 CREATE OR REPLACE FUNCTION update_updated_at_column()
@@ -143,13 +150,6 @@ CREATE TRIGGER update_orders_updated_at BEFORE UPDATE ON orders
 
 CREATE TRIGGER update_saving_rates_updated_at BEFORE UPDATE ON saving_rates
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-
--- Données de test
-INSERT INTO users (id, first_name, last_name, email, identity_number, passcode, role, state)
-VALUES 
-    ('1', 'John', 'Doe', 'john.doe@example.com', '123456789', '$2b$10$YourHashedPasswordHere', 'CLIENT', 'ACTIVE'),
-    ('2', 'Jane', 'Smith', 'jane.smith@example.com', '987654321', '$2b$10$YourHashedPasswordHere', 'DIRECTOR', 'ACTIVE')
-ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO saving_rates (id, name, rate, min_amount, description)
 VALUES 

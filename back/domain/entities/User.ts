@@ -18,5 +18,7 @@ export class User {
         readonly loans: Loan[] = [],
         readonly orders: Order[] = [],
         readonly createdAt: Date,
+        readonly verificationToken?: string,
+        readonly verifiedAt?: Date,
     ) {}
 }

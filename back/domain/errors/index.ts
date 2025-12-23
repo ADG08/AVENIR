@@ -1,6 +1,11 @@
 export { DomainError } from "./DomainError";
 export { UserNotFoundError } from "./UserNotFoundError";
 export { UserAlreadyExistsError } from "./UserAlreadyExistsError";
+export { InvalidCredentialsError } from "./InvalidCredentialsError";
+export { InactiveAccountError } from "./InactiveAccountError";
+export { InvalidVerificationTokenError } from "./InvalidVerificationTokenError";
+export { EmailAlreadyVerifiedError } from "./EmailAlreadyVerifiedError";
+export { VerificationTokenExpiredError } from "./VerificationTokenExpiredError";
 export { ChatNotFoundError } from "./ChatNotFoundError";
 export { UnauthorizedChatAccessError } from "./UnauthorizedChatAccessError";
 export { MessageNotFoundError } from "./MessageNotFoundError";

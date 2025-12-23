@@ -76,6 +76,7 @@
     "addAccount": "Add Account",
     "viewAllTransactions": "View All",
     "sendMoney": "Send",
+    "receiveFunds": "Receive",
     "incomeThisMonth": "Income this month",
     "expensesThisMonth": "Expenses this month",
     "savingsThisMonth": "Savings this month",
@@ -157,6 +158,7 @@
     "about": "About",
     "signIn": "Sign In",
     "openAccount": "Open account",
+    "accessAccount": "Access my account",
     "hero": {
       "title": "Banking that fits your life",
       "subtitle": "Open your account in minutes. Manage your money simply, wherever you are.",

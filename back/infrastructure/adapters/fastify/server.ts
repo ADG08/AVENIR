@@ -1,8 +1,10 @@
 import Fastify from 'fastify';
 import fastifyWebsocket from '@fastify/websocket';
+import fastifyCookie from '@fastify/cookie';
 import cors from '@fastify/cors';
 import { healthRoutes } from './routes/health';
 import { userRoutes } from './routes/user';
+import { authRoutes } from './routes/auth';
 import { chatRoutes } from './routes/chat';
 import { messageRoutes } from './routes/message';
 import { websocketRoutes } from './routes/websocket';
@@ -12,6 +14,10 @@ import { MessageController } from './controllers/MessageController';
 import { GetUserUseCase } from '@avenir/application/usecases/user/GetUserUseCase';
 import { GetUsersUseCase } from '@avenir/application/usecases/user/GetUsersUseCase';
 import { AddUserUseCase } from '@avenir/application/usecases/user/AddUserUseCase';
+import { RegisterUserUseCase } from '@avenir/application/usecases/user/RegisterUserUseCase';
+import { VerifyEmailUseCase } from '@avenir/application/usecases/user/VerifyEmailUseCase';
+import { LoginUserUseCase } from '@avenir/application/usecases/user/LoginUserUseCase';
+import { NodemailerEmailService } from '../../adapters/email/NodemailerEmailService';
 import { CreateChatUseCase } from '@avenir/application/usecases/chat/CreateChatUseCase';
 import { GetChatsUseCase } from '@avenir/application/usecases/chat/GetChatsUseCase';
 import { GetChatMessagesUseCase } from '@avenir/application/usecases/chat/GetChatMessagesUseCase';
@@ -31,10 +37,15 @@ const dbContext = RepositoryFactory.createDatabaseContext();
 
 // User
 const userRepository = dbContext.userRepository;
+const accountRepository = dbContext.accountRepository;
+const emailService = new NodemailerEmailService();
 const getUserUseCase = new GetUserUseCase(userRepository);
 const getUsersUseCase = new GetUsersUseCase(userRepository);
 const addUserUseCase = new AddUserUseCase(userRepository);
-const userController = new UserController(getUserUseCase, getUsersUseCase, addUserUseCase);
+const registerUserUseCase = new RegisterUserUseCase(userRepository, accountRepository, emailService);
+const verifyEmailUseCase = new VerifyEmailUseCase(userRepository, emailService);
+const loginUserUseCase = new LoginUserUseCase(userRepository);
+const userController = new UserController(getUserUseCase, getUsersUseCase, addUserUseCase, registerUserUseCase, verifyEmailUseCase, loginUserUseCase);
 
 // Chat
 const chatRepository = dbContext.chatRepository;
@@ -66,22 +77,20 @@ const messageController = new MessageController(sendMessageUseCase, markMessageA
 
 async function setupRoutes() {
     await fastify.register(cors, {
-        origin: true,
+        origin: process.env.FRONTEND_URL || 'http://localhost:3000',
         credentials: true,
         methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
         allowedHeaders: ['Content-Type', 'Authorization']
     });
 
-    // Enregistrer le plugin WebSocket
+    await fastify.register(fastifyCookie);
     await fastify.register(fastifyWebsocket);
 
-    // Routes API REST
     await fastify.register(healthRoutes, { prefix: '/api' });
     await fastify.register(userRoutes, { prefix: '/api', userController });
+    await fastify.register(authRoutes, { prefix: '/api/auth', userController });
     await fastify.register(chatRoutes, { prefix: '/api', chatController, messageRepository, chatRepository });
     await fastify.register(messageRoutes, { prefix: '/api', messageController });
-
-    // Route WebSocket
     await fastify.register(websocketRoutes, { prefix: '/api' });
 }
 
@@ -97,13 +106,13 @@ const start = async () => {
 
 const shutdown = async () => {
     try {
-        console.log('Arrêt du serveur...');
+        console.log('Shutting down server...');
         await dbContext.close();
         await fastify.close();
-        console.log('Serveur arrêté proprement');
+        console.log('Server shut down successfully');
         process.exit(0);
     } catch (err) {
-        console.error('Erreur lors de l\'arrêt:', err);
+        console.error('Error during shutdown:', err);
         process.exit(1);
     }
 };

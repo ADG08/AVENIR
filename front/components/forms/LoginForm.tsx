@@ -14,14 +14,15 @@ import {
 import { Input } from '@/components/ui/input';
 import { PasswordInput } from '@/components/ui/password-input';
 import { Button } from '@/components/ui/button';
-import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from 'react-i18next';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
+import { useState } from 'react';
+import { AlertCircle } from 'lucide-react';
 
 export const LoginForm = () => {
-    const { toast } = useToast();
     const { t } = useTranslation('common');
+    const [error, setError] = useState<string | null>(null);
 
     const form = useForm<LoginInput>({
         resolver: zodResolver(loginSchema),
@@ -32,17 +33,26 @@ export const LoginForm = () => {
     });
 
     const handleSubmit = async (data: LoginInput) => {
+        setError(null);
+
         try {
-            toast({
-                title: t('auth.login.success'),
-                description: t('auth.login.successDescription'),
+            const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+            const response = await fetch(`${API_URL}/api/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify(data),
             });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Login failed');
+            }
+
+            // Cookies are now set, redirect with full page reload to ensure middleware sees them
+            window.location.href = '/dashboard';
         } catch (error) {
-            toast({
-                title: t('errors.error'),
-                description: t('auth.login.error'),
-                variant: 'destructive',
-            });
+            setError(error instanceof Error ? error.message : t('auth.login.error'));
         }
     };
 
@@ -77,6 +87,18 @@ export const LoginForm = () => {
                     {t('auth.login.subtitle')}
                 </p>
             </motion.div>
+
+            {error && (
+                <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3 }}
+                    className="flex items-center gap-3 rounded-lg border border-red-200 bg-red-50 p-4"
+                >
+                    <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0" />
+                    <p className="text-sm font-medium text-red-800">{error}</p>
+                </motion.div>
+            )}
 
             <Form {...form}>
                 <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-5">

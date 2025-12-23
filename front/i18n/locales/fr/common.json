@@ -76,6 +76,7 @@
     "addAccount": "Ajouter un Compte",
     "viewAllTransactions": "Voir Tout",
     "sendMoney": "Envoyer",
+    "receiveFunds": "Recevoir",
     "incomeThisMonth": "Revenus ce mois",
     "expensesThisMonth": "Dépenses ce mois",
     "savingsThisMonth": "Épargne ce mois",
@@ -157,6 +158,7 @@
     "about": "À propos",
     "signIn": "Se connecter",
     "openAccount": "Ouvrir un compte",
+    "accessAccount": "Accéder à mon compte",
     "hero": {
       "title": "La banque qui s'adapte à votre vie",
       "subtitle": "Ouvrez votre compte en quelques minutes. Gérez votre argent simplement, où que vous soyez.",

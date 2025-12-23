@@ -1,6 +1,9 @@
 export { AddUserRequest } from "./AddUserRequest";
 export { GetUserRequest } from "./GetUserRequest";
 export { GetUsersRequest } from "./GetUsersRequest";
+export { RegisterUserRequest } from "./RegisterUserRequest";
+export { VerifyEmailRequest } from "./VerifyEmailRequest";
+export { LoginUserRequest } from "./LoginUserRequest";
 export { CreateChatRequest } from "./CreateChatRequest";
 export { SendMessageRequest } from "./SendMessageRequest";
 export { GetChatsRequest } from "./GetChatsRequest";

@@ -14,14 +14,19 @@ import {
 import { Input } from '@/components/ui/input';
 import { PasswordInput } from '@/components/ui/password-input';
 import { Button } from '@/components/ui/button';
-import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from 'react-i18next';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
+import { useState } from 'react';
+import { AlertCircle } from 'lucide-react';
 
-export const RegistrationForm = () => {
-    const { toast } = useToast();
+interface RegistrationFormProps {
+    onSuccess?: () => void;
+}
+
+export const RegistrationForm = ({ onSuccess }: RegistrationFormProps) => {
     const { t } = useTranslation('common');
+    const [error, setError] = useState<string | null>(null);
 
     const form = useForm<RegistrationInput>({
         resolver: zodResolver(registrationSchema),
@@ -34,17 +39,27 @@ export const RegistrationForm = () => {
     });
 
     const handleSubmit = async (data: RegistrationInput) => {
+        setError(null);
+
         try {
-            toast({
-                title: t('auth.registration.success'),
-                description: t('auth.registration.successDescription'),
+            const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+            const response = await fetch(`${API_URL}/api/register`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data),
             });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Registration failed');
+            }
+
+            const result = await response.json();
+
+            // Call onSuccess callback if provided
+            onSuccess?.();
         } catch (error) {
-            toast({
-                title: t('errors.error'),
-                description: t('auth.registration.error'),
-                variant: 'destructive',
-            });
+            setError(error instanceof Error ? error.message : t('auth.registration.error'));
         }
     };
 
@@ -79,6 +94,18 @@ export const RegistrationForm = () => {
                     {t('auth.registration.subtitle')}
                 </p>
             </motion.div>
+
+            {error && (
+                <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3 }}
+                    className="flex items-center gap-3 rounded-lg border border-red-200 bg-red-50 p-4"
+                >
+                    <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0" />
+                    <p className="text-sm font-medium text-red-800">{error}</p>
+                </motion.div>
+            )}
 
             <Form {...form}>
                 <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-5">

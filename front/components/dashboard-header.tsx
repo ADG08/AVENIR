@@ -2,13 +2,14 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { Search, Bell, User, Menu, X } from 'lucide-react';
-import { motion } from 'framer-motion';
-import { useState } from 'react';
+import { Search, Bell, User, Menu, X, UserCircle, LogOut } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useRef, useEffect } from 'react';
 import { useLanguage } from '@/hooks/use-language';
+import { useAuth } from '@/contexts/AuthContext';
+import { useRouter } from 'next/navigation';
 import { useCurrentMockUser } from '@/components/dev-user-switcher';
 import { UserRole } from '@/types/chat';
-import { useRouter } from 'next/navigation';
 import { NotificationButton } from '@/components/notifications/notification-button';
 
 interface DashboardHeaderProps {
@@ -18,12 +19,15 @@ interface DashboardHeaderProps {
 
 export const DashboardHeader = ({ activeTab, setActiveTab }: DashboardHeaderProps) => {
     const { t, i18n, toggleLanguage } = useLanguage();
-    const currentUser = useCurrentMockUser();
+    const { logout } = useAuth();
     const router = useRouter();
+    const currentUser = useCurrentMockUser();
     const [hoveredTab, setHoveredTab] = useState<string | null>(null);
     const [activeIcon, setActiveIcon] = useState<string | null>(null);
     const [hoveredIcon, setHoveredIcon] = useState<string | null>(null);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+    const [userMenuOpen, setUserMenuOpen] = useState(false);
+    const userMenuRef = useRef<HTMLDivElement>(null);
 
     let navItems = [];
     switch (currentUser?.role) {
@@ -59,6 +63,32 @@ export const DashboardHeader = ({ activeTab, setActiveTab }: DashboardHeaderProp
         setActiveIcon('lang');
         toggleLanguage();
     };
+
+    const handleLogout = async () => {
+        try {
+            await logout();
+            router.push('/');
+        } catch (error) {
+            console.error('Logout error:', error);
+        }
+    };
+
+    // Close user menu when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+                setUserMenuOpen(false);
+            }
+        };
+
+        if (userMenuOpen) {
+            document.addEventListener('mousedown', handleClickOutside);
+        }
+
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [userMenuOpen]);
 
     return (
         <header className="border-b bg-white/80 backdrop-blur-sm">
@@ -160,29 +190,67 @@ export const DashboardHeader = ({ activeTab, setActiveTab }: DashboardHeaderProp
                             <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-red-500"></span>
                         </button>
                     )}
-
-                    <button
-                        onMouseEnter={() => setHoveredIcon('user')}
-                        onMouseLeave={() => setHoveredIcon(null)}
-                        onClick={() => setActiveIcon('user')}
-                        className="relative z-10 flex h-10 w-10 cursor-pointer items-center justify-center rounded-full transition-colors duration-200"
-                    >
-                        {(hoveredIcon === 'user' || activeIcon === 'user') && (
-                            <motion.div
-                                layoutId="iconBackground"
-                                className="absolute inset-0 rounded-full bg-gray-900"
-                                style={{ zIndex: -1 }}
-                                transition={{
-                                    type: 'spring',
-                                    stiffness: 380,
-                                    damping: 30,
-                                }}
+                    <div ref={userMenuRef} className="relative">
+                        <button
+                            onMouseEnter={() => setHoveredIcon('user')}
+                            onMouseLeave={() => setHoveredIcon(null)}
+                            onClick={() => {
+                                setUserMenuOpen(!userMenuOpen);
+                                setActiveIcon(userMenuOpen ? null : 'user');
+                            }}
+                            className="relative z-10 flex h-10 w-10 cursor-pointer items-center justify-center rounded-full transition-colors duration-200"
+                        >
+                            {(hoveredIcon === 'user' || activeIcon === 'user' || userMenuOpen) && (
+                                <motion.div
+                                    layoutId="iconBackground"
+                                    className="absolute inset-0 rounded-full bg-gray-900"
+                                    style={{ zIndex: -1 }}
+                                    transition={{
+                                        type: 'spring',
+                                        stiffness: 380,
+                                        damping: 30,
+                                    }}
+                                />
+                            )}
+                            <User
+                                className={`h-5 w-5 ${hoveredIcon === 'user' || activeIcon === 'user' || userMenuOpen ? 'text-white' : 'text-gray-600'}`}
                             />
-                        )}
-                        <User
-                            className={`h-5 w-5 ${hoveredIcon === 'user' || activeIcon === 'user' ? 'text-white' : 'text-gray-600'}`}
-                        />
-                    </button>
+                        </button>
+
+                        <AnimatePresence>
+                            {userMenuOpen && (
+                                <motion.div
+                                    initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                                    exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                                    transition={{ duration: 0.15 }}
+                                    className="absolute right-0 top-12 z-50 w-56 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-xl"
+                                >
+                                    <div className="py-1">
+                                        <Link
+                                            href="/profile"
+                                            onClick={() => setUserMenuOpen(false)}
+                                            className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 transition-colors hover:bg-gray-50"
+                                        >
+                                            <UserCircle className="h-5 w-5 text-gray-500" />
+                                            <span className="font-medium">{t('nav.profile')}</span>
+                                        </Link>
+                                        <div className="border-t border-gray-100"></div>
+                                        <button
+                                            onClick={() => {
+                                                setUserMenuOpen(false);
+                                                handleLogout();
+                                            }}
+                                            className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm text-red-600 transition-colors hover:bg-red-50"
+                                        >
+                                            <LogOut className="h-5 w-5" />
+                                            <span className="font-medium">{t('nav.logout')}</span>
+                                        </button>
+                                    </div>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+                    </div>
                     <button
                         onMouseEnter={() => setHoveredIcon('lang')}
                         onMouseLeave={() => setHoveredIcon(null)}
@@ -239,6 +307,28 @@ export const DashboardHeader = ({ activeTab, setActiveTab }: DashboardHeaderProp
 
                             <div className="my-2 border-t border-gray-200"></div>
 
+                            <Link
+                                href="/profile"
+                                onClick={() => setMobileMenuOpen(false)}
+                                className="flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-100"
+                            >
+                                <UserCircle className="h-5 w-5" />
+                                <span>{t('nav.profile')}</span>
+                            </Link>
+
+                            <button
+                                onClick={() => {
+                                    setMobileMenuOpen(false);
+                                    handleLogout();
+                                }}
+                                className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm font-medium text-red-600 transition-colors hover:bg-red-50"
+                            >
+                                <LogOut className="h-5 w-5" />
+                                <span>{t('nav.logout')}</span>
+                            </button>
+
+                            <div className="my-2 border-t border-gray-200"></div>
+
                             <div className="flex items-center justify-center gap-2 rounded-full bg-white p-1">
                                 <button
                                     onClick={() => {
@@ -258,15 +348,6 @@ export const DashboardHeader = ({ activeTab, setActiveTab }: DashboardHeaderProp
                                 >
                                     <Bell className="h-5 w-5 text-gray-600" />
                                     <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-red-500"></span>
-                                </button>
-                                <button
-                                    onClick={() => {
-                                        setActiveIcon('user');
-                                        setMobileMenuOpen(false);
-                                    }}
-                                    className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full transition-colors hover:bg-gray-100"
-                                >
-                                    <User className="h-5 w-5 text-gray-600" />
                                 </button>
                                 <button
                                     onClick={() => {

@@ -1,5 +1,8 @@
 export { AddUserResponse, AddUserResponseMapper } from "./AddUserResponse";
 export { GetUserResponse, GetUserResponseMapper } from "./GetUserResponse";
 export { GetUsersResponse, GetUsersResponseMapper } from "./GetUsersResponse";
+export { RegisterUserResponse, RegisterUserResponseMapper } from "./RegisterUserResponse";
+export { VerifyEmailResponse, VerifyEmailResponseMapper } from "./VerifyEmailResponse";
+export { LoginUserResponse, LoginUserResponseMapper } from "./LoginUserResponse";
 export { ChatResponse } from "./ChatResponse";
 export { MessageResponse } from "./MessageResponse";
