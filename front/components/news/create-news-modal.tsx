@@ -1,9 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Newspaper } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { createNewsSchema, type CreateNewsFormData } from '@/lib/validation/client-forms.schema';
 
 interface CreateNewsModalProps {
   isOpen: boolean;
@@ -19,25 +22,35 @@ export const CreateNewsModal = ({
   isLoading = false,
 }: CreateNewsModalProps) => {
   const { t } = useTranslation();
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isValid },
+    reset,
+  } = useForm<CreateNewsFormData>({
+    resolver: zodResolver(createNewsSchema),
+    mode: 'onChange',
+  });
 
-    if (!title.trim() || !description.trim() || isLoading) return;
-
-    await onSubmit(title.trim(), description.trim());
+  const onFormSubmit = async (data: CreateNewsFormData) => {
+    if (isLoading) return;
+    await onSubmit(data.title, data.description);
     handleClose();
   };
 
   const handleClose = () => {
     if (!isLoading) {
-      setTitle('');
-      setDescription('');
+      reset();
       onClose();
     }
   };
+
+  useEffect(() => {
+    if (isOpen) {
+      reset();
+    }
+  }, [isOpen, reset]);
 
   return (
     <AnimatePresence>
@@ -82,7 +95,7 @@ export const CreateNewsModal = ({
               </div>
 
               {/* Form */}
-              <form onSubmit={handleSubmit} className="p-6">
+              <form onSubmit={handleSubmit(onFormSubmit)} className="p-6">
                 <div className="space-y-6">
                   {/* Titre */}
                   <div>
@@ -95,13 +108,16 @@ export const CreateNewsModal = ({
                     <input
                       id="news-title"
                       type="text"
-                      value={title}
-                      onChange={(e) => setTitle(e.target.value)}
+                      {...register('title')}
                       placeholder={t('news.modal.newsTitlePlaceholder')}
                       disabled={isLoading}
-                      className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 disabled:opacity-50"
-                      required
+                      className={`w-full rounded-lg border ${
+                        errors.title ? 'border-red-500' : 'border-gray-300'
+                      } bg-white px-4 py-3 text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 disabled:opacity-50`}
                     />
+                    {errors.title && (
+                      <p className="mt-1 text-sm text-red-600">{errors.title.message}</p>
+                    )}
                   </div>
 
                   {/* Description */}
@@ -114,14 +130,17 @@ export const CreateNewsModal = ({
                     </label>
                     <textarea
                       id="news-description"
-                      value={description}
-                      onChange={(e) => setDescription(e.target.value)}
+                      {...register('description')}
                       placeholder={t('news.modal.descriptionPlaceholder')}
                       disabled={isLoading}
                       rows={6}
-                      className="w-full resize-none rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 disabled:opacity-50"
-                      required
+                      className={`w-full resize-none rounded-lg border ${
+                        errors.description ? 'border-red-500' : 'border-gray-300'
+                      } bg-white px-4 py-3 text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 disabled:opacity-50`}
                     />
+                    {errors.description && (
+                      <p className="mt-1 text-sm text-red-600">{errors.description.message}</p>
+                    )}
                   </div>
                 </div>
 
@@ -137,7 +156,7 @@ export const CreateNewsModal = ({
                   </button>
                   <button
                     type="submit"
-                    disabled={isLoading || !title.trim() || !description.trim()}
+                    disabled={isLoading || !isValid}
                     className="rounded-lg bg-blue-600 px-6 py-2.5 font-medium text-white transition-colors hover:bg-blue-700 disabled:opacity-50"
                   >
                     {isLoading ? (

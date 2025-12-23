@@ -1,9 +1,12 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, TrendingUp } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { grantLoanSchema, type GrantLoanFormData } from '@/lib/validation/client-forms.schema';
 
 interface GrantLoanModalProps {
   isOpen: boolean;
@@ -33,57 +36,62 @@ export const GrantLoanModal = ({
   isLoading = false,
 }: GrantLoanModalProps) => {
   const { t } = useTranslation();
-  const [name, setName] = useState('');
-  const [amount, setAmount] = useState('');
-  const [duration, setDuration] = useState('');
-  const [interestRate, setInterestRate] = useState('3.5');
-  const [insuranceRate, setInsuranceRate] = useState('0.36');
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isValid },
+    reset,
+  } = useForm<GrantLoanFormData>({
+    resolver: zodResolver(grantLoanSchema),
+    mode: 'onChange',
+    defaultValues: {
+      name: '',
+      amount: 0,
+      duration: 0,
+      interestRate: 3.5,
+      insuranceRate: 0.36,
+    },
+  });
 
-    const principal = parseFloat(amount);
-    const months = parseInt(duration);
-    const annualRate = parseFloat(interestRate);
-    const insuranceRateDecimal = parseFloat(insuranceRate);
+  const onFormSubmit = async (data: GrantLoanFormData) => {
+    if (isLoading) return;
 
-    if (!name.trim() || !principal || !months || isNaN(annualRate) || isNaN(insuranceRateDecimal)) {
-      return;
-    }
+    // TODO : Récuperer les données du back
+    const loanData: LoanCalculation = {
+      name: data.name,
+      amount: data.amount,
+      duration: data.duration,
+      interestRate: data.interestRate,
+      insuranceRate: data.insuranceRate,
+      monthlyPayment: 0,
+      totalCost: 0,
+      totalInterest: 0,
+      insuranceCost: 0,
+    };
 
-    if (!isLoading) {
-      // TODO : Récuperer les données du back
-      const loanData: LoanCalculation = {
-        name: name.trim(),
-        amount: principal,
-        duration: months,
-        interestRate: annualRate,
-        insuranceRate: insuranceRateDecimal,
-        monthlyPayment: 0,
-        totalCost: 0,
-        totalInterest: 0,
-        insuranceCost: 0,
-      };
-
-      await onSubmit(loanData);
-      resetForm();
-    }
-  };
-
-  const resetForm = () => {
-    setName('');
-    setAmount('');
-    setDuration('');
-    setInterestRate('3.5');
-    setInsuranceRate('0.36');
+    await onSubmit(loanData);
+    handleClose();
   };
 
   const handleClose = () => {
     if (!isLoading) {
-      resetForm();
+      reset();
       onClose();
     }
   };
+
+  useEffect(() => {
+    if (isOpen) {
+      reset({
+        name: '',
+        amount: 0,
+        duration: 0,
+        interestRate: 3.5,
+        insuranceRate: 0.36,
+      });
+    }
+  }, [isOpen, reset]);
 
   return (
     <AnimatePresence>
@@ -126,7 +134,7 @@ export const GrantLoanModal = ({
               </div>
 
               {/* Form */}
-              <form onSubmit={handleSubmit} className="space-y-6">
+              <form onSubmit={handleSubmit(onFormSubmit)} className="space-y-6">
                 {/* Nom du crédit */}
                 <div>
                   <label htmlFor="loan-name" className="mb-2 block text-sm font-medium text-gray-700">
@@ -135,13 +143,16 @@ export const GrantLoanModal = ({
                   <input
                     id="loan-name"
                     type="text"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
+                    {...register('name')}
                     placeholder={t('clients.loan.namePlaceholder')}
                     disabled={isLoading}
-                    className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 disabled:opacity-50"
-                    required
+                    className={`w-full rounded-lg border ${
+                      errors.name ? 'border-red-500' : 'border-gray-300'
+                    } bg-white px-4 py-2.5 text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 disabled:opacity-50`}
                   />
+                  {errors.name && (
+                    <p className="mt-1 text-sm text-red-600">{errors.name.message}</p>
+                  )}
                 </div>
 
                 {/* Inputs principaux */}
@@ -155,14 +166,16 @@ export const GrantLoanModal = ({
                       id="loan-amount"
                       type="number"
                       step="100"
-                      min="1000"
-                      value={amount}
-                      onChange={(e) => setAmount(e.target.value)}
+                      {...register('amount', { valueAsNumber: true })}
                       placeholder={t('clients.loan.amountPlaceholder')}
                       disabled={isLoading}
-                      className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 disabled:opacity-50"
-                      required
+                      className={`w-full rounded-lg border ${
+                        errors.amount ? 'border-red-500' : 'border-gray-300'
+                      } bg-white px-4 py-2.5 text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 disabled:opacity-50`}
                     />
+                    {errors.amount && (
+                      <p className="mt-1 text-sm text-red-600">{errors.amount.message}</p>
+                    )}
                   </div>
 
                   {/* Durée */}
@@ -174,15 +187,16 @@ export const GrantLoanModal = ({
                       id="loan-duration"
                       type="number"
                       step="1"
-                      min="6"
-                      max="360"
-                      value={duration}
-                      onChange={(e) => setDuration(e.target.value)}
+                      {...register('duration', { valueAsNumber: true })}
                       placeholder={t('clients.loan.durationPlaceholder')}
                       disabled={isLoading}
-                      className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 disabled:opacity-50"
-                      required
+                      className={`w-full rounded-lg border ${
+                        errors.duration ? 'border-red-500' : 'border-gray-300'
+                      } bg-white px-4 py-2.5 text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 disabled:opacity-50`}
                     />
+                    {errors.duration && (
+                      <p className="mt-1 text-sm text-red-600">{errors.duration.message}</p>
+                    )}
                   </div>
 
                   {/* Taux d'intérêt */}
@@ -194,15 +208,16 @@ export const GrantLoanModal = ({
                       id="loan-interest"
                       type="number"
                       step="0.01"
-                      min="0"
-                      max="20"
-                      value={interestRate}
-                      onChange={(e) => setInterestRate(e.target.value)}
+                      {...register('interestRate', { valueAsNumber: true })}
                       placeholder={t('clients.loan.interestRatePlaceholder')}
                       disabled={isLoading}
-                      className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 disabled:opacity-50"
-                      required
+                      className={`w-full rounded-lg border ${
+                        errors.interestRate ? 'border-red-500' : 'border-gray-300'
+                      } bg-white px-4 py-2.5 text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 disabled:opacity-50`}
                     />
+                    {errors.interestRate && (
+                      <p className="mt-1 text-sm text-red-600">{errors.interestRate.message}</p>
+                    )}
                   </div>
 
                   {/* Taux d'assurance */}
@@ -214,15 +229,16 @@ export const GrantLoanModal = ({
                       id="loan-insurance"
                       type="number"
                       step="0.01"
-                      min="0"
-                      max="5"
-                      value={insuranceRate}
-                      onChange={(e) => setInsuranceRate(e.target.value)}
+                      {...register('insuranceRate', { valueAsNumber: true })}
                       placeholder={t('clients.loan.insuranceRatePlaceholder')}
                       disabled={isLoading}
-                      className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 disabled:opacity-50"
-                      required
+                      className={`w-full rounded-lg border ${
+                        errors.insuranceRate ? 'border-red-500' : 'border-gray-300'
+                      } bg-white px-4 py-2.5 text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 disabled:opacity-50`}
                     />
+                    {errors.insuranceRate && (
+                      <p className="mt-1 text-sm text-red-600">{errors.insuranceRate.message}</p>
+                    )}
                   </div>
                 </div>
 
@@ -238,7 +254,7 @@ export const GrantLoanModal = ({
                   </button>
                   <button
                     type="submit"
-                    disabled={isLoading || !amount || !duration}
+                    disabled={isLoading || !isValid}
                     className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-linear-to-r from-blue-600 to-indigo-600 px-4 py-2.5 text-sm font-medium text-white transition-all hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50"
                   >
                     {isLoading ? (

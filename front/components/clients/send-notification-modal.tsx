@@ -1,9 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Send } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { sendNotificationSchema, type SendNotificationFormData } from '@/lib/validation/client-forms.schema';
 
 interface SendNotificationModalProps {
   isOpen: boolean;
@@ -21,25 +24,36 @@ export const SendNotificationModal = ({
   isLoading = false,
 }: SendNotificationModalProps) => {
   const { t } = useTranslation();
-  const [title, setTitle] = useState('');
-  const [message, setMessage] = useState('');
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (title.trim() && message.trim() && !isLoading) {
-      await onSubmit(title, message);
-      setTitle('');
-      setMessage('');
-    }
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isValid },
+    reset,
+  } = useForm<SendNotificationFormData>({
+    resolver: zodResolver(sendNotificationSchema),
+    mode: 'onChange',
+  });
+
+  const onFormSubmit = async (data: SendNotificationFormData) => {
+    if (isLoading) return;
+    await onSubmit(data.title, data.message);
+    handleClose();
   };
 
   const handleClose = () => {
     if (!isLoading) {
-      setTitle('');
-      setMessage('');
+      reset();
       onClose();
     }
   };
+
+  // Reset form when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      reset();
+    }
+  }, [isOpen, reset]);
 
   return (
     <AnimatePresence>
@@ -82,7 +96,7 @@ export const SendNotificationModal = ({
               </div>
 
               {/* Form */}
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <form onSubmit={handleSubmit(onFormSubmit)} className="space-y-4">
                 {/* Titre */}
                 <div>
                   <label htmlFor="notif-title" className="mb-2 block text-sm font-medium text-gray-700">
@@ -91,13 +105,16 @@ export const SendNotificationModal = ({
                   <input
                     id="notif-title"
                     type="text"
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
+                    {...register('title')}
                     placeholder={t('clients.notification.titlePlaceholder')}
                     disabled={isLoading}
-                    className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 disabled:opacity-50"
-                    required
+                    className={`w-full rounded-lg border ${
+                      errors.title ? 'border-red-500' : 'border-gray-300'
+                    } bg-white px-4 py-2.5 text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 disabled:opacity-50`}
                   />
+                  {errors.title && (
+                    <p className="mt-1 text-sm text-red-600">{errors.title.message}</p>
+                  )}
                 </div>
 
                 {/* Message */}
@@ -107,14 +124,17 @@ export const SendNotificationModal = ({
                   </label>
                   <textarea
                     id="notif-message"
-                    value={message}
-                    onChange={(e) => setMessage(e.target.value)}
+                    {...register('message')}
                     placeholder={t('clients.notification.messagePlaceholder')}
                     disabled={isLoading}
                     rows={5}
-                    className="w-full resize-none rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 disabled:opacity-50"
-                    required
+                    className={`w-full resize-none rounded-lg border ${
+                      errors.message ? 'border-red-500' : 'border-gray-300'
+                    } bg-white px-4 py-2.5 text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 disabled:opacity-50`}
                   />
+                  {errors.message && (
+                    <p className="mt-1 text-sm text-red-600">{errors.message.message}</p>
+                  )}
                 </div>
 
                 {/* Actions */}
@@ -129,7 +149,7 @@ export const SendNotificationModal = ({
                   </button>
                   <button
                     type="submit"
-                    disabled={isLoading || !title.trim() || !message.trim()}
+                    disabled={isLoading || !isValid}
                     className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:opacity-50"
                   >
                     {isLoading ? (
@@ -153,4 +173,3 @@ export const SendNotificationModal = ({
     </AnimatePresence>
   );
 };
-
