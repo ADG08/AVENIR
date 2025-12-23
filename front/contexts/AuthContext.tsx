@@ -8,7 +8,6 @@ interface User {
   firstName: string;
   lastName: string;
   email: string;
-  identityNumber: string;
 }
 
 interface AuthContextType {

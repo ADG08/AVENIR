@@ -245,7 +245,6 @@ export class UserController {
                     firstName: response.firstName,
                     lastName: response.lastName,
                     email: response.email,
-                    identityNumber: response.identityNumber,
                 }
             });
         } catch (error) {
