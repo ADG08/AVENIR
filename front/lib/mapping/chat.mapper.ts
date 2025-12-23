@@ -113,6 +113,12 @@ export const mapChatFromApi = (apiChat: ChatApiDto): Chat => {
  * Mapper pour transformer un tableau de ChatApiDto en tableau de Chat
  */
 export const mapChatsFromApi = (apiChats: ChatApiDto[]): Chat[] => {
+  // Vérification de sécurité : retourner un tableau vide si apiChats est undefined ou null
+  if (!apiChats || !Array.isArray(apiChats)) {
+    console.warn('[mapChatsFromApi] Invalid apiChats data:', apiChats);
+    return [];
+  }
+
   return apiChats.map(mapChatFromApi);
 };
 

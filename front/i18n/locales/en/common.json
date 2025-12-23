@@ -93,6 +93,8 @@
     "activity": "Activity",
     "saving": "Saving",
     "contact": "Contact",
+    "clients": "My clients",
+    "loans": "My loans",
     "yearly": "Yearly",
     "spending": "Spending",
     "receiveFunds": "Receive",
@@ -215,6 +217,116 @@
       "error": "An error occurred during login"
     }
   },
+  "clients": {
+    "myClients": "My clients",
+    "noClients": "No clients",
+    "noClientsDescription": "You don't have any assigned clients yet",
+    "clientDetails": "Client details",
+    "activeChats": "Active discussions",
+    "noActiveChats": "No active discussions with this client",
+    "openChat": "Open discussion",
+    "sendNotification": "Send notification",
+    "grantLoan": "Grant loan",
+    "clientSince": "Client since",
+    "totalLoans": "Active loans",
+    "loansTitle": "Client loans",
+    "loanSingular": "loan",
+    "loanPlural": "loans",
+    "noLoans": "No active loans",
+    "noLoansDescription": "The client doesn't have any loans currently",
+    "since": "Since",
+    "repayment": "Repayment",
+    "end": "End",
+    "conversation": "Conversation",
+    "chatSingular": "chat",
+    "chatPlural": "chats",
+    "notification": {
+      "title": "Send notification",
+      "titlePlaceholder": "Notification title",
+      "message": "Message",
+      "messagePlaceholder": "Your message...",
+      "send": "Send",
+      "sending": "Sending...",
+      "success": "Notification sent successfully",
+      "error": "Error sending notification"
+    },
+    "loan": {
+      "title": "Grant loan",
+      "name": "Loan name",
+      "namePlaceholder": "Ex: Home loan, Car loan...",
+      "amount": "Loan amount",
+      "status": {
+        "active": "Active",
+        "completed": "Paid off",
+        "defaulted": "Defaulted"
+      },
+      "grantedOn": "Granted on",
+      "initialAmount": "Initial amount",
+      "remainingBalance": "Remaining balance",
+      "totalDuration": "Total duration",
+      "months": "months",
+      "progressTitle": "Repayment progress",
+      "monthsPaid": "payments made",
+      "end": "End",
+      "financialDetails": "Financial details",
+      "insurance": "Insurance",
+      "noLoans": "No loans",
+      "noLoansDescription": "You don't have any loans currently",
+      "loansCount": "loan",
+      "loansCountPlural": "loans",
+      "inProgress": "in progress",
+      "amountPlaceholder": "Ex: 10000",
+      "duration": "Duration (months)",
+      "durationPlaceholder": "Ex: 60",
+      "interestRate": "Annual interest rate (%)",
+      "interestRatePlaceholder": "Ex: 3.5",
+      "insuranceRate": "Insurance rate (%)",
+      "insuranceRatePlaceholder": "Ex: 0.36",
+      "monthlyPayment": "Monthly payment",
+      "totalCost": "Total cost",
+      "totalInterest": "Total interest",
+      "insuranceCost": "Insurance cost",
+      "grant": "Grant",
+      "granting": "Granting...",
+      "success": "Loan granted successfully",
+      "error": "Error granting loan",
+      "calculate": "Calculate",
+      "summary": "Loan summary"
+    },
+    "errors": {
+      "loadingClients": "Unable to load clients list"
+    }
+  },
+  "news": {
+    "title": "News",
+    "createNews": "Create news",
+    "noNews": "No news",
+    "noNewsDescription": "No news has been published yet",
+    "viewAll": "View all news",
+    "postedBy": "Posted by",
+    "postedOn": "on",
+    "modal": {
+      "title": "Create news",
+      "newsTitle": "News title",
+      "newsTitlePlaceholder": "Ex: New interest rates",
+      "description": "Description",
+      "descriptionPlaceholder": "Describe the news in detail...",
+      "publish": "Publish",
+      "publishing": "Publishing...",
+      "cancel": "Cancel",
+      "success": "News published successfully",
+      "error": "Error publishing news"
+    },
+    "delete": {
+      "title": "Delete news",
+      "message": "Are you sure you want to delete this news?",
+      "newsTitle": "News",
+      "warning": "This action is irreversible.",
+      "confirm": "Delete",
+      "deleting": "Deleting...",
+      "success": "News deleted successfully"
+    }
+  },
   "chat": {
     "conversations": "Conversations",
     "newConversation": "New conversation",
@@ -289,7 +401,8 @@
       "creatingConversation": "Unable to create conversation",
       "closingConversation": "Unable to close conversation",
       "transferringConversation": "Unable to transfer conversation",
-      "assigningAdvisor": "Unable to assign advisor"
+      "assigningAdvisor": "Unable to assign advisor",
+      "chatNotFound": "This conversation doesn't exist or you don't have access to it"
     }
   }
 }
