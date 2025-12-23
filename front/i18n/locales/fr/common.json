@@ -297,6 +297,36 @@
       "loadingClients": "Impossible de charger la liste des clients"
     }
   },
+  "news": {
+    "title": "Actualités",
+    "createNews": "Créer une actualité",
+    "noNews": "Aucune actualité",
+    "noNewsDescription": "Aucune actualité n'a été publiée pour le moment",
+    "viewAll": "Voir toutes les actualités",
+    "postedBy": "Publié par",
+    "postedOn": "le",
+    "modal": {
+      "title": "Créer une actualité",
+      "newsTitle": "Titre de l'actualité",
+      "newsTitlePlaceholder": "Ex: Nouveaux taux d'intérêt",
+      "description": "Description",
+      "descriptionPlaceholder": "Décrivez l'actualité en détail...",
+      "publish": "Publier",
+      "publishing": "Publication...",
+      "cancel": "Annuler",
+      "success": "Actualité publiée avec succès",
+      "error": "Erreur lors de la publication"
+    },
+    "delete": {
+      "title": "Supprimer l'actualité",
+      "message": "Êtes-vous sûr de vouloir supprimer cette actualité ?",
+      "newsTitle": "Actualité",
+      "warning": "Cette action est irréversible.",
+      "confirm": "Supprimer",
+      "deleting": "Suppression...",
+      "success": "Actualité supprimée avec succès"
+    }
+  },
   "chat": {
     "conversations": "Conversations",
     "newConversation": "Nouvelle conversation",

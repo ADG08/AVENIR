@@ -208,6 +208,7 @@ export default function ClientsPage() {
               </p>
             </div>
 
+            {/* Barre de recherche */}
             <div className="flex items-center gap-3 rounded-full border border-gray-200 bg-white px-4 py-2.5 shadow-sm">
               <Search className="h-5 w-5 text-gray-400" />
               <input

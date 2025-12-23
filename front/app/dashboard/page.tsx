@@ -5,6 +5,7 @@ import { StatCard } from '@/components/ui/stat-card';
 import { TransactionItem } from '@/components/ui/transaction-item';
 import { CreditCard } from '@/components/ui/credit-card';
 import { SavingsGoalItem } from '@/components/ui/savings-goal-item';
+import { NewsCard } from '@/components/news/news-card';
 import { BarChart } from '@/components/ui/bar-chart';
 import { FilterToggleButton } from '@/components/ui/filter-toggle-button';
 import { ActionButton } from '@/components/ui/action-button';
@@ -16,6 +17,7 @@ import { AddSavingsModal } from '@/components/modals/AddSavingsModal';
 import { DeleteAccountModal } from '@/components/modals/DeleteAccountModal';
 import { EditAccountNameModal } from '@/components/modals/EditAccountNameModal';
 import { SendMoneyModal } from '@/components/modals/SendMoneyModal';
+import { MOCK_NEWS } from '@/types/news';
 import { Search, ArrowUp, ArrowDown, Plus, ChevronLeft, ChevronRight, Trash2, List } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useState, useRef, useEffect } from 'react';
@@ -500,6 +502,8 @@ export default function Home() {
                                 />
                             </div>
                         </motion.div>
+
+                        <NewsCard news={MOCK_NEWS} />
                     </div>
                 </div>
             </main>
@@ -516,4 +520,3 @@ export default function Home() {
         </div>
     );
 }
-

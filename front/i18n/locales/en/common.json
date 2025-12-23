@@ -297,6 +297,36 @@
       "loadingClients": "Unable to load clients list"
     }
   },
+  "news": {
+    "title": "News",
+    "createNews": "Create news",
+    "noNews": "No news",
+    "noNewsDescription": "No news has been published yet",
+    "viewAll": "View all news",
+    "postedBy": "Posted by",
+    "postedOn": "on",
+    "modal": {
+      "title": "Create news",
+      "newsTitle": "News title",
+      "newsTitlePlaceholder": "Ex: New interest rates",
+      "description": "Description",
+      "descriptionPlaceholder": "Describe the news in detail...",
+      "publish": "Publish",
+      "publishing": "Publishing...",
+      "cancel": "Cancel",
+      "success": "News published successfully",
+      "error": "Error publishing news"
+    },
+    "delete": {
+      "title": "Delete news",
+      "message": "Are you sure you want to delete this news?",
+      "newsTitle": "News",
+      "warning": "This action is irreversible.",
+      "confirm": "Delete",
+      "deleting": "Deleting...",
+      "success": "News deleted successfully"
+    }
+  },
   "chat": {
     "conversations": "Conversations",
     "newConversation": "New conversation",

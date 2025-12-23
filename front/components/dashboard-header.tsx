@@ -38,6 +38,7 @@ export const DashboardHeader = ({ activeTab, setActiveTab }: DashboardHeaderProp
             navItems = [
                 { id: 'activity', label: t('dashboard.activity'), href: '/dashboard' },
                 { id: 'clients', label: t('dashboard.clients'), href: '/dashboard/clients' },
+                { id: 'news', label: t('news.title'), href: '/dashboard/news' },
                 { id: 'contact', label: t('dashboard.contact'), href: '/dashboard/contact' },
             ];
             break;
