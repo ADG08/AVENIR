@@ -160,7 +160,7 @@ export class UserController {
             const user = await this.loginUserUseCase.execute(loginUserRequest);
 
             // Create JWT session after successful login
-            this.setAuthCookies(reply, user.id, user.email, user.role);
+            this.setAuthCookies(reply, user.id, user.email);
 
             return reply.code(200).send({
                 success: true,
@@ -197,7 +197,7 @@ export class UserController {
             const response = await this.verifyEmailUseCase.execute(verifyEmailRequest);
 
             // Create JWT session after successful verification
-            this.setAuthCookies(reply, response.user.id, response.user.email, response.user.role);
+            this.setAuthCookies(reply, response.user.id, response.user.email);
 
             return reply.code(200).send(response);
         } catch (error) {
@@ -305,7 +305,6 @@ export class UserController {
             const tokens = this.jwtService.generateTokens({
                 userId: payload.userId,
                 email: payload.email,
-                role: payload.role,
             });
 
             reply
@@ -331,8 +330,8 @@ export class UserController {
         }
     }
 
-    private setAuthCookies(reply: FastifyReply, userId: string, email: string, role: string) {
-        const tokens = this.jwtService.generateTokens({ userId, email, role });
+    private setAuthCookies(reply: FastifyReply, userId: string, email: string) {
+        const tokens = this.jwtService.generateTokens({ userId, email });
 
         reply
             .setCookie('accessToken', tokens.accessToken, {
