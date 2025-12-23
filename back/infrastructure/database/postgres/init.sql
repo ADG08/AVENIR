@@ -151,13 +151,6 @@ CREATE TRIGGER update_orders_updated_at BEFORE UPDATE ON orders
 CREATE TRIGGER update_saving_rates_updated_at BEFORE UPDATE ON saving_rates
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
--- Données de test
-INSERT INTO users (id, first_name, last_name, email, identity_number, passcode, role, state)
-VALUES 
-    ('1', 'John', 'Doe', 'john.doe@example.com', '123456789', '$2b$10$YourHashedPasswordHere', 'CLIENT', 'ACTIVE'),
-    ('2', 'Jane', 'Smith', 'jane.smith@example.com', '987654321', '$2b$10$YourHashedPasswordHere', 'DIRECTOR', 'ACTIVE')
-ON CONFLICT (id) DO NOTHING;
-
 INSERT INTO saving_rates (id, name, rate, min_amount, description)
 VALUES 
     ('sr1', 'STANDARD', 2.5, 0, 'Taux d''épargne standard pour tous'),

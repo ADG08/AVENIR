@@ -15,7 +15,8 @@
     "build": "tsc",
     "start": "node dist/infrastructure/adapters/fastify/server.js",
     "install:all": "npm install",
-    "clean": "rm -rf dist node_modules */node_modules */*/node_modules"
+    "clean": "rm -rf dist node_modules */node_modules */*/node_modules",
+    "db:reset": "bash reset-db.sh"
   },
   "dependencies": {
     "@avenir/shared": "file:../shared",

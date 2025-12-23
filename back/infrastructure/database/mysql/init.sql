@@ -137,12 +137,6 @@ CREATE TABLE IF NOT EXISTS actions (
 -- Index supplémentaire pour optimisation
 CREATE INDEX idx_users_email ON users(email);
 
--- Données de test
-INSERT IGNORE INTO users (id, first_name, last_name, email, identity_number, passcode, role, state)
-VALUES 
-    ('1', 'John', 'Doe', 'john.doe@example.com', '123456789', '$2b$10$YourHashedPasswordHere', 'CLIENT', 'ACTIVE'),
-    ('2', 'Jane', 'Smith', 'jane.smith@example.com', '987654321', '$2b$10$YourHashedPasswordHere', 'ADMIN', 'ACTIVE');
-
 INSERT IGNORE INTO saving_rates (id, name, rate, min_amount, description)
 VALUES 
     ('sr1', 'STANDARD', 2.5, 0, 'Taux d\'épargne standard pour tous'),
