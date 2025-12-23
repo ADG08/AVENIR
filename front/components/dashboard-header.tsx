@@ -9,6 +9,7 @@ import { useLanguage } from '@/hooks/use-language';
 import { useCurrentMockUser } from '@/components/dev-user-switcher';
 import { UserRole } from '@/types/chat';
 import { useRouter } from 'next/navigation';
+import { NotificationButton } from '@/components/notifications/notification-button';
 
 interface DashboardHeaderProps {
     activeTab: string;
@@ -47,6 +48,7 @@ export const DashboardHeader = ({ activeTab, setActiveTab }: DashboardHeaderProp
                 { id: 'card', label: t('dashboard.card'), href: '/dashboard' },
                 { id: 'activity', label: t('dashboard.activity'), href: '/dashboard' },
                 { id: 'saving', label: t('dashboard.saving'), href: '/dashboard' },
+                { id: 'loans', label: t('dashboard.loans'), href: '/dashboard/loans' },
                 { id: 'contact', label: t('dashboard.contact'), href: '/dashboard/contact' },
             ];
             break;
@@ -128,29 +130,36 @@ export const DashboardHeader = ({ activeTab, setActiveTab }: DashboardHeaderProp
                             className={`h-5 w-5 ${hoveredIcon === 'search' || activeIcon === 'search' ? 'text-white' : 'text-gray-600'}`}
                         />
                     </button>
-                    <button
-                        onMouseEnter={() => setHoveredIcon('bell')}
-                        onMouseLeave={() => setHoveredIcon(null)}
-                        onClick={() => setActiveIcon('bell')}
-                        className="relative z-10 flex h-10 w-10 cursor-pointer items-center justify-center rounded-full transition-colors duration-200"
-                    >
-                        {(hoveredIcon === 'bell' || activeIcon === 'bell') && (
-                            <motion.div
-                                layoutId="iconBackground"
-                                className="absolute inset-0 rounded-full bg-gray-900"
-                                style={{ zIndex: -1 }}
-                                transition={{
-                                    type: 'spring',
-                                    stiffness: 380,
-                                    damping: 30,
-                                }}
+
+                    {/* Notifications pour les clients uniquement */}
+                    {currentUser?.role === UserRole.CLIENT ? (
+                        <NotificationButton />
+                    ) : (
+                        <button
+                            onMouseEnter={() => setHoveredIcon('bell')}
+                            onMouseLeave={() => setHoveredIcon(null)}
+                            onClick={() => setActiveIcon('bell')}
+                            className="relative z-10 flex h-10 w-10 cursor-pointer items-center justify-center rounded-full transition-colors duration-200"
+                        >
+                            {(hoveredIcon === 'bell' || activeIcon === 'bell') && (
+                                <motion.div
+                                    layoutId="iconBackground"
+                                    className="absolute inset-0 rounded-full bg-gray-900"
+                                    style={{ zIndex: -1 }}
+                                    transition={{
+                                        type: 'spring',
+                                        stiffness: 380,
+                                        damping: 30,
+                                    }}
+                                />
+                            )}
+                            <Bell
+                                className={`h-5 w-5 ${hoveredIcon === 'bell' || activeIcon === 'bell' ? 'text-white' : 'text-gray-600'}`}
                             />
-                        )}
-                        <Bell
-                            className={`h-5 w-5 ${hoveredIcon === 'bell' || activeIcon === 'bell' ? 'text-white' : 'text-gray-600'}`}
-                        />
-                        <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-red-500"></span>
-                    </button>
+                            <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-red-500"></span>
+                        </button>
+                    )}
+
                     <button
                         onMouseEnter={() => setHoveredIcon('user')}
                         onMouseLeave={() => setHoveredIcon(null)}

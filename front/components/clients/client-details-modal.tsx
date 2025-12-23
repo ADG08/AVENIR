@@ -1,11 +1,12 @@
 'use client';
 
-import { ClientWithDetails } from '@/types/client';
-import { motion, AnimatePresence } from 'framer-motion';
-import { X, MessageCircle, Bell, TrendingUp, Calendar, ChevronDown } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
-import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import {ClientWithDetails} from '@/types/client';
+import {AnimatePresence, motion} from 'framer-motion';
+import {Bell, Calendar, ChevronDown, MessageCircle, TrendingUp, X} from 'lucide-react';
+import {useTranslation} from 'react-i18next';
+import {useRouter} from 'next/navigation';
+import {useState} from 'react';
+import {ChatStatus, LoanStatus} from "@avenir/shared/enums";
 
 interface ClientDetailsModalProps {
   isOpen: boolean;
@@ -134,11 +135,11 @@ export const ClientDetailsModal = ({
                   >
                     <div className="flex items-center gap-3">
                       <h3 className="text-lg font-semibold text-gray-900">
-                        Crédits du client
+                        {t('clients.loansTitle')}
                       </h3>
                       {client.loans.length > 0 && (
                         <span className="rounded-full bg-blue-100 px-3 py-1 text-sm font-medium text-blue-700">
-                          {client.loans.length} {client.loans.length > 1 ? 'crédits' : 'crédit'}
+                          {client.loans.length} {client.loans.length > 1 ? t('clients.loanPlural') : t('clients.loanSingular')}
                         </span>
                       )}
                     </div>
@@ -164,19 +165,16 @@ export const ClientDetailsModal = ({
                     <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50 p-8 text-center">
                       <TrendingUp className="mx-auto h-12 w-12 text-gray-300" />
                       <p className="mt-3 text-sm font-medium text-gray-900">
-                        Aucun crédit en cours
+                        {t('clients.noLoans')}
                       </p>
                       <p className="mt-1 text-xs text-gray-500">
-                        Le client n&apos;a pas de crédit actuellement
+                        {t('clients.noLoansDescription')}
                       </p>
                     </div>
                   ) : (
                     <div className="space-y-4">
                       {client.loans.map((loan) => {
                         const progress = ((loan.amount - loan.remainingBalance) / loan.amount) * 100;
-                        const isCompleted = loan.status === 'COMPLETED';
-                        const isDefaulted = loan.status === 'DEFAULTED';
-
                         return (
                           <motion.div
                             key={loan.id}
@@ -194,26 +192,26 @@ export const ClientDetailsModal = ({
                                     </h4>
                                     <span
                                       className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                                        loan.status === 'ACTIVE'
+                                        loan.status === LoanStatus.ACTIVE
                                           ? 'bg-green-100 text-green-700'
-                                          : loan.status === 'COMPLETED'
+                                          : loan.status === LoanStatus.COMPLETED
                                           ? 'bg-blue-100 text-blue-700'
                                           : 'bg-red-100 text-red-700'
                                       }`}
                                     >
-                                      {loan.status === 'ACTIVE'
-                                        ? 'Actif'
-                                        : loan.status === 'COMPLETED'
-                                        ? 'Soldé'
-                                        : 'Défaut'}
+                                      {loan.status === LoanStatus.ACTIVE
+                                        ? t('clients.loan.status.active')
+                                        : loan.status === LoanStatus.COMPLETED
+                                        ? t('clients.loan.status.completed')
+                                        : t('clients.loan.status.defaulted')}
                                     </span>
                                   </div>
                                   <p className="mt-1 text-sm text-gray-600">
-                                    Depuis le {formatDate(loan.startDate)}
+                                    {t('clients.since')} {formatDate(loan.startDate)}
                                   </p>
                                 </div>
                                 <div className="text-right">
-                                  <p className="text-xs text-gray-500">Mensualité</p>
+                                  <p className="text-xs text-gray-500">{t('clients.loan.monthlyPayment')}</p>
                                   <p className="text-2xl font-bold text-gray-900">
                                     {formatCurrency(loan.monthlyPayment)}
                                   </p>
@@ -226,25 +224,25 @@ export const ClientDetailsModal = ({
                               {/* Informations principales */}
                               <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
                                 <div>
-                                  <p className="text-xs text-gray-500">Montant initial</p>
+                                  <p className="text-xs text-gray-500">{t('clients.loan.initialAmount')}</p>
                                   <p className="mt-1 text-sm font-semibold text-gray-900">
                                     {formatCurrency(loan.amount)}
                                   </p>
                                 </div>
                                 <div>
-                                  <p className="text-xs text-gray-500">Reste à payer</p>
-                                  <p className="mt-1 text-sm font-semibold text-orange-600">
+                                  <p className="text-xs text-gray-500">{t('clients.loan.remainingBalance')}</p>
+                                  <p className="mt-1 text-sm font-semibold text-red-700">
                                     {formatCurrency(loan.remainingBalance)}
                                   </p>
                                 </div>
                                 <div>
-                                  <p className="text-xs text-gray-500">Durée</p>
+                                  <p className="text-xs text-gray-500">{t('clients.loan.totalDuration')}</p>
                                   <p className="mt-1 text-sm font-semibold text-gray-900">
-                                    {loan.duration} mois
+                                    {loan.duration} {t('clients.loan.months')}
                                   </p>
                                 </div>
                                 <div>
-                                  <p className="text-xs text-gray-500">Taux</p>
+                                  <p className="text-xs text-gray-500">{t('clients.loan.interestRate')}</p>
                                   <p className="mt-1 text-sm font-semibold text-gray-900">
                                     {loan.interestRate}%
                                   </p>
@@ -255,7 +253,7 @@ export const ClientDetailsModal = ({
                               <div className="mt-4">
                                 <div className="mb-2 flex items-center justify-between">
                                   <span className="text-xs font-medium text-gray-700">
-                                    Remboursement
+                                    {t('clients.repayment')}
                                   </span>
                                   <span className="text-xs font-bold text-gray-900">
                                     {Math.round(progress)}%
@@ -266,13 +264,7 @@ export const ClientDetailsModal = ({
                                     initial={{ width: 0 }}
                                     animate={{ width: `${progress}%` }}
                                     transition={{ duration: 1, ease: 'easeOut' }}
-                                    className={`h-full rounded-full ${
-                                      isCompleted
-                                        ? 'bg-linear-to-r from-blue-500 to-blue-600'
-                                        : isDefaulted
-                                        ? 'bg-linear-to-r from-red-500 to-red-600'
-                                        : 'bg-linear-to-r from-green-500 to-emerald-500'
-                                    }`}
+                                    className="h-full rounded-full bg-linear-to-r from-green-500 to-emerald-500"
                                   />
                                 </div>
                               </div>
@@ -281,20 +273,20 @@ export const ClientDetailsModal = ({
                               <div className="mt-4 flex items-center justify-between rounded-lg bg-gray-50 p-3">
                                 <div className="flex items-center gap-4 text-xs text-gray-600">
                                   <div>
-                                    <span className="font-medium">Coût total:</span>{' '}
+                                    <span className="font-medium">{t('clients.loan.totalCost')}:</span>{' '}
                                     {formatCurrency(loan.totalCost)}
                                   </div>
                                   <div>
-                                    <span className="font-medium">Intérêts:</span>{' '}
+                                    <span className="font-medium">{t('clients.loan.totalInterest')}:</span>{' '}
                                     {formatCurrency(loan.totalInterest)}
                                   </div>
                                   <div>
-                                    <span className="font-medium">Assurance:</span>{' '}
+                                    <span className="font-medium">{t('clients.loan.insurance')}:</span>{' '}
                                     {formatCurrency(loan.insuranceCost)}
                                   </div>
                                 </div>
                                 <div className="text-xs text-gray-500">
-                                  Fin: {new Date(loan.endDate).toLocaleDateString('fr-FR', { month: 'short', year: 'numeric' })}
+                                  {t('clients.end')}: {new Date(loan.endDate).toLocaleDateString('fr-FR', { month: 'short', year: 'numeric' })}
                                 </div>
                               </div>
                             </div>
@@ -320,7 +312,7 @@ export const ClientDetailsModal = ({
                       </h3>
                       {client.activeChats.length > 0 && (
                         <span className="rounded-full bg-purple-100 px-3 py-1 text-sm font-medium text-purple-700">
-                          {client.activeChats.length} {client.activeChats.length > 1 ? 'discussions' : 'discussion'}
+                          {client.activeChats.length} {client.activeChats.length > 1 ? t('clients.chatPlural') : t('clients.chatSingular')}
                         </span>
                       )}
                     </div>
@@ -362,20 +354,20 @@ export const ClientDetailsModal = ({
                               <div className="flex items-center gap-2">
                                 <MessageCircle className="h-5 w-5 text-blue-600" />
                                 <span className="text-sm font-medium text-gray-900">
-                                  Conversation
+                                  {t('clients.conversation')}
                                 </span>
                                 <span
                                   className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-                                    chat.status === 'PENDING'
+                                    chat.status === ChatStatus.PENDING
                                       ? 'bg-amber-100 text-amber-700'
-                                      : chat.status === 'ACTIVE'
+                                      : chat.status === ChatStatus.ACTIVE
                                       ? 'bg-blue-100 text-blue-700'
                                       : 'bg-gray-100 text-gray-700'
                                   }`}
                                 >
-                                  {chat.status === 'PENDING'
+                                  {chat.status === ChatStatus.PENDING
                                     ? t('chat.status.pending')
-                                    : chat.status === 'ACTIVE'
+                                    : chat.status === ChatStatus.ACTIVE
                                     ? t('chat.status.active')
                                     : t('chat.status.closed')}
                                 </span>

@@ -1,5 +1,5 @@
 import { User, Chat, ChatStatus, MessageType } from './chat';
-import { UserRole, UserState } from './enums';
+import { UserRole, UserState, LoanStatus } from './enums';
 
 export interface ClientLoan {
   id: string;
@@ -16,7 +16,7 @@ export interface ClientLoan {
   remainingBalance: number;
   startDate: Date;
   endDate: Date;
-  status: 'ACTIVE' | 'COMPLETED' | 'DEFAULTED';
+  status: LoanStatus;
   createdAt: Date;
 }
 
@@ -86,7 +86,7 @@ export const MOCK_CLIENTS: ClientWithDetails[] = [
         remainingBalance: 12000,
         startDate: new Date('2024-02-01'),
         endDate: new Date('2029-02-01'),
-        status: 'ACTIVE',
+        status: LoanStatus.ACTIVE,
         createdAt: new Date('2024-02-01'),
       },
     ],
@@ -154,7 +154,7 @@ export const MOCK_CLIENTS: ClientWithDetails[] = [
         remainingBalance: 22000,
         startDate: new Date('2024-06-01'),
         endDate: new Date('2031-06-01'),
-        status: 'ACTIVE',
+        status: LoanStatus.ACTIVE,
         createdAt: new Date('2024-06-01'),
       },
       {
@@ -172,11 +172,10 @@ export const MOCK_CLIENTS: ClientWithDetails[] = [
         remainingBalance: 1500,
         startDate: new Date('2024-06-01'),
         endDate: new Date('2031-06-01'),
-        status: 'ACTIVE',
+        status: LoanStatus.ACTIVE,
         createdAt: new Date('2024-06-01'),
       },
     ],
     notifications: [],
   },
 ];
-
