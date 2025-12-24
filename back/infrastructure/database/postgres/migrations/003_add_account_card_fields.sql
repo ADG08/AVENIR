@@ -1,5 +1,6 @@
 -- Migration: Add card fields and IBAN to accounts table
 -- Date: 2025-12-23
+-- This migration adds IBAN, card information, and saving rate linking to accounts
 
 -- Add new columns to accounts table
 ALTER TABLE accounts

@@ -7,24 +7,52 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-echo -e "${BLUE}Resetting PostgreSQL database...${NC}"
+# Load .env file if it exists
+if [ -f .env ]; then
+    export $(grep -v '^#' .env | xargs)
+fi
 
-# Docker container name
-CONTAINER_NAME="avenir-postgres"
-DB_USER="avenir_user"
-DB_NAME="avenir_db"
+# Get database configuration from environment variables with defaults
+DB_TYPE=${DB_TYPE:-postgres}
+DB_USER=${DB_USER:-avenir_user}
+DB_NAME=${DB_NAME:-avenir_db}
+DB_PASSWORD=${DB_PASSWORD:-avenir_password}
+
+# Validate DB_TYPE
+if [ "$DB_TYPE" != "postgres" ] && [ "$DB_TYPE" != "mysql" ]; then
+    echo -e "${RED}Invalid DB_TYPE: $DB_TYPE. Must be 'postgres' or 'mysql'${NC}"
+    exit 1
+fi
+
+# Set container name and database paths based on DB_TYPE
+if [ "$DB_TYPE" = "postgres" ]; then
+    CONTAINER_NAME="avenir-postgres"
+    DB_DIR="infrastructure/database/postgres"
+    PROFILE="postgres"
+    DB_TYPE_DISPLAY="PostgreSQL"
+else
+    CONTAINER_NAME="avenir-mysql"
+    DB_DIR="infrastructure/database/mysql"
+    PROFILE="mysql"
+    DB_TYPE_DISPLAY="MySQL"
+fi
+
+echo -e "${BLUE}Resetting ${DB_TYPE_DISPLAY} database...${NC}"
+echo -e "${YELLOW}Using: DB_USER=$DB_USER, DB_NAME=$DB_NAME${NC}"
 
 # Check if container is running
 if ! docker ps | grep -q $CONTAINER_NAME; then
     echo -e "${RED}Container $CONTAINER_NAME is not running${NC}"
-    echo -e "${YELLOW}Start it with: docker compose --profile postgres up -d${NC}"
+    echo -e "${YELLOW}Start it with: docker compose --profile $PROFILE up -d${NC}"
     exit 1
 fi
 
 echo -e "${YELLOW}Dropping and recreating database...${NC}"
 
-# Drop and recreate database using docker exec
-docker exec -i $CONTAINER_NAME psql -U $DB_USER -d postgres <<EOF
+# Drop and recreate database
+if [ "$DB_TYPE" = "postgres" ]; then
+    # PostgreSQL: Drop and recreate database
+    docker exec -i $CONTAINER_NAME psql -U $DB_USER -d postgres <<EOF
 -- Terminate all connections to the database
 SELECT pg_terminate_backend(pg_stat_activity.pid)
 FROM pg_stat_activity
@@ -35,6 +63,13 @@ WHERE pg_stat_activity.datname = '$DB_NAME'
 DROP DATABASE IF EXISTS $DB_NAME;
 CREATE DATABASE $DB_NAME;
 EOF
+else
+    # MySQL: Drop and recreate database
+    docker exec -i $CONTAINER_NAME mysql -u $DB_USER -p$DB_PASSWORD <<EOF
+DROP DATABASE IF EXISTS $DB_NAME;
+CREATE DATABASE $DB_NAME;
+EOF
+fi
 
 if [ $? -ne 0 ]; then
     echo -e "${RED}Failed to reset database${NC}"
@@ -45,8 +80,12 @@ echo -e "${GREEN}Database dropped and recreated${NC}"
 
 echo -e "${YELLOW}Applying initial schema (init.sql)...${NC}"
 
-# Apply init.sql using docker exec
-docker exec -i $CONTAINER_NAME psql -U $DB_USER -d $DB_NAME < infrastructure/database/postgres/init.sql
+# Apply init.sql
+if [ "$DB_TYPE" = "postgres" ]; then
+    docker exec -i $CONTAINER_NAME psql -U $DB_USER -d $DB_NAME < $DB_DIR/init.sql
+else
+    docker exec -i $CONTAINER_NAME mysql -u $DB_USER -p$DB_PASSWORD $DB_NAME < $DB_DIR/init.sql
+fi
 
 if [ $? -ne 0 ]; then
     echo -e "${RED}Failed to apply initial schema${NC}"
@@ -58,10 +97,15 @@ echo -e "${GREEN}Initial schema applied${NC}"
 echo -e "${YELLOW}Applying migrations...${NC}"
 
 # Apply migrations in order
-for migration in infrastructure/database/postgres/migrations/*.sql; do
+for migration in $DB_DIR/migrations/*.sql; do
     if [ -f "$migration" ]; then
         echo -e "${YELLOW}  Applying $(basename $migration)...${NC}"
-        docker exec -i $CONTAINER_NAME psql -U $DB_USER -d $DB_NAME < "$migration"
+        
+        if [ "$DB_TYPE" = "postgres" ]; then
+            docker exec -i $CONTAINER_NAME psql -U $DB_USER -d $DB_NAME < "$migration"
+        else
+            docker exec -i $CONTAINER_NAME mysql -u $DB_USER -p$DB_PASSWORD $DB_NAME < "$migration"
+        fi
 
         if [ $? -ne 0 ]; then
             echo -e "${RED}Failed to apply migration: $(basename $migration)${NC}"
@@ -77,10 +121,15 @@ echo -e "${GREEN}All migrations applied${NC}"
 echo -e "${YELLOW}Loading fixtures (seed data)...${NC}"
 
 # Apply fixtures in order
-for fixture in infrastructure/database/postgres/fixtures/*.sql; do
+for fixture in $DB_DIR/fixtures/*.sql; do
     if [ -f "$fixture" ]; then
         echo -e "${YELLOW}  Loading $(basename $fixture)...${NC}"
-        docker exec -i $CONTAINER_NAME psql -U $DB_USER -d $DB_NAME < "$fixture"
+        
+        if [ "$DB_TYPE" = "postgres" ]; then
+            docker exec -i $CONTAINER_NAME psql -U $DB_USER -d $DB_NAME < "$fixture"
+        else
+            docker exec -i $CONTAINER_NAME mysql -u $DB_USER -p$DB_PASSWORD $DB_NAME < "$fixture"
+        fi
 
         if [ $? -ne 0 ]; then
             echo -e "${RED}Failed to load fixture: $(basename $fixture)${NC}"

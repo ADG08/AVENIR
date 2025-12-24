@@ -159,58 +159,93 @@ VALUES
 -- =========================================
 
 -- Compte pour John Doe
-INSERT INTO accounts (id, user_id, type, balance, currency, created_at, updated_at)
+INSERT INTO accounts (id, user_id, iban, name, type, balance, currency, card_number, card_holder_name, card_expiry_date, card_cvv, saving_rate_id, created_at, updated_at)
 VALUES
 (
     'acc-john-doe-1',
     'client-john-doe',
-    'CHECKING',
+    'FR7612345678901234567890128',
+    'Compte Courant - John Doe',
+    'CURRENT',
     2500.00,
     'EUR',
+    '4444444444444444',
+    'JOHN DOE',
+    '12/29',
+    '321',
+    NULL,
     DATE_SUB(NOW(), INTERVAL 6 MONTH),
     NOW()
 ),
 (
     'acc-john-doe-2',
     'client-john-doe',
+    'FR7612345678901234567890129',
+    'Livret Épargne - John Doe',
     'SAVINGS',
     10000.00,
     'EUR',
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
     DATE_SUB(NOW(), INTERVAL 6 MONTH),
     NOW()
 ) ON DUPLICATE KEY UPDATE id = id;
 
 -- Comptes pour Jean Dupont
-INSERT INTO accounts (id, user_id, type, balance, currency, created_at, updated_at)
+INSERT INTO accounts (id, user_id, iban, name, type, balance, currency, card_number, card_holder_name, card_expiry_date, card_cvv, saving_rate_id, created_at, updated_at)
 VALUES
 (
     'acc-client-001-1',
     'client-001',
-    'CHECKING',
+    'FR7612345678901234567890130',
+    'Compte Courant - Jean Dupont',
+    'CURRENT',
     1500.00,
     'EUR',
+    '4555555555555555',
+    'JEAN DUPONT',
+    '03/30',
+    '654',
+    NULL,
     DATE_SUB(NOW(), INTERVAL 3 MONTH),
     NOW()
 ) ON DUPLICATE KEY UPDATE id = id;
 
 -- Comptes pour Emma Leroy
-INSERT INTO accounts (id, user_id, type, balance, currency, created_at, updated_at)
+INSERT INTO accounts (id, user_id, iban, name, type, balance, currency, card_number, card_holder_name, card_expiry_date, card_cvv, saving_rate_id, created_at, updated_at)
 VALUES
 (
     'acc-client-002-1',
     'client-002',
-    'CHECKING',
+    'FR7612345678901234567890131',
+    'Compte Courant - Emma Leroy',
+    'CURRENT',
     3200.00,
     'EUR',
+    '4666666666666666',
+    'EMMA LEROY',
+    '06/30',
+    '789',
+    NULL,
     DATE_SUB(NOW(), INTERVAL 2 MONTH),
     NOW()
 ),
 (
     'acc-client-002-2',
     'client-002',
+    'FR7612345678901234567890132',
+    'Livret Épargne - Emma Leroy',
     'SAVINGS',
     15000.00,
     'EUR',
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
     DATE_SUB(NOW(), INTERVAL 2 MONTH),
     NOW()
 ) ON DUPLICATE KEY UPDATE id = id;

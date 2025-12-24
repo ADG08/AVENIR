@@ -1,5 +1,6 @@
 -- Migration: Add email verification fields to users table
 -- Date: 2025-12-22
+-- This migration adds email verification functionality to the users table
 
 -- Add verification_token column
 ALTER TABLE users ADD COLUMN IF NOT EXISTS verification_token VARCHAR(255);
@@ -13,5 +14,6 @@ CREATE INDEX IF NOT EXISTS idx_users_verification_token ON users(verification_to
 -- Update existing users to be verified (retroactive)
 UPDATE users SET verified_at = created_at WHERE verified_at IS NULL AND state = 'ACTIVE';
 
+-- Add column comments
 COMMENT ON COLUMN users.verification_token IS 'Token used for email verification';
 COMMENT ON COLUMN users.verified_at IS 'Timestamp when the email was verified';

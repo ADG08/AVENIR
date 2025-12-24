@@ -8,11 +8,8 @@ CREATE TABLE IF NOT EXISTS users (
     passcode VARCHAR(255) NOT NULL,
     role VARCHAR(50) NOT NULL CHECK (role IN ('DIRECTOR', 'ADVISOR', 'CLIENT')),
     state VARCHAR(50) NOT NULL CHECK (state IN ('ACTIVE', 'INACTIVE', 'BANNED')),
-    verification_token VARCHAR(255),
-    verified_at TIMESTAMP NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    INDEX idx_users_verification_token (verification_token)
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Table SavingRates (must be created before accounts)
@@ -30,22 +27,13 @@ CREATE TABLE IF NOT EXISTS saving_rates (
 CREATE TABLE IF NOT EXISTS accounts (
     id VARCHAR(255) PRIMARY KEY,
     user_id VARCHAR(255) NOT NULL,
-    iban VARCHAR(34) UNIQUE NOT NULL,
-    name VARCHAR(255),
     type VARCHAR(50) NOT NULL CHECK (type IN ('CURRENT', 'SAVINGS')),
     balance DECIMAL(15, 2) NOT NULL DEFAULT 0.00,
     currency VARCHAR(3) NOT NULL DEFAULT 'EUR',
-    card_number VARCHAR(16) UNIQUE,
-    card_holder_name VARCHAR(255),
-    card_expiry_date VARCHAR(5),
-    card_cvv VARCHAR(3),
-    saving_rate_id VARCHAR(255),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    FOREIGN KEY (saving_rate_id) REFERENCES saving_rates(id),
-    INDEX idx_accounts_user_id (user_id),
-    INDEX idx_accounts_iban (iban)
+    INDEX idx_accounts_user_id (user_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Table Transactions
