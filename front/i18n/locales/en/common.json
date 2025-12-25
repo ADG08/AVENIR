@@ -168,7 +168,19 @@
       "realStocks": "Real Stocks",
       "thisMonth": "this month",
       "thisWeek": "this week",
-      "thisYear": "this year"
+      "thisYear": "this year",
+      "currentPrice": "Current price",
+      "buyShares": "Buy shares",
+      "amountToInvest": "Amount to invest (EUR)",
+      "availableBalance": "Available balance",
+      "pricePerShare": "Price per share",
+      "numberOfShares": "Number of shares",
+      "transactionFee": "Transaction fee",
+      "total": "Total",
+      "insufficientBalance": "Insufficient balance",
+      "buy": "Buy",
+      "share": "share",
+      "shares": "shares"
     }
   },
   "landing": {

@@ -10,7 +10,9 @@ import { PortfolioDonutChart } from '@/components/investment/portfolio-donut-cha
 import { PortfolioDistribution } from '@/components/investment/portfolio-distribution';
 import { StockListItem } from '@/components/investment/stock-list-item';
 import { MarketInsightItem } from '@/components/investment/market-insight-item';
+import { StockDetailModal } from '@/components/investment/stock-detail-modal';
 import type { ChartConfig } from '@/components/ui/chart';
+import type { Stock } from '@/components/investment/types';
 
 const getAvatarUrl = (symbol: string, bgColor: string) =>
   `https://ui-avatars.com/api/?name=${symbol}&background=${bgColor}&color=fff&size=128&bold=true`;
@@ -18,23 +20,34 @@ const getAvatarUrl = (symbol: string, bgColor: string) =>
 export default function InvestmentPage() {
   const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState('investment');
+  const [selectedStock, setSelectedStock] = useState<Stock | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const handleStockClick = (stock: Stock) => {
+    setSelectedStock(stock);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+  };
 
   const tickerStocks = [
-    { symbol: 'AAPL', price: '$192.00', change: '+0.52%', isPositive: true, logo: getAvatarUrl('AAPL', '6366f1') },
-    { symbol: 'AIRBNB', price: '$141.00', change: '+1.12%', isPositive: true, logo: getAvatarUrl('ABNB', '8b5cf6') },
-    { symbol: 'NVDA', price: '$147.00', change: '+1.55%', isPositive: true, logo: getAvatarUrl('NVDA', '10b981') },
-    { symbol: 'AMZN', price: '$191.00', change: '+0.81%', isPositive: true, logo: getAvatarUrl('AMZN', 'f97316') },
-    { symbol: 'SPTR', price: '$152.00', change: '+0.34%', isPositive: true, logo: getAvatarUrl('SPOT', '22c55e') },
-    { symbol: 'TSLA', price: '$245.00', change: '-0.43%', isPositive: false, logo: getAvatarUrl('TSLA', 'ef4444') },
-    { symbol: 'GOOGL', price: '$175.30', change: '+1.24%', isPositive: true, logo: getAvatarUrl('GOOG', '3b82f6') },
-    { symbol: 'META', price: '$512.85', change: '+2.15%', isPositive: true, logo: getAvatarUrl('META', 'a855f7') },
-    { symbol: 'MSFT', price: '$428.50', change: '-0.22%', isPositive: false, logo: getAvatarUrl('MSFT', '0ea5e9') },
-    { symbol: 'NFLX', price: '$685.20', change: '+3.47%', isPositive: true, logo: getAvatarUrl('NFLX', 'dc2626') },
-    { symbol: 'AMD', price: '$162.90', change: '+1.89%', isPositive: true, logo: getAvatarUrl('AMD', 'ec4899') },
-    { symbol: 'INTC', price: '$42.15', change: '-1.05%', isPositive: false, logo: getAvatarUrl('INTC', '06b6d4') },
-    { symbol: 'DIS', price: '$93.75', change: '+0.67%', isPositive: true, logo: getAvatarUrl('DIS', '8b5cf6') },
-    { symbol: 'UBER', price: '$78.40', change: '+2.31%', isPositive: true, logo: getAvatarUrl('UBER', '14b8a6') },
-    { symbol: 'PYPL', price: '$61.20', change: '-0.89%', isPositive: false, logo: getAvatarUrl('PYPL', '2563eb') },
+    { symbol: 'AAPL', name: 'Apple Inc.', price: '$192.00', change: '+0.52%', isPositive: true, logo: getAvatarUrl('AAPL', '6366f1'), currentPrice: 192.00 },
+    { symbol: 'AIRBNB', name: 'Airbnb Inc.', price: '$141.00', change: '+1.12%', isPositive: true, logo: getAvatarUrl('ABNB', '8b5cf6'), currentPrice: 141.00 },
+    { symbol: 'NVDA', name: 'NVIDIA Corp.', price: '$147.00', change: '+1.55%', isPositive: true, logo: getAvatarUrl('NVDA', '10b981'), currentPrice: 147.00 },
+    { symbol: 'AMZN', name: 'Amazon.com Inc.', price: '$191.00', change: '+0.81%', isPositive: true, logo: getAvatarUrl('AMZN', 'f97316'), currentPrice: 191.00 },
+    { symbol: 'SPTR', name: 'Spotify Technology', price: '$152.00', change: '+0.34%', isPositive: true, logo: getAvatarUrl('SPOT', '22c55e'), currentPrice: 152.00 },
+    { symbol: 'TSLA', name: 'Tesla Inc.', price: '$245.00', change: '-0.43%', isPositive: false, logo: getAvatarUrl('TSLA', 'ef4444'), currentPrice: 245.00 },
+    { symbol: 'GOOGL', name: 'Alphabet Inc.', price: '$175.30', change: '+1.24%', isPositive: true, logo: getAvatarUrl('GOOG', '3b82f6'), currentPrice: 175.30 },
+    { symbol: 'META', name: 'Meta Platforms Inc.', price: '$512.85', change: '+2.15%', isPositive: true, logo: getAvatarUrl('META', 'a855f7'), currentPrice: 512.85 },
+    { symbol: 'MSFT', name: 'Microsoft Corp.', price: '$428.50', change: '-0.22%', isPositive: false, logo: getAvatarUrl('MSFT', '0ea5e9'), currentPrice: 428.50 },
+    { symbol: 'NFLX', name: 'Netflix Inc.', price: '$685.20', change: '+3.47%', isPositive: true, logo: getAvatarUrl('NFLX', 'dc2626'), currentPrice: 685.20 },
+    { symbol: 'AMD', name: 'Advanced Micro Devices', price: '$162.90', change: '+1.89%', isPositive: true, logo: getAvatarUrl('AMD', 'ec4899'), currentPrice: 162.90 },
+    { symbol: 'INTC', name: 'Intel Corp.', price: '$42.15', change: '-1.05%', isPositive: false, logo: getAvatarUrl('INTC', '06b6d4'), currentPrice: 42.15 },
+    { symbol: 'DIS', name: 'The Walt Disney Company', price: '$93.75', change: '+0.67%', isPositive: true, logo: getAvatarUrl('DIS', '8b5cf6'), currentPrice: 93.75 },
+    { symbol: 'UBER', name: 'Uber Technologies Inc.', price: '$78.40', change: '+2.31%', isPositive: true, logo: getAvatarUrl('UBER', '14b8a6'), currentPrice: 78.40 },
+    { symbol: 'PYPL', name: 'PayPal Holdings Inc.', price: '$61.20', change: '-0.89%', isPositive: false, logo: getAvatarUrl('PYPL', '2563eb'), currentPrice: 61.20 },
   ];
 
   const portfolioData = [
@@ -128,7 +141,7 @@ export default function InvestmentPage() {
           animate={{ opacity: 1, y: 0 }}
           className="mb-6"
         >
-          <StockTicker stocks={tickerStocks} />
+          <StockTicker stocks={tickerStocks} onStockClick={handleStockClick} />
         </motion.div>
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
@@ -213,6 +226,12 @@ export default function InvestmentPage() {
           </motion.div>
         </div>
       </main>
+
+      <StockDetailModal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        stock={selectedStock}
+      />
     </div>
   );
 }

@@ -168,7 +168,19 @@
       "realStocks": "Actions réelles",
       "thisMonth": "ce mois",
       "thisWeek": "cette semaine",
-      "thisYear": "cette année"
+      "thisYear": "cette année",
+      "currentPrice": "Prix actuel",
+      "buyShares": "Acheter des actions",
+      "amountToInvest": "Montant à investir (EUR)",
+      "availableBalance": "Solde disponible",
+      "pricePerShare": "Prix par action",
+      "numberOfShares": "Nombre d'actions",
+      "transactionFee": "Frais de transaction",
+      "total": "Total",
+      "insufficientBalance": "Solde insuffisant",
+      "buy": "Acheter",
+      "share": "action",
+      "shares": "actions"
     }
   },
   "landing": {
