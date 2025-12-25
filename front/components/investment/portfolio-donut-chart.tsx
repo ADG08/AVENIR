@@ -1,0 +1,170 @@
+'use client';
+
+import * as React from 'react';
+import { Label, Pie, PieChart } from 'recharts';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { ChartContainer, ChartTooltip, type ChartConfig } from '@/components/ui/chart';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ArrowUp } from 'lucide-react';
+import { useLanguage } from '@/hooks/use-language';
+
+interface PortfolioDonutChartProps {
+  title: string;
+  description: string;
+  totalAmount: string;
+  centerLabel: string;
+  data: Array<{ name: string; value: number; fill: string }>;
+  config: ChartConfig;
+}
+
+export const PortfolioDonutChart = ({
+  title,
+  description,
+  totalAmount,
+  centerLabel,
+  data,
+  config,
+}: PortfolioDonutChartProps) => {
+  const { t } = useLanguage();
+  const [period, setPeriod] = React.useState('yearly');
+
+  const getFilteredData = () => {
+    if (period === 'monthly') {
+      return [
+        { name: 'stocks', value: 1850, fill: 'hsl(262, 83%, 58%)' },
+        { name: 'funds', value: 380, fill: 'hsl(270, 70%, 62%)' },
+        { name: 'bonds', value: 220, fill: 'hsl(330, 81%, 60%)' },
+        { name: 'realStocks', value: 150, fill: 'hsl(24, 100%, 50%)' },
+      ];
+    } else if (period === 'weekly') {
+      return [
+        { name: 'stocks', value: 195, fill: 'hsl(262, 83%, 58%)' },
+        { name: 'funds', value: 135, fill: 'hsl(270, 70%, 62%)' },
+        { name: 'bonds', value: 98, fill: 'hsl(330, 81%, 60%)' },
+        { name: 'realStocks', value: 72, fill: 'hsl(24, 100%, 50%)' },
+      ];
+    }
+    return data;
+  };
+
+  const filteredData = getFilteredData();
+
+  const getTotalAmount = () => {
+    if (period === 'monthly') return '$2,600';
+    if (period === 'weekly') return '$500';
+    return totalAmount;
+  };
+
+  const getCenterLabel = () => {
+    if (period === 'monthly') return `$85.50 ${t('dashboard.investmentPage.thisMonth')}`;
+    if (period === 'weekly') return `$18.20 ${t('dashboard.investmentPage.thisWeek')}`;
+    return `$278.90 ${t('dashboard.investmentPage.thisYear')}`;
+  };
+
+  return (
+    <Card className="flex h-full flex-col">
+      <CardHeader className="items-start pb-4">
+        <div className="flex w-full items-center justify-between">
+          <div>
+            <CardTitle className="text-lg font-semibold text-gray-900">{title}</CardTitle>
+            <CardDescription className="text-sm text-gray-500">{description}</CardDescription>
+          </div>
+          <Select value={period} onValueChange={setPeriod}>
+            <SelectTrigger className="h-9 w-[115px] text-xs sm:h-10 sm:w-[140px] sm:text-sm">
+              <SelectValue placeholder={t('dashboard.investmentPage.selectPeriod')} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="yearly">{t('dashboard.yearly')}</SelectItem>
+              <SelectItem value="monthly">{t('dashboard.monthly')}</SelectItem>
+              <SelectItem value="weekly">{t('dashboard.weekly')}</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </CardHeader>
+      <CardContent className="flex-1 -mt-4 pb-0 pt-0">
+        <ChartContainer config={config} className="mx-auto aspect-square w-full max-h-[320px]">
+          <PieChart>
+            <ChartTooltip
+              cursor={false}
+              content={({ active, payload }) => {
+                if (!active || !payload || payload.length === 0) return null;
+                const data = payload[0];
+                const itemConfig = config[data.name as keyof typeof config];
+                const color = data.payload.fill;
+
+                return (
+                  <div className="min-w-[150px] rounded-lg border border-gray-200 bg-white px-3 py-2 shadow-lg">
+                    <div className="flex items-center gap-2">
+                      <div
+                        className="h-3 w-3 shrink-0 rounded"
+                        style={{ backgroundColor: color }}
+                      />
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium text-gray-900">
+                          {itemConfig?.label || data.name}
+                        </span>
+                        <span className="text-sm font-bold text-gray-900">
+                          {data.value?.toLocaleString()}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              }}
+            />
+            <Pie data={filteredData} dataKey="value" nameKey="name" innerRadius={95} strokeWidth={5}>
+              <Label
+                content={({ viewBox }) => {
+                  if (viewBox && 'cx' in viewBox && 'cy' in viewBox) {
+                    return (
+                      <g>
+                        <text x={viewBox.cx} y={viewBox.cy} textAnchor="middle" dominantBaseline="middle">
+                          <tspan
+                            x={viewBox.cx}
+                            y={viewBox.cy}
+                            className="fill-foreground text-3xl font-bold"
+                          >
+                            {getTotalAmount()}
+                          </tspan>
+                        </text>
+                        <foreignObject
+                          x={(viewBox.cx || 0) - 60}
+                          y={(viewBox.cy || 0) + 10}
+                          width="120"
+                          height="30"
+                        >
+                          <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground">
+                            <ArrowUp className="h-3 w-3 text-green-600" />
+                            <span>{getCenterLabel()}</span>
+                          </div>
+                        </foreignObject>
+                      </g>
+                    );
+                  }
+                }}
+              />
+            </Pie>
+          </PieChart>
+        </ChartContainer>
+        <div className="mt-2 flex flex-wrap items-center justify-center gap-4">
+          {filteredData.map((item) => {
+            const itemConfig = config[item.name as keyof typeof config];
+            return (
+              <div key={item.name} className="flex items-center gap-2">
+                <div
+                  className="h-3 w-3 rounded-full"
+                  style={{
+                    backgroundColor: itemConfig?.color || item.fill,
+                  }}
+                />
+                <span className="text-xs text-gray-600">
+                  {itemConfig?.label || item.name}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      </CardContent>
+    </Card>
+  );
+};

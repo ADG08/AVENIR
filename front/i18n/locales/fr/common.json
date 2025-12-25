@@ -89,7 +89,7 @@
     "electronics": "Électronique",
     "completed": "Terminé",
     "overview": "Aperçu",
-    "investment": "Investissement",
+    "investmentHeader": "Investissement",
     "card": "Carte",
     "activity": "Activité",
     "saving": "Épargne",
@@ -97,6 +97,8 @@
     "clients": "Mes clients",
     "loans": "Mes crédits",
     "yearly": "Annuel",
+    "monthly": "Mensuel",
+    "weekly": "Hebdomadaire",
     "spending": "Dépenses",
     "receiveFunds": "Recevoir",
     "sendFunds": "Envoyer",
@@ -149,6 +151,24 @@
       "pel": "PEL (Plan Épargne Logement)",
       "cel": "CEL (Compte Épargne Logement)",
       "lep": "LEP (Livret d'Épargne Populaire)"
+    },
+    "investmentPage": {
+      "portfolioValue": "Valeur du portefeuille",
+      "yesterdaysIncome": "Revenus d'hier",
+      "totalProfits": "Profits totaux",
+      "portfolioDistribution": "Distribution du portefeuille",
+      "myAssets": "Mes actifs",
+      "marketInsight": "Aperçu du marché",
+      "viewAll": "Voir tout",
+      "selectPeriod": "Sélectionner une période",
+      "profit": "Profit",
+      "stocks": "Actions",
+      "funds": "Fonds",
+      "bonds": "Obligations",
+      "realStocks": "Actions réelles",
+      "thisMonth": "ce mois",
+      "thisWeek": "cette semaine",
+      "thisYear": "cette année"
     }
   },
   "landing": {

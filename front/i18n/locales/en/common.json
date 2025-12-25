@@ -89,7 +89,7 @@
     "electronics": "Electronics",
     "completed": "Completed",
     "overview": "Overview",
-    "investment": "Investment",
+    "investmentHeader": "Investment",
     "card": "Card",
     "activity": "Activity",
     "saving": "Saving",
@@ -97,6 +97,8 @@
     "clients": "My clients",
     "loans": "My loans",
     "yearly": "Yearly",
+    "monthly": "Monthly",
+    "weekly": "Weekly",
     "spending": "Spending",
     "receiveFunds": "Receive",
     "sendFunds": "Send",
@@ -149,6 +151,24 @@
       "pel": "PEL (Housing Savings Plan)",
       "cel": "CEL (Housing Savings Account)",
       "lep": "LEP (Popular Savings Account)"
+    },
+    "investmentPage": {
+      "portfolioValue": "Portfolio Value",
+      "yesterdaysIncome": "Yesterday's income",
+      "totalProfits": "Total Profits",
+      "portfolioDistribution": "Portfolio Distribution",
+      "myAssets": "My Assets",
+      "marketInsight": "Market Insight",
+      "viewAll": "View All",
+      "selectPeriod": "Select period",
+      "profit": "Profit",
+      "stocks": "Stocks",
+      "funds": "Funds",
+      "bonds": "Bonds",
+      "realStocks": "Real Stocks",
+      "thisMonth": "this month",
+      "thisWeek": "this week",
+      "thisYear": "this year"
     }
   },
   "landing": {
