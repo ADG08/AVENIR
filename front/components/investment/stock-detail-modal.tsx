@@ -134,6 +134,31 @@ export const StockDetailModal = ({ isOpen, onClose, stock, onPurchaseSuccess }: 
     bids: Array<{ price: number; quantity: number }>;
     asks: Array<{ price: number; quantity: number }>;
   }>({ bids: [], asks: [] });
+  const [trades, setTrades] = React.useState<Array<{
+    id: string;
+    price: number;
+    quantity: number;
+    buyerId: string;
+    sellerId: string;
+    side: 'BUY' | 'SELL';
+    createdAt: string;
+  }>>([]);
+  const [activeTab, setActiveTab] = React.useState<'time-sales' | 'market-depth'>('time-sales');
+
+  const fetchTrades = async () => {
+    if (!stock) return;
+    try {
+      const response = await fetch(`http://localhost:3001/api/investment/trades/${stock.id}?limit=20`, {
+        credentials: 'include',
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setTrades(data);
+      }
+    } catch (error) {
+      console.error('Error fetching trades:', error);
+    }
+  };
 
   const fetchPendingOrders = async () => {
     if (!stock) return;
@@ -143,7 +168,6 @@ export const StockDetailModal = ({ isOpen, onClose, stock, onPurchaseSuccess }: 
       });
       if (response.ok) {
         const orders = await response.json();
-        // Filtrer pour afficher les ordres PENDING et PARTIAL (ordres actifs)
         const activeOrders = orders.filter((order: any) =>
           order.state === 'PENDING' || order.state === 'PARTIAL'
         );
@@ -163,8 +187,8 @@ export const StockDetailModal = ({ isOpen, onClose, stock, onPurchaseSuccess }: 
       if (response.ok) {
         const data = await response.json();
         setOrderBook({
-          bids: data.bids.slice(0, 5), // Top 5 bids
-          asks: data.asks.slice(0, 5), // Top 5 asks
+          bids: data.bids.slice(0, 5),
+          asks: data.asks.slice(0, 5),
         });
       }
     } catch (error) {
@@ -203,6 +227,7 @@ export const StockDetailModal = ({ isOpen, onClose, stock, onPurchaseSuccess }: 
       fetchAvailableShares();
       fetchPendingOrders();
       fetchOrderBook();
+      fetchTrades();
     } else {
       document.body.style.overflow = 'unset';
       setAmount('');
@@ -214,6 +239,7 @@ export const StockDetailModal = ({ isOpen, onClose, stock, onPurchaseSuccess }: 
       setOrderSide('BUY');
       setPendingOrders([]);
       setOrderBook({ bids: [], asks: [] });
+      setTrades([]);
     }
 
     return () => {
@@ -268,12 +294,9 @@ export const StockDetailModal = ({ isOpen, onClose, stock, onPurchaseSuccess }: 
   const numericShares = parseFloat(shares) || 0;
   const effectivePrice = orderType === 'LIMIT' && numericLimitPrice > 0 ? numericLimitPrice : stock?.currentPrice || 0;
 
-  // Pour l'achat
   const totalCost = numericAmount + TRANSACTION_FEE;
   const maxAmount = availableBalance - TRANSACTION_FEE;
   const numberOfShares = stock && numericAmount > 0 ? numericAmount / effectivePrice : 0;
-
-  // Pour la vente
   const totalRevenue = numericAmount - TRANSACTION_FEE;
 
   const canBuy = orderSide === 'BUY'
@@ -344,14 +367,11 @@ export const StockDetailModal = ({ isOpen, onClose, stock, onPurchaseSuccess }: 
       if (response.ok) {
         const data = await response.json();
 
-        // Réinitialiser les champs AVANT de fetch les données
-        // pour éviter les validations avec des valeurs obsolètes
         setAmount('');
         setShares('');
         setLimitPrice('');
         setOrderType('MARKET');
 
-        // Afficher un avertissement si l'ordre a été partiellement exécuté
         if (data.warning && data.message) {
           setError(data.message);
           setIsWarning(true);
@@ -365,7 +385,6 @@ export const StockDetailModal = ({ isOpen, onClose, stock, onPurchaseSuccess }: 
         await fetchPendingOrders();
         await fetchOrderBook();
 
-        // Ne fermer la modal que si pas d'avertissement (pour que l'utilisateur voie le message)
         if (!data.warning) {
           onClose();
         }
@@ -448,82 +467,191 @@ export const StockDetailModal = ({ isOpen, onClose, stock, onPurchaseSuccess }: 
                       animationKey={animationKey}
                     />
 
-                    {/* Order Book - Market Depth */}
-                    <div className="mt-4 rounded-lg border border-gray-200 bg-white overflow-hidden">
-                      <div className="border-b border-gray-200 bg-gray-50 px-4 py-3">
-                        <h4 className="text-sm font-semibold text-gray-900">
-                          Market Depth
-                        </h4>
-                      </div>
-                      <div className="p-4">
-                        <div className="grid grid-cols-2 gap-4">
-                          {/* BID (Buy) Side */}
-                          <div>
-                            <div className="mb-2 flex items-center justify-between text-xs font-semibold text-gray-600 uppercase">
-                              <span>Bid (Buy)</span>
-                            </div>
-                            <div className="space-y-1">
-                              {orderBook.bids.length > 0 ? (
-                                orderBook.bids.map((bid, idx) => (
-                                  <div key={idx} className="flex items-center justify-between rounded bg-blue-50 px-3 py-2 text-xs">
-                                    <span className="font-semibold text-blue-700">€{bid.price?.toFixed(2) || 'Market'}</span>
-                                    <span className="text-gray-600">{bid.quantity.toFixed(2)}</span>
-                                  </div>
-                                ))
-                              ) : (
-                                <div className="text-xs text-gray-400 text-center py-2">No bids</div>
-                              )}
-                            </div>
-                          </div>
-
-                          {/* ASK (Sell) Side */}
-                          <div>
-                            <div className="mb-2 flex items-center justify-between text-xs font-semibold text-gray-600 uppercase">
-                              <span>Ask (Sell)</span>
-                            </div>
-                            <div className="space-y-1">
-                              {orderBook.asks.length > 0 ? (
-                                orderBook.asks.map((ask, idx) => (
-                                  <div key={idx} className="flex items-center justify-between rounded bg-purple-50 px-3 py-2 text-xs">
-                                    <span className="font-semibold text-purple-700">€{ask.price?.toFixed(2) || 'Market'}</span>
-                                    <span className="text-gray-600">{ask.quantity.toFixed(2)}</span>
-                                  </div>
-                                ))
-                              ) : (
-                                <div className="text-xs text-gray-400 text-center py-2">No asks</div>
-                              )}
-                            </div>
-                          </div>
+                    {/* Time & Sales + Market Depth Tabs */}
+                    <motion.div
+                      className="mt-4 rounded-lg border border-gray-200 bg-white overflow-hidden"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3, delay: 0.1 }}
+                    >
+                      <div className="border-b border-gray-200 bg-gray-50">
+                        <div className="flex relative">
+                          <motion.button
+                            onClick={() => setActiveTab('time-sales')}
+                            className={`flex-1 px-4 py-3 text-sm font-semibold transition-all relative ${
+                              activeTab === 'time-sales'
+                                ? 'text-purple-700 bg-white border-b-2 border-purple-700'
+                                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                            }`}
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                          >
+                            {t('dashboard.investmentPage.timeSales')}
+                          </motion.button>
+                          <motion.button
+                            onClick={() => setActiveTab('market-depth')}
+                            className={`flex-1 px-4 py-3 text-sm font-semibold transition-all relative ${
+                              activeTab === 'market-depth'
+                                ? 'text-purple-700 bg-white border-b-2 border-purple-700'
+                                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                            }`}
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                          >
+                            {t('dashboard.investmentPage.marketDepth')}
+                          </motion.button>
                         </div>
-
-                        {/* Spread Indicator */}
-                        {orderBook.bids.length > 0 && orderBook.asks.length > 0 && orderBook.bids[0]?.price && orderBook.asks[0]?.price && (
-                          <div className="mt-3 pt-3 border-t border-gray-200 text-center">
-                            <div className="text-xs text-gray-500">
-                              Spread: €{(orderBook.asks[0].price - orderBook.bids[0].price).toFixed(2)}
-                            </div>
-                          </div>
-                        )}
                       </div>
-                    </div>
+
+                      <div className="p-4">
+                        <AnimatePresence mode="wait">
+                          {activeTab === 'time-sales' ? (
+                            <motion.div
+                              key="time-sales"
+                              initial={{ opacity: 0, x: -20 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              exit={{ opacity: 0, x: 20 }}
+                              transition={{ duration: 0.2 }}
+                              className="max-h-[300px] overflow-y-auto"
+                            >
+                            {trades.length > 0 ? (
+                              <div className="space-y-1">
+                                {/* Header */}
+                                <div className="grid grid-cols-4 gap-2 pb-2 border-b border-gray-200 text-xs font-semibold text-gray-600 uppercase sticky top-0 bg-white">
+                                  <span>{t('dashboard.investmentPage.time')}</span>
+                                  <span className="text-right">{t('dashboard.investmentPage.price')}</span>
+                                  <span className="text-right">{t('dashboard.investmentPage.quantity')}</span>
+                                  <span className="text-right">{t('dashboard.investmentPage.total')}</span>
+                                </div>
+                                {/* Trades List */}
+                                {trades.map((trade, index) => {
+                                  const tradeTime = new Date(trade.createdAt);
+                                  const hours = tradeTime.getHours().toString().padStart(2, '0');
+                                  const minutes = tradeTime.getMinutes().toString().padStart(2, '0');
+                                  const seconds = tradeTime.getSeconds().toString().padStart(2, '0');
+                                  const total = trade.price * trade.quantity;
+
+                                  const isBuy = trade.side === 'BUY';
+                                  const priceColor = isBuy ? 'text-green-600' : 'text-red-600';
+                                  const bgColor = isBuy ? 'bg-green-50' : 'bg-red-50';
+                                  const borderColor = isBuy ? 'border-l-green-500' : 'border-l-red-500';
+
+                                  return (
+                                    <motion.div
+                                      key={trade.id}
+                                      initial={{ opacity: 0, x: -10 }}
+                                      animate={{ opacity: 1, x: 0 }}
+                                      transition={{ duration: 0.2, delay: Math.min(index * 0.03, 0.3) }}
+                                      className={`grid grid-cols-4 gap-2 py-2 text-xs rounded border-l-2 ${borderColor} ${bgColor} px-2`}
+                                    >
+                                      <span className="text-gray-600">{hours}:{minutes}:{seconds}</span>
+                                      <span className={`text-right font-semibold ${priceColor}`}>€{trade.price.toFixed(2)}</span>
+                                      <span className="text-right text-gray-700 font-medium">{trade.quantity.toFixed(2)}</span>
+                                      <span className="text-right font-semibold text-gray-900">€{total.toFixed(2)}</span>
+                                    </motion.div>
+                                  );
+                                })}
+                              </div>
+                            ) : (
+                              <div className="text-xs text-gray-400 text-center py-8">{t('dashboard.investmentPage.noTradesYet')}</div>
+                            )}
+                            </motion.div>
+                          ) : (
+                            <motion.div
+                              key="market-depth"
+                              initial={{ opacity: 0, x: 20 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              exit={{ opacity: 0, x: -20 }}
+                              transition={{ duration: 0.2 }}
+                            >
+                            <div className="grid grid-cols-2 gap-4">
+                              {/* BID (Buy) Side */}
+                              <div>
+                                <div className="mb-2 flex items-center justify-between text-xs font-semibold text-gray-600 uppercase">
+                                  <span>{t('dashboard.investmentPage.bid')}</span>
+                                </div>
+                                <div className="space-y-1">
+                                  {orderBook.bids.length > 0 ? (
+                                    orderBook.bids.map((bid, idx) => (
+                                      <motion.div
+                                        key={idx}
+                                        initial={{ opacity: 0, x: -10 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        transition={{ duration: 0.2, delay: idx * 0.03 }}
+                                        className="flex items-center justify-between rounded bg-blue-50 px-3 py-2 text-xs"
+                                      >
+                                        <span className="font-semibold text-blue-700">€{bid.price?.toFixed(2) || 'Market'}</span>
+                                        <span className="text-gray-600">{bid.quantity.toFixed(2)}</span>
+                                      </motion.div>
+                                    ))
+                                  ) : (
+                                    <div className="text-xs text-gray-400 text-center py-2">{t('dashboard.investmentPage.noBids')}</div>
+                                  )}
+                                </div>
+                              </div>
+
+                              {/* ASK (Sell) Side */}
+                              <div>
+                                <div className="mb-2 flex items-center justify-between text-xs font-semibold text-gray-600 uppercase">
+                                  <span>{t('dashboard.investmentPage.ask')}</span>
+                                </div>
+                                <div className="space-y-1">
+                                  {orderBook.asks.length > 0 ? (
+                                    orderBook.asks.map((ask, idx) => (
+                                      <motion.div
+                                        key={idx}
+                                        initial={{ opacity: 0, x: 10 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        transition={{ duration: 0.2, delay: idx * 0.03 }}
+                                        className="flex items-center justify-between rounded bg-purple-50 px-3 py-2 text-xs"
+                                      >
+                                        <span className="font-semibold text-purple-700">€{ask.price?.toFixed(2) || 'Market'}</span>
+                                        <span className="text-gray-600">{ask.quantity.toFixed(2)}</span>
+                                      </motion.div>
+                                    ))
+                                  ) : (
+                                    <div className="text-xs text-gray-400 text-center py-2">{t('dashboard.investmentPage.noAsks')}</div>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Spread Indicator */}
+                            {orderBook.bids.length > 0 && orderBook.asks.length > 0 && orderBook.bids[0]?.price && orderBook.asks[0]?.price && (
+                              <motion.div
+                                initial={{ opacity: 0, y: 5 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.3, delay: 0.2 }}
+                                className="mt-3 pt-3 border-t border-gray-200 text-center"
+                              >
+                                <div className="text-xs text-gray-500">
+                                  {t('dashboard.investmentPage.spread')}: €{(orderBook.asks[0].price - orderBook.bids[0].price).toFixed(2)}
+                                </div>
+                              </motion.div>
+                            )}
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
+                    </motion.div>
 
                     {pendingOrders.length > 0 && (
                       <div className="mt-4 rounded-lg border border-gray-200 bg-white overflow-hidden">
                         <div className="border-b border-gray-200 bg-gray-50 px-4 py-3">
                           <h4 className="text-sm font-semibold text-gray-900">
-                            Pending Orders ({pendingOrders.length})
+                            {t('dashboard.investmentPage.pendingOrders')} ({pendingOrders.length})
                           </h4>
                         </div>
                         <div className="overflow-x-auto">
                           <table className="w-full">
                             <thead className="bg-gray-50 border-b border-gray-200">
                               <tr>
-                                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Date</th>
-                                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Pair</th>
-                                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Type</th>
-                                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Side</th>
-                                <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">Price</th>
-                                <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">Amount</th>
+                                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">{t('dashboard.investmentPage.date')}</th>
+                                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">{t('dashboard.investmentPage.pair')}</th>
+                                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">{t('dashboard.investmentPage.type')}</th>
+                                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">{t('dashboard.investmentPage.side')}</th>
+                                <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">{t('dashboard.investmentPage.price')}</th>
+                                <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">{t('dashboard.investmentPage.amount')}</th>
                                 <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider w-16"></th>
                               </tr>
                             </thead>
@@ -551,7 +679,7 @@ export const StockDetailModal = ({ isOpen, onClose, stock, onPurchaseSuccess }: 
                                         ? 'bg-blue-100 text-blue-700'
                                         : 'bg-purple-100 text-purple-700'
                                     }`}>
-                                      {order.side === 'BID' ? 'Buy' : 'Sell'}
+                                      {order.side === 'BID' ? t('dashboard.investmentPage.buy') : t('dashboard.investmentPage.sell')}
                                     </span>
                                   </td>
                                   <td className="px-4 py-3 text-xs font-medium text-gray-900 text-right whitespace-nowrap">
@@ -564,8 +692,8 @@ export const StockDetailModal = ({ isOpen, onClose, stock, onPurchaseSuccess }: 
                                     <button
                                       onClick={() => cancelOrder(order.id)}
                                       className="inline-flex h-7 w-7 items-center justify-center rounded-md transition-colors hover:bg-red-50"
-                                      title="Cancel order"
-                                      aria-label="Cancel order"
+                                      title={t('dashboard.investmentPage.cancelOrder')}
+                                      aria-label={t('dashboard.investmentPage.cancelOrder')}
                                     >
                                       <X className="h-4 w-4 text-red-600" />
                                     </button>
@@ -593,7 +721,7 @@ export const StockDetailModal = ({ isOpen, onClose, stock, onPurchaseSuccess }: 
                               : 'text-gray-600 hover:text-gray-900'
                           }`}
                         >
-                          Sell
+                          {t('dashboard.investmentPage.sell')}
                         </button>
                         <button
                           onClick={() => setOrderSide('BUY')}
@@ -603,29 +731,37 @@ export const StockDetailModal = ({ isOpen, onClose, stock, onPurchaseSuccess }: 
                               : 'text-gray-600 hover:text-gray-900'
                           }`}
                         >
-                          Buy
+                          {t('dashboard.investmentPage.buy')}
                         </button>
                       </div>
                     </div>
 
                     <h3 className="mb-4 text-lg font-semibold text-gray-900">
-                      {orderSide === 'BUY' ? t('dashboard.investmentPage.buyShares') : 'Sell Shares'}
+                      {orderSide === 'BUY' ? t('dashboard.investmentPage.buyShares') : t('dashboard.investmentPage.sellShares')}
                     </h3>
+
+                    <div className="mb-4 rounded-lg bg-blue-50 border border-blue-200 p-3">
+                      <p className="text-xs font-medium text-blue-700 mb-1">{t('dashboard.investmentPage.yourPosition')}</p>
+                      <div className="flex items-center justify-between">
+                        <p className="text-lg font-bold text-blue-900">{availableShares.toFixed(2)} {t('dashboard.investmentPage.shares')}</p>
+                        <p className="text-xs text-blue-600">≈ €{(availableShares * stock.currentPrice).toFixed(2)}</p>
+                      </div>
+                    </div>
 
                     <div className="space-y-4">
                       <div>
-                        <label className="mb-2 block text-sm font-medium text-gray-700">Order Type</label>
+                        <label className="mb-2 block text-sm font-medium text-gray-700">{t('dashboard.investmentPage.orderType')}</label>
                         <Select value={orderType} onValueChange={(value: 'MARKET' | 'LIMIT') => setOrderType(value)}>
                           <SelectTrigger className="w-full">
-                            <SelectValue placeholder="Select order type" />
+                            <SelectValue placeholder={t('dashboard.investmentPage.selectOrderType')} />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="MARKET">Market Order</SelectItem>
-                            <SelectItem value="LIMIT">Limit Order</SelectItem>
+                            <SelectItem value="MARKET">{t('dashboard.investmentPage.marketOrder')}</SelectItem>
+                            <SelectItem value="LIMIT">{t('dashboard.investmentPage.limitOrder')}</SelectItem>
                           </SelectContent>
                         </Select>
                         <p className="mt-1 text-xs text-gray-500">
-                          {orderType === 'MARKET' ? 'Execute immediately at current market price' : 'Execute only at your specified price or better'}
+                          {orderType === 'MARKET' ? t('dashboard.investmentPage.executeImmediately') : t('dashboard.investmentPage.executeAtPrice')}
                         </p>
                       </div>
 
@@ -633,7 +769,7 @@ export const StockDetailModal = ({ isOpen, onClose, stock, onPurchaseSuccess }: 
                         orderType === 'LIMIT' ? 'max-h-32 opacity-100' : 'max-h-0 opacity-0'
                       }`}>
                         <div className="pb-4">
-                          <label className="mb-2 block text-sm font-medium text-gray-700">Limit Price</label>
+                          <label className="mb-2 block text-sm font-medium text-gray-700">{t('dashboard.investmentPage.limitPrice')}</label>
                           <input
                             type="number"
                             value={limitPrice}
@@ -644,7 +780,7 @@ export const StockDetailModal = ({ isOpen, onClose, stock, onPurchaseSuccess }: 
                             className="w-full rounded-lg border border-gray-300 px-4 py-2 text-gray-900 transition-colors focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                           />
                           <p className="mt-1 text-xs text-gray-500">
-                            Current price: €{stock.currentPrice.toFixed(2)}
+                            {t('dashboard.investmentPage.currentPriceLabel')}: €{stock.currentPrice.toFixed(2)}
                           </p>
                         </div>
                       </div>
@@ -684,7 +820,7 @@ export const StockDetailModal = ({ isOpen, onClose, stock, onPurchaseSuccess }: 
                         />
                         <p className="mt-1 text-xs text-gray-500">
                           {orderSide === 'SELL'
-                            ? `Available: ${availableShares.toFixed(2)} shares`
+                            ? `${t('dashboard.investmentPage.available')}: ${availableShares.toFixed(2)} ${t('dashboard.investmentPage.shares')}`
                             : `${t('dashboard.investmentPage.pricePerShare')}: €${effectivePrice.toFixed(2)}`
                           }
                         </p>
@@ -720,7 +856,7 @@ export const StockDetailModal = ({ isOpen, onClose, stock, onPurchaseSuccess }: 
                       )}
 
                       {orderSide === 'SELL' && numericShares > availableShares && (
-                        <p className="text-sm text-red-600">Insufficient shares (available: {availableShares.toFixed(2)})</p>
+                        <p className="text-sm text-red-600">{t('dashboard.investmentPage.insufficientShares', { shares: availableShares.toFixed(2) })}</p>
                       )}
 
                       {error && (
@@ -742,8 +878,8 @@ export const StockDetailModal = ({ isOpen, onClose, stock, onPurchaseSuccess }: 
                         }`}
                       >
                         {isPurchasing
-                          ? (orderSide === 'BUY' ? t('dashboard.investmentPage.purchasing') || 'Purchasing...' : 'Selling...')
-                          : `${orderSide === 'BUY' ? t('dashboard.investmentPage.buy') : 'Sell'} ${numberOfShares > 0 ? `${numberOfShares.toFixed(2)} ${numberOfShares >= 1 ? t('dashboard.investmentPage.shares') : t('dashboard.investmentPage.share')}` : ''}`
+                          ? (orderSide === 'BUY' ? t('dashboard.investmentPage.purchasing') : t('dashboard.investmentPage.selling'))
+                          : `${orderSide === 'BUY' ? t('dashboard.investmentPage.buy') : t('dashboard.investmentPage.sell')} ${numberOfShares > 0 ? `${numberOfShares.toFixed(2)} ${numberOfShares >= 1 ? t('dashboard.investmentPage.shares') : t('dashboard.investmentPage.share')}` : ''}`
                         }
                       </button>
                     </div>

@@ -59,6 +59,12 @@ export async function investmentRoutes(fastify: FastifyInstance, options: Invest
         async (request, reply) => investmentController.getOrderBook(request, reply)
     );
 
+    fastify.get<{ Params: { stockId: string }; Querystring: { limit?: string } }>(
+        '/trades/:stockId',
+        { preHandler: authMiddleware },
+        async (request, reply) => investmentController.getStockTrades(request, reply)
+    );
+
     fastify.delete<{ Params: { orderId: string } }>(
         '/order/:orderId',
         { preHandler: authMiddleware },

@@ -13,6 +13,8 @@ import { OrderMatchingService } from '@avenir/application/services/OrderMatching
 import { v4 as uuidv4 } from 'uuid';
 
 export class InvestmentController {
+    private readonly TRANSACTION_FEE = 1;
+
     constructor(
         private stockRepository: StockRepository,
         private portfolioRepository: PortfolioRepository,
@@ -168,8 +170,7 @@ export class InvestmentController {
                 return reply.status(404).send({ error: 'Current account not found' });
             }
 
-            const TRANSACTION_FEE = 1;
-            const totalCost = (stock.currentPrice * quantity) + TRANSACTION_FEE;
+            const totalCost = (stock.currentPrice * quantity) + this.TRANSACTION_FEE;
 
             if (currentAccount.balance < totalCost) {
                 return reply.status(400).send({
@@ -245,7 +246,6 @@ export class InvestmentController {
             const userId = request.user.userId;
             const { stockId, side, type, quantity, limitPrice } = request.body;
 
-            // Validation
             if (!stockId || !side || !type || !quantity || quantity <= 0) {
                 return reply.status(400).send({ error: 'Invalid order parameters' });
             }
@@ -254,19 +254,16 @@ export class InvestmentController {
                 return reply.status(400).send({ error: 'Limit price required for LIMIT orders' });
             }
 
-            // Récupérer le stock
             const stock = await this.stockRepository.getById(stockId);
             if (!stock) {
                 return reply.status(404).send({ error: 'Stock not found' });
             }
 
-            // Récupérer l'utilisateur
             const user = await this.userRepository.getById(userId);
             if (!user) {
                 return reply.status(404).send({ error: 'User not found' });
             }
 
-            // Pour un ordre d'achat, vérifier le solde
             if (side === 'BID') {
                 const accounts = await this.accountRepository.findByUserId(userId);
                 const currentAccount = accounts.find(account => account.type === 'CURRENT');
@@ -275,8 +272,7 @@ export class InvestmentController {
                     return reply.status(404).send({ error: 'Current account not found' });
                 }
 
-                const TRANSACTION_FEE = 1;
-                const estimatedCost = (limitPrice || stock.currentPrice) * quantity + TRANSACTION_FEE;
+                const estimatedCost = (limitPrice || stock.currentPrice) * quantity + this.TRANSACTION_FEE;
 
                 if (currentAccount.balance < estimatedCost) {
                     return reply.status(400).send({
@@ -287,7 +283,6 @@ export class InvestmentController {
                 }
             }
 
-            // Pour un ordre de vente, vérifier qu'on possède assez d'actions
             if (side === 'ASK') {
                 const portfolio = await this.portfolioRepository.getByUserIdAndStockId(userId, stockId);
 
@@ -300,22 +295,9 @@ export class InvestmentController {
                 }
             }
 
-            // Déterminer le prix et l'état initial
-            let orderPrice: number | null = null;
-            let initialState = OrderBookState.PENDING;
-
-            if (type === 'MARKET') {
-                // Pour un ordre MARKET, ne pas définir de limite de prix
-                // Le matching engine utilisera Infinity pour BID et 0 pour ASK
-                orderPrice = null;
-            } else {
-                // Pour un ordre LIMIT, utiliser le prix spécifié
-                orderPrice = limitPrice!;
-            }
-
+            const orderPrice = type === 'MARKET' ? null : limitPrice!;
             const now = new Date();
 
-            // Créer l'ordre
             const order = new OrderBook(
                 uuidv4(),
                 stock,
@@ -323,30 +305,25 @@ export class InvestmentController {
                 side === 'BID' ? OrderSide.BID : OrderSide.ASK,
                 type === 'MARKET' ? OrderBookType.MARKET : OrderBookType.LIMIT,
                 quantity,
-                quantity, // remainingQuantity = quantity initialement
+                quantity,
                 orderPrice,
                 null,
-                initialState,
+                OrderBookState.PENDING,
                 now,
                 now
             );
 
             await this.orderBookRepository.add(order);
-
-            // Lancer le matching
             await this.orderMatchingService.matchOrders(stockId);
 
-            // Récupérer l'ordre mis à jour après le matching
             const updatedOrder = await this.orderBookRepository.getById(order.id);
 
-            // Vérifier si un ordre MARKET a été partiellement exécuté et annulé
             let warningMessage = null;
             let executedQuantity = quantity;
 
             if (updatedOrder) {
                 executedQuantity = quantity - updatedOrder.remainingQuantity;
 
-                // Si c'est un ordre MARKET qui a été annulé avec des shares non exécutées
                 if (type === OrderBookType.MARKET && updatedOrder.state === OrderBookState.CANCELLED && updatedOrder.remainingQuantity > 0) {
                     warningMessage = `Partial fill: Only ${executedQuantity.toFixed(2)} shares were executed. ${updatedOrder.remainingQuantity.toFixed(2)} shares cancelled due to insufficient liquidity.`;
                 }
@@ -429,6 +406,55 @@ export class InvestmentController {
         } catch (error) {
             console.error('Error fetching order book:', error);
             return reply.status(500).send({ error: 'Failed to fetch order book' });
+        }
+    }
+
+    async getStockTrades(request: FastifyRequest<{ Params: { stockId: string }; Querystring: { limit?: string } }>, reply: FastifyReply) {
+        try {
+            if (!request.user) {
+                return reply.status(401).send({ error: 'Unauthorized' });
+            }
+
+            const { stockId } = request.params;
+            const limit = request.query.limit ? parseInt(request.query.limit) : 50;
+
+            if (!stockId) {
+                return reply.status(400).send({ error: 'Stock ID is required' });
+            }
+
+            const trades = await this.tradeRepository.getByStockId(stockId);
+
+            const recentTrades = trades
+                .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+                .slice(0, limit)
+                .map(trade => {
+                    let side: 'BUY' | 'SELL';
+
+                    if (trade.sellOrder.orderType === OrderBookType.MARKET) {
+                        side = 'SELL';
+                    } else if (trade.buyOrder.orderType === OrderBookType.MARKET) {
+                        side = 'BUY';
+                    } else {
+                        const buyOrderCreatedAt = trade.buyOrder.createdAt.getTime();
+                        const sellOrderCreatedAt = trade.sellOrder.createdAt.getTime();
+                        side = sellOrderCreatedAt > buyOrderCreatedAt ? 'SELL' : 'BUY';
+                    }
+
+                    return {
+                        id: trade.id,
+                        price: trade.price,
+                        quantity: trade.quantity,
+                        buyerId: trade.buyer.id,
+                        sellerId: trade.seller.id,
+                        side,
+                        createdAt: trade.createdAt.toISOString(),
+                    };
+                });
+
+            return reply.status(200).send(recentTrades);
+        } catch (error) {
+            console.error('Error fetching stock trades:', error);
+            return reply.status(500).send({ error: 'Failed to fetch stock trades' });
         }
     }
 
