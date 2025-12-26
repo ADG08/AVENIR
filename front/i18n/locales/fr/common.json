@@ -179,6 +179,7 @@
       "total": "Total",
       "insufficientBalance": "Solde insuffisant",
       "buy": "Acheter",
+      "purchasing": "Achat en cours...",
       "share": "action",
       "shares": "actions"
     }

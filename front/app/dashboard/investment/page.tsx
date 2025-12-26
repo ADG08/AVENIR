@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useLanguage } from '@/hooks/use-language';
 import { DashboardHeader } from '@/components/dashboard-header';
@@ -17,11 +17,104 @@ import type { Stock } from '@/components/investment/types';
 const getAvatarUrl = (symbol: string, bgColor: string) =>
   `https://ui-avatars.com/api/?name=${symbol}&background=${bgColor}&color=fff&size=128&bold=true`;
 
+const STOCK_COLORS: Record<string, string> = {
+  AAPL: '6366f1',
+  ABNB: '8b5cf6',
+  NVDA: '10b981',
+  AMZN: 'f97316',
+  GOOGL: '3b82f6',
+  META: 'a855f7',
+  MSFT: '0ea5e9',
+  NFLX: 'dc2626',
+  AMD: 'ec4899',
+  TSLA: 'ef4444',
+  DIS: '8b5cf6',
+  UBER: '14b8a6',
+};
+
+interface PortfolioPosition {
+  id: string;
+  stockId: string;
+  symbol: string;
+  name: string;
+  quantity: number;
+  averageBuyPrice: number;
+  currentPrice: number;
+  totalInvested: number;
+  currentValue: number;
+  profitLoss: number;
+  profitLossPercent: number;
+}
+
+interface PortfolioSummary {
+  totalValue: number;
+  totalInvested: number;
+  totalProfitLoss: number;
+  totalProfitLossPercent: number;
+  positions: PortfolioPosition[];
+}
+
+interface StockData {
+  id: string;
+  symbol: string;
+  name: string;
+  currentPrice: number;
+  bestBid: number | null;
+  bestAsk: number | null;
+  change: number;
+  changePercent: number;
+}
+
 export default function InvestmentPage() {
   const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState('investment');
   const [selectedStock, setSelectedStock] = useState<Stock | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [stocks, setStocks] = useState<StockData[]>([]);
+  const [portfolio, setPortfolio] = useState<PortfolioSummary | null>(null);
+  const [stocksLoading, setStocksLoading] = useState(true);
+  const [portfolioLoading, setPortfolioLoading] = useState(true);
+
+  const fetchStocks = async () => {
+    try {
+      const response = await fetch('http://localhost:3001/api/investment/stocks', {
+        credentials: 'include',
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setStocks(data);
+      }
+    } catch (error) {
+      console.error('Error fetching stocks:', error);
+    } finally {
+      setStocksLoading(false);
+    }
+  };
+
+  const fetchPortfolio = async () => {
+    try {
+      const response = await fetch('http://localhost:3001/api/investment/portfolio', {
+        credentials: 'include',
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setPortfolio(data);
+      }
+    } catch (error) {
+      console.error('Error fetching portfolio:', error);
+    } finally {
+      setPortfolioLoading(false);
+    }
+  };
+
+  const refreshData = async () => {
+    await Promise.all([fetchStocks(), fetchPortfolio()]);
+  };
+
+  useEffect(() => {
+    fetchStocks();
+    fetchPortfolio();
+  }, []);
 
   const handleStockClick = (stock: Stock) => {
     setSelectedStock(stock);
@@ -32,23 +125,16 @@ export default function InvestmentPage() {
     setIsModalOpen(false);
   };
 
-  const tickerStocks = [
-    { symbol: 'AAPL', name: 'Apple Inc.', price: '$192.00', change: '+0.52%', isPositive: true, logo: getAvatarUrl('AAPL', '6366f1'), currentPrice: 192.00 },
-    { symbol: 'AIRBNB', name: 'Airbnb Inc.', price: '$141.00', change: '+1.12%', isPositive: true, logo: getAvatarUrl('ABNB', '8b5cf6'), currentPrice: 141.00 },
-    { symbol: 'NVDA', name: 'NVIDIA Corp.', price: '$147.00', change: '+1.55%', isPositive: true, logo: getAvatarUrl('NVDA', '10b981'), currentPrice: 147.00 },
-    { symbol: 'AMZN', name: 'Amazon.com Inc.', price: '$191.00', change: '+0.81%', isPositive: true, logo: getAvatarUrl('AMZN', 'f97316'), currentPrice: 191.00 },
-    { symbol: 'SPTR', name: 'Spotify Technology', price: '$152.00', change: '+0.34%', isPositive: true, logo: getAvatarUrl('SPOT', '22c55e'), currentPrice: 152.00 },
-    { symbol: 'TSLA', name: 'Tesla Inc.', price: '$245.00', change: '-0.43%', isPositive: false, logo: getAvatarUrl('TSLA', 'ef4444'), currentPrice: 245.00 },
-    { symbol: 'GOOGL', name: 'Alphabet Inc.', price: '$175.30', change: '+1.24%', isPositive: true, logo: getAvatarUrl('GOOG', '3b82f6'), currentPrice: 175.30 },
-    { symbol: 'META', name: 'Meta Platforms Inc.', price: '$512.85', change: '+2.15%', isPositive: true, logo: getAvatarUrl('META', 'a855f7'), currentPrice: 512.85 },
-    { symbol: 'MSFT', name: 'Microsoft Corp.', price: '$428.50', change: '-0.22%', isPositive: false, logo: getAvatarUrl('MSFT', '0ea5e9'), currentPrice: 428.50 },
-    { symbol: 'NFLX', name: 'Netflix Inc.', price: '$685.20', change: '+3.47%', isPositive: true, logo: getAvatarUrl('NFLX', 'dc2626'), currentPrice: 685.20 },
-    { symbol: 'AMD', name: 'Advanced Micro Devices', price: '$162.90', change: '+1.89%', isPositive: true, logo: getAvatarUrl('AMD', 'ec4899'), currentPrice: 162.90 },
-    { symbol: 'INTC', name: 'Intel Corp.', price: '$42.15', change: '-1.05%', isPositive: false, logo: getAvatarUrl('INTC', '06b6d4'), currentPrice: 42.15 },
-    { symbol: 'DIS', name: 'The Walt Disney Company', price: '$93.75', change: '+0.67%', isPositive: true, logo: getAvatarUrl('DIS', '8b5cf6'), currentPrice: 93.75 },
-    { symbol: 'UBER', name: 'Uber Technologies Inc.', price: '$78.40', change: '+2.31%', isPositive: true, logo: getAvatarUrl('UBER', '14b8a6'), currentPrice: 78.40 },
-    { symbol: 'PYPL', name: 'PayPal Holdings Inc.', price: '$61.20', change: '-0.89%', isPositive: false, logo: getAvatarUrl('PYPL', '2563eb'), currentPrice: 61.20 },
-  ];
+  const tickerStocks = stocks.map(stock => ({
+    id: stock.id,
+    symbol: stock.symbol,
+    name: stock.name,
+    price: `$${stock.currentPrice.toFixed(2)}`,
+    change: stock.changePercent ? `${stock.changePercent > 0 ? '+' : ''}${stock.changePercent.toFixed(2)}%` : '+0.00%',
+    isPositive: (stock.changePercent ?? 0) >= 0,
+    logo: getAvatarUrl(stock.symbol, STOCK_COLORS[stock.symbol] || '6366f1'),
+    currentPrice: stock.currentPrice,
+  }));
 
   const portfolioData = [
     { date: '2024-01-01', value: 98000 },
@@ -94,19 +180,35 @@ export default function InvestmentPage() {
     },
   } satisfies ChartConfig;
 
-  const distributionItems = [
-    { symbol: 'AAPL', percentage: 35, amount: '$47,185.25', color: '#6366f1' },
-    { symbol: 'AIRBNB', percentage: 25, amount: '$33,703.75', color: '#8b5cf6' },
-    { symbol: 'NVDA', percentage: 22, amount: '$29,659.30', color: '#ec4899' },
-    { symbol: 'AMZN', percentage: 18, amount: '$24,266.70', color: '#f97316' },
-  ];
+  const distributionItems = portfolio ? portfolio.positions.map(position => ({
+    symbol: position.symbol,
+    percentage: (position.currentValue / portfolio.totalValue) * 100,
+    amount: `$${position.currentValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+    color: `#${STOCK_COLORS[position.symbol] || '6366f1'}`,
+  })) : [];
 
-  const myAssets = [
-    { symbol: 'AAPL', name: 'Apple Inc.', logo: getAvatarUrl('AAPL', '6366f1'), price: '$47,185.25', change: '+0.52%', isPositive: true },
-    { symbol: 'AIRBNB', name: 'Airbnb Inc.', logo: getAvatarUrl('ABNB', '8b5cf6'), price: '$33,703.75', change: '+1.12%', isPositive: true },
-    { symbol: 'NVDA', name: 'NVIDIA Corp.', logo: getAvatarUrl('NVDA', '10b981'), price: '$29,659.30', change: '+1.55%', isPositive: true },
-    { symbol: 'AMZN', name: 'Amazon.com Inc.', logo: getAvatarUrl('AMZN', 'f97316'), price: '$24,266.70', change: '+0.81%', isPositive: true },
-  ];
+  const myAssets = portfolio ? portfolio.positions.map(position => {
+    const stockData = stocks.find(s => s.id === position.stockId);
+    return {
+      symbol: position.symbol,
+      name: position.name,
+      logo: getAvatarUrl(position.symbol, STOCK_COLORS[position.symbol] || '6366f1'),
+      price: `$${position.currentValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+      change: `${position.profitLossPercent >= 0 ? '+' : ''}${position.profitLossPercent.toFixed(2)}%`,
+      isPositive: position.profitLossPercent >= 0,
+      quantity: position.quantity,
+      stockData: stockData ? {
+        id: stockData.id,
+        symbol: stockData.symbol,
+        name: stockData.name,
+        price: `$${stockData.currentPrice.toFixed(2)}`,
+        change: stockData.changePercent ? `${stockData.changePercent > 0 ? '+' : ''}${stockData.changePercent.toFixed(2)}%` : '+0.00%',
+        isPositive: (stockData.changePercent ?? 0) >= 0,
+        logo: getAvatarUrl(stockData.symbol, STOCK_COLORS[stockData.symbol] || '6366f1'),
+        currentPrice: stockData.currentPrice,
+      } : null,
+    };
+  }) : [];
 
   const marketInsights = [
     {
@@ -131,6 +233,22 @@ export default function InvestmentPage() {
     },
   ];
 
+  if (stocksLoading || portfolioLoading) {
+    return (
+      <div className="min-h-screen bg-linear-to-br from-gray-50 to-gray-100">
+        <DashboardHeader activeTab={activeTab} setActiveTab={setActiveTab} />
+        <main className="mx-auto max-w-[1800px] p-6">
+          <div className="flex items-center justify-center h-[60vh]">
+            <div className="text-center">
+              <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent"></div>
+              <p className="mt-4 text-gray-600">Loading investment data...</p>
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-linear-to-br from-gray-50 to-gray-100">
       <DashboardHeader activeTab={activeTab} setActiveTab={setActiveTab} />
@@ -153,10 +271,10 @@ export default function InvestmentPage() {
           >
             <PortfolioLineChart
               title={t('dashboard.investmentPage.portfolioValue')}
-              description={`+ $10,489.00 ${t('dashboard.investmentPage.yesterdaysIncome')}`}
-              currentValue="$134,815.00"
-              change="+5.27%"
-              isPositive
+              description={`${(portfolio?.totalProfitLoss ?? 0) >= 0 ? '+' : ''} $${(portfolio?.totalProfitLoss ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${t('dashboard.investmentPage.yesterdaysIncome')}`}
+              currentValue={`$${(portfolio?.totalValue ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+              change={`${(portfolio?.totalProfitLossPercent ?? 0) >= 0 ? '+' : ''}${(portfolio?.totalProfitLossPercent ?? 0).toFixed(2)}%`}
+              isPositive={(portfolio?.totalProfitLossPercent ?? 0) >= 0}
               data={portfolioData}
             />
           </motion.div>
@@ -170,8 +288,8 @@ export default function InvestmentPage() {
             <PortfolioDonutChart
               title={t('dashboard.investmentPage.totalProfits')}
               description=""
-              totalAmount="$8,436"
-              centerLabel="+$278.90 this month"
+              totalAmount={`$${(portfolio?.totalProfitLoss ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+              centerLabel={`${(portfolio?.totalProfitLossPercent ?? 0) >= 0 ? '+' : ''}${(portfolio?.totalProfitLossPercent ?? 0).toFixed(2)}% total`}
               data={profitsChartData}
               config={profitsChartConfig}
             />
@@ -201,7 +319,18 @@ export default function InvestmentPage() {
             </div>
             <div className="space-y-3">
               {myAssets.map((asset, index) => (
-                <StockListItem key={asset.symbol} {...asset} index={index} />
+                <StockListItem
+                  key={asset.symbol}
+                  symbol={asset.symbol}
+                  name={asset.name}
+                  logo={asset.logo}
+                  price={asset.price}
+                  change={asset.change}
+                  isPositive={asset.isPositive}
+                  quantity={asset.quantity}
+                  index={index}
+                  onClick={asset.stockData ? () => handleStockClick(asset.stockData!) : undefined}
+                />
               ))}
             </div>
           </motion.div>
@@ -231,6 +360,7 @@ export default function InvestmentPage() {
         isOpen={isModalOpen}
         onClose={handleCloseModal}
         stock={selectedStock}
+        onPurchaseSuccess={refreshData}
       />
     </div>
   );

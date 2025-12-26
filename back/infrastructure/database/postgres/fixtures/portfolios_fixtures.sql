@@ -264,6 +264,64 @@ VALUES
 )
 ON CONFLICT (id) DO NOTHING;
 
+-- =========================================
+-- PORTFOLIO Hugo Laurent (d2e5f6a4)
+-- =========================================
+
+INSERT INTO portfolios (id, user_id, stock_id, quantity, average_buy_price, total_invested, created_at, updated_at)
+VALUES
+(
+    'pf_hugo_1',
+    'd2e5f6a4-8b1c-7d2e-9f3a-0c4b8d5e1f2a',
+    'stock_1',  -- AAPL
+    2000.00,
+    175.50,
+    351000.00,
+    NOW() - INTERVAL '6 months',
+    NOW()
+),
+(
+    'pf_hugo_2',
+    'd2e5f6a4-8b1c-7d2e-9f3a-0c4b8d5e1f2a',
+    'stock_11',  -- ABNB (Airbnb)
+    85.00,
+    135.00,
+    11475.00,
+    NOW() - INTERVAL '4 months',
+    NOW()
+),
+(
+    'pf_hugo_3',
+    'd2e5f6a4-8b1c-7d2e-9f3a-0c4b8d5e1f2a',
+    'stock_7',  -- NVDA
+    60.00,
+    128.00,
+    7680.00,
+    NOW() - INTERVAL '3 months',
+    NOW()
+),
+(
+    'pf_hugo_4',
+    'd2e5f6a4-8b1c-7d2e-9f3a-0c4b8d5e1f2a',
+    'stock_4',  -- AMZN
+    45.00,
+    178.00,
+    8010.00,
+    NOW() - INTERVAL '2 months',
+    NOW()
+),
+(
+    'pf_hugo_5',
+    'd2e5f6a4-8b1c-7d2e-9f3a-0c4b8d5e1f2a',
+    'stock_2',  -- GOOGL
+    2000.00,
+    168.00,
+    336000.00,
+    NOW() - INTERVAL '1 month',
+    NOW()
+)
+ON CONFLICT (id) DO NOTHING;
+
 -- Vérification
 SELECT
     u.first_name || ' ' || u.last_name as user_name,

@@ -100,6 +100,99 @@ VALUES
 );
 
 -- =========================================
+-- ORDRES HUGO LAURENT - AAPL (LIMIT BUY & SELL)
+-- =========================================
+
+INSERT IGNORE INTO order_book (id, stock_id, user_id, side, order_type, quantity, remaining_quantity, limit_price, stop_price, state, created_at, updated_at)
+VALUES
+-- LIMIT BUY orders (Hugo veut acheter à des prix plus bas)
+(
+    'ob_hugo_bid_aapl_1',
+    'stock_1',
+    'd2e5f6a4-8b1c-7d2e-9f3a-0c4b8d5e1f2a',  -- Hugo Laurent
+    'BID',
+    'LIMIT',
+    50.00,
+    50.00,
+    190.00,
+    NULL,
+    'PENDING',
+    DATE_SUB(NOW(), INTERVAL 2 HOUR),
+    NOW()
+),
+(
+    'ob_hugo_bid_aapl_2',
+    'stock_1',
+    'd2e5f6a4-8b1c-7d2e-9f3a-0c4b8d5e1f2a',  -- Hugo Laurent
+    'BID',
+    'LIMIT',
+    100.00,
+    100.00,
+    188.50,
+    NULL,
+    'PENDING',
+    DATE_SUB(NOW(), INTERVAL 1 HOUR),
+    NOW()
+),
+(
+    'ob_hugo_bid_aapl_3',
+    'stock_1',
+    'd2e5f6a4-8b1c-7d2e-9f3a-0c4b8d5e1f2a',  -- Hugo Laurent
+    'BID',
+    'LIMIT',
+    75.00,
+    75.00,
+    185.00,
+    NULL,
+    'PENDING',
+    DATE_SUB(NOW(), INTERVAL 3 HOUR),
+    NOW()
+),
+-- LIMIT SELL orders (Hugo veut vendre à des prix plus hauts)
+(
+    'ob_hugo_ask_aapl_1',
+    'stock_1',
+    'd2e5f6a4-8b1c-7d2e-9f3a-0c4b8d5e1f2a',  -- Hugo Laurent
+    'ASK',
+    'LIMIT',
+    100.00,
+    100.00,
+    195.00,
+    NULL,
+    'PENDING',
+    DATE_SUB(NOW(), INTERVAL 90 MINUTE),
+    NOW()
+),
+(
+    'ob_hugo_ask_aapl_2',
+    'stock_1',
+    'd2e5f6a4-8b1c-7d2e-9f3a-0c4b8d5e1f2a',  -- Hugo Laurent
+    'ASK',
+    'LIMIT',
+    150.00,
+    150.00,
+    197.50,
+    NULL,
+    'PENDING',
+    DATE_SUB(NOW(), INTERVAL 2 HOUR),
+    NOW()
+),
+(
+    'ob_hugo_ask_aapl_3',
+    'stock_1',
+    'd2e5f6a4-8b1c-7d2e-9f3a-0c4b8d5e1f2a',  -- Hugo Laurent
+    'ASK',
+    'LIMIT',
+    200.00,
+    200.00,
+    200.00,
+    NULL,
+    'PENDING',
+    DATE_SUB(NOW(), INTERVAL 4 HOUR),
+    NOW()
+);
+
+-- =========================================
 -- ORDRES - GOOGL
 -- =========================================
 
@@ -131,6 +224,34 @@ VALUES
     NULL,
     'PENDING',
     DATE_SUB(NOW(), INTERVAL 40 MINUTE),
+    NOW()
+),
+(
+    'ob_system_ask_googl_1',
+    'stock_2',
+    'd1f5a6b4-8e2a-7d5f-1c9b-4a7e0f2b5d8c',  -- Marie Martin
+    'ASK',
+    'LIMIT',
+    1000.00,
+    1000.00,
+    176.00,
+    NULL,
+    'PENDING',
+    DATE_SUB(NOW(), INTERVAL 2 HOUR),
+    NOW()
+),
+(
+    'ob_system_ask_googl_2',
+    'stock_2',
+    'a1b2c3d4-5e6f-7a8b-9c0d-1e2f3a4b5c6d',  -- Sophie Dubois
+    'ASK',
+    'LIMIT',
+    500.00,
+    500.00,
+    176.50,
+    NULL,
+    'PENDING',
+    DATE_SUB(NOW(), INTERVAL 3 HOUR),
     NOW()
 );
 

@@ -101,6 +101,100 @@ VALUES
 ON CONFLICT (id) DO NOTHING;
 
 -- =========================================
+-- ORDRES HUGO LAURENT - AAPL (LIMIT BUY & SELL)
+-- =========================================
+
+INSERT INTO order_book (id, stock_id, user_id, side, order_type, quantity, remaining_quantity, limit_price, stop_price, state, created_at, updated_at)
+VALUES
+-- LIMIT BUY orders (Hugo veut acheter à des prix plus bas)
+(
+    'ob_hugo_bid_aapl_1',
+    'stock_1',
+    'd2e5f6a4-8b1c-7d2e-9f3a-0c4b8d5e1f2a',  -- Hugo Laurent
+    'BID',
+    'LIMIT',
+    50.00,
+    50.00,
+    190.00,
+    NULL,
+    'PENDING',
+    NOW() - INTERVAL '2 hours',
+    NOW()
+),
+(
+    'ob_hugo_bid_aapl_2',
+    'stock_1',
+    'd2e5f6a4-8b1c-7d2e-9f3a-0c4b8d5e1f2a',  -- Hugo Laurent
+    'BID',
+    'LIMIT',
+    100.00,
+    100.00,
+    188.50,
+    NULL,
+    'PENDING',
+    NOW() - INTERVAL '1 hour',
+    NOW()
+),
+(
+    'ob_hugo_bid_aapl_3',
+    'stock_1',
+    'd2e5f6a4-8b1c-7d2e-9f3a-0c4b8d5e1f2a',  -- Hugo Laurent
+    'BID',
+    'LIMIT',
+    75.00,
+    75.00,
+    185.00,
+    NULL,
+    'PENDING',
+    NOW() - INTERVAL '3 hours',
+    NOW()
+),
+-- LIMIT SELL orders (Hugo veut vendre à des prix plus hauts)
+(
+    'ob_hugo_ask_aapl_1',
+    'stock_1',
+    'd2e5f6a4-8b1c-7d2e-9f3a-0c4b8d5e1f2a',  -- Hugo Laurent
+    'ASK',
+    'LIMIT',
+    100.00,
+    100.00,
+    195.00,
+    NULL,
+    'PENDING',
+    NOW() - INTERVAL '90 minutes',
+    NOW()
+),
+(
+    'ob_hugo_ask_aapl_2',
+    'stock_1',
+    'd2e5f6a4-8b1c-7d2e-9f3a-0c4b8d5e1f2a',  -- Hugo Laurent
+    'ASK',
+    'LIMIT',
+    150.00,
+    150.00,
+    197.50,
+    NULL,
+    'PENDING',
+    NOW() - INTERVAL '2 hours',
+    NOW()
+),
+(
+    'ob_hugo_ask_aapl_3',
+    'stock_1',
+    'd2e5f6a4-8b1c-7d2e-9f3a-0c4b8d5e1f2a',  -- Hugo Laurent
+    'ASK',
+    'LIMIT',
+    200.00,
+    200.00,
+    200.00,
+    NULL,
+    'PENDING',
+    NOW() - INTERVAL '4 hours',
+    NOW()
+)
+ON CONFLICT (id) DO NOTHING;
+
+-- =========================================
 -- ORDRES - GOOGL
 -- =========================================
 
@@ -132,6 +226,34 @@ VALUES
     NULL,
     'PENDING',
     NOW() - INTERVAL '40 minutes',
+    NOW()
+),
+(
+    'ob_system_ask_googl_1',
+    'stock_2',
+    'd1f5a6b4-8e2a-7d5f-1c9b-4a7e0f2b5d8c',  -- Marie Martin
+    'ASK',
+    'LIMIT',
+    1000.00,
+    1000.00,
+    176.00,
+    NULL,
+    'PENDING',
+    NOW() - INTERVAL '2 hours',
+    NOW()
+),
+(
+    'ob_system_ask_googl_2',
+    'stock_2',
+    'a1b2c3d4-5e6f-7a8b-9c0d-1e2f3a4b5c6d',  -- Sophie Dubois
+    'ASK',
+    'LIMIT',
+    500.00,
+    500.00,
+    176.50,
+    NULL,
+    'PENDING',
+    NOW() - INTERVAL '3 hours',
     NOW()
 )
 ON CONFLICT (id) DO NOTHING;
@@ -300,6 +422,96 @@ VALUES
     NOW() - INTERVAL '5 minutes',
     NOW()
 )
+ON CONFLICT (id) DO NOTHING;
+
+-- =========================================
+-- ORDRES SYSTÈME ASK (Liquidité pour ACHETER)
+-- =========================================
+-- Ces ordres permettent aux utilisateurs d'acheter immédiatement au prix du marché
+
+INSERT INTO order_book (id, stock_id, user_id, side, order_type, quantity, remaining_quantity, limit_price, stop_price, state, created_at, updated_at)
+VALUES
+-- AAPL - Apple Inc.
+('ob_system_ask_aapl', 'stock_1', 'SYSTEM', 'ASK', 'LIMIT', 1000.00, 1000.00, 192.00, NULL, 'PENDING', NOW(), NOW()),
+
+-- GOOGL - Alphabet Inc.
+('ob_system_ask_googl', 'stock_2', 'SYSTEM', 'ASK', 'LIMIT', 1000.00, 1000.00, 175.20, NULL, 'PENDING', NOW(), NOW()),
+
+-- MSFT - Microsoft Corporation
+('ob_system_ask_msft', 'stock_3', 'SYSTEM', 'ASK', 'LIMIT', 1000.00, 1000.00, 420.50, NULL, 'PENDING', NOW(), NOW()),
+
+-- AMZN - Amazon.com Inc.
+('ob_system_ask_amzn', 'stock_4', 'SYSTEM', 'ASK', 'LIMIT', 1000.00, 1000.00, 178.30, NULL, 'PENDING', NOW(), NOW()),
+
+-- META - Meta Platforms Inc.
+('ob_system_ask_meta', 'stock_5', 'SYSTEM', 'ASK', 'LIMIT', 1000.00, 1000.00, 512.75, NULL, 'PENDING', NOW(), NOW()),
+
+-- TSLA - Tesla Inc.
+('ob_system_ask_tsla', 'stock_6', 'SYSTEM', 'ASK', 'LIMIT', 1000.00, 1000.00, 245.10, NULL, 'PENDING', NOW(), NOW()),
+
+-- NVDA - NVIDIA Corporation
+('ob_system_ask_nvda', 'stock_7', 'SYSTEM', 'ASK', 'LIMIT', 1000.00, 1000.00, 147.00, NULL, 'PENDING', NOW(), NOW()),
+
+-- NFLX - Netflix Inc.
+('ob_system_ask_nflx', 'stock_8', 'SYSTEM', 'ASK', 'LIMIT', 1000.00, 1000.00, 685.20, NULL, 'PENDING', NOW(), NOW()),
+
+-- AMD - Advanced Micro Devices Inc.
+('ob_system_ask_amd', 'stock_9', 'SYSTEM', 'ASK', 'LIMIT', 1000.00, 1000.00, 162.25, NULL, 'PENDING', NOW(), NOW()),
+
+-- DIS - The Walt Disney Company
+('ob_system_ask_dis', 'stock_10', 'SYSTEM', 'ASK', 'LIMIT', 1000.00, 1000.00, 95.80, NULL, 'PENDING', NOW(), NOW()),
+
+-- ABNB - Airbnb Inc.
+('ob_system_ask_abnb', 'stock_11', 'SYSTEM', 'ASK', 'LIMIT', 1000.00, 1000.00, 134.50, NULL, 'PENDING', NOW(), NOW()),
+
+-- UBER - Uber Technologies Inc.
+('ob_system_ask_uber', 'stock_12', 'SYSTEM', 'ASK', 'LIMIT', 1000.00, 1000.00, 68.40, NULL, 'PENDING', NOW(), NOW())
+
+ON CONFLICT (id) DO NOTHING;
+
+-- =========================================
+-- ORDRES SYSTÈME BID (Liquidité pour VENDRE)
+-- =========================================
+-- Ces ordres permettent aux utilisateurs de vendre immédiatement au prix du marché
+
+INSERT INTO order_book (id, stock_id, user_id, side, order_type, quantity, remaining_quantity, limit_price, stop_price, state, created_at, updated_at)
+VALUES
+-- AAPL - Apple Inc. (légèrement sous le prix ASK)
+('ob_system_bid_aapl', 'stock_1', 'SYSTEM', 'BID', 'LIMIT', 1000.00, 1000.00, 191.00, NULL, 'PENDING', NOW(), NOW()),
+
+-- GOOGL - Alphabet Inc.
+('ob_system_bid_googl', 'stock_2', 'SYSTEM', 'BID', 'LIMIT', 1000.00, 1000.00, 174.20, NULL, 'PENDING', NOW(), NOW()),
+
+-- MSFT - Microsoft Corporation
+('ob_system_bid_msft', 'stock_3', 'SYSTEM', 'BID', 'LIMIT', 1000.00, 1000.00, 419.50, NULL, 'PENDING', NOW(), NOW()),
+
+-- AMZN - Amazon.com Inc.
+('ob_system_bid_amzn', 'stock_4', 'SYSTEM', 'BID', 'LIMIT', 1000.00, 1000.00, 177.30, NULL, 'PENDING', NOW(), NOW()),
+
+-- META - Meta Platforms Inc.
+('ob_system_bid_meta', 'stock_5', 'SYSTEM', 'BID', 'LIMIT', 1000.00, 1000.00, 511.75, NULL, 'PENDING', NOW(), NOW()),
+
+-- TSLA - Tesla Inc.
+('ob_system_bid_tsla', 'stock_6', 'SYSTEM', 'BID', 'LIMIT', 1000.00, 1000.00, 244.10, NULL, 'PENDING', NOW(), NOW()),
+
+-- NVDA - NVIDIA Corporation
+('ob_system_bid_nvda', 'stock_7', 'SYSTEM', 'BID', 'LIMIT', 1000.00, 1000.00, 146.00, NULL, 'PENDING', NOW(), NOW()),
+
+-- NFLX - Netflix Inc.
+('ob_system_bid_nflx', 'stock_8', 'SYSTEM', 'BID', 'LIMIT', 1000.00, 1000.00, 684.20, NULL, 'PENDING', NOW(), NOW()),
+
+-- AMD - Advanced Micro Devices Inc.
+('ob_system_bid_amd', 'stock_9', 'SYSTEM', 'BID', 'LIMIT', 1000.00, 1000.00, 161.25, NULL, 'PENDING', NOW(), NOW()),
+
+-- DIS - The Walt Disney Company
+('ob_system_bid_dis', 'stock_10', 'SYSTEM', 'BID', 'LIMIT', 1000.00, 1000.00, 94.80, NULL, 'PENDING', NOW(), NOW()),
+
+-- ABNB - Airbnb Inc.
+('ob_system_bid_abnb', 'stock_11', 'SYSTEM', 'BID', 'LIMIT', 1000.00, 1000.00, 133.50, NULL, 'PENDING', NOW(), NOW()),
+
+-- UBER - Uber Technologies Inc.
+('ob_system_bid_uber', 'stock_12', 'SYSTEM', 'BID', 'LIMIT', 1000.00, 1000.00, 67.40, NULL, 'PENDING', NOW(), NOW())
+
 ON CONFLICT (id) DO NOTHING;
 
 -- Vérification du carnet d'ordres
