@@ -234,4 +234,3 @@ SELECT
     COUNT(*) as count,
     '' as status
 FROM messages;
-

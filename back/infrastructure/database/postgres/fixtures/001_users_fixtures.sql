@@ -303,4 +303,3 @@ SELECT
     SUM(balance) as total_balance
 FROM accounts
 GROUP BY type;
-

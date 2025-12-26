@@ -8,6 +8,7 @@ import { MySQLStockRepository } from '../../adapters/repositories/mysql/MySQLSto
 import { MySQLPortfolioRepository } from '../../adapters/repositories/mysql/MySQLPortfolioRepository';
 import { MySQLOrderBookRepository } from '../../adapters/repositories/mysql/MySQLOrderBookRepository';
 import { MySQLTradeRepository } from '../../adapters/repositories/mysql/MySQLTradeRepository';
+import { MySQLNewsRepository } from '../../adapters/repositories/mysql/MySQLNewsRepository';
 import { UserRepository } from '@avenir/domain/repositories/UserRepository';
 import { ChatRepository } from '@avenir/domain/repositories/ChatRepository';
 import { MessageRepository } from '@avenir/domain/repositories/MessageRepository';
@@ -16,6 +17,7 @@ import { StockRepository } from '@avenir/domain/repositories/StockRepository';
 import { PortfolioRepository } from '@avenir/domain/repositories/PortfolioRepository';
 import { OrderBookRepository } from '@avenir/domain/repositories/OrderBookRepository';
 import { TradeRepository } from '@avenir/domain/repositories/TradeRepository';
+import { NewsRepository } from '@avenir/domain/repositories/NewsRepository';
 
 export class MySQLDatabaseContext implements DatabaseContext {
     public readonly userRepository: UserRepository;
@@ -26,6 +28,7 @@ export class MySQLDatabaseContext implements DatabaseContext {
     public readonly portfolioRepository: PortfolioRepository;
     public readonly orderBookRepository: OrderBookRepository;
     public readonly tradeRepository: TradeRepository;
+    public readonly newsRepository: NewsRepository;
 
     constructor() {
         this.userRepository = new MySQLUserRepository(pool);
@@ -36,6 +39,7 @@ export class MySQLDatabaseContext implements DatabaseContext {
         this.portfolioRepository = new MySQLPortfolioRepository(pool);
         this.orderBookRepository = new MySQLOrderBookRepository(pool);
         this.tradeRepository = new MySQLTradeRepository(pool);
+        this.newsRepository = new MySQLNewsRepository(pool);
     }
 
     async close(): Promise<void> {
