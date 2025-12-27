@@ -9,48 +9,106 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AnimatedFormSection, ModalButton } from '@/components/ui/modal-helpers';
 import { useLanguage } from '@/hooks/use-language';
+import { accountApi, Account } from '@/lib/api/account.api';
+import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
+import { AccountType, SavingType } from '@/types/enums';
 
 type AddSavingsModalProps = {
     open: boolean;
     onOpenChange: (open: boolean) => void;
+    accounts: Account[];
+    onSuccess?: () => void;
 };
 
 const SAVINGS_TYPES = [
-    { value: 'livret-a', labelKey: 'dashboard.savingsTypes.livretA' as const },
-    { value: 'livret-jeune', labelKey: 'dashboard.savingsTypes.livretJeune' as const },
-    { value: 'ldds', labelKey: 'dashboard.savingsTypes.ldds' as const },
-    { value: 'pel', labelKey: 'dashboard.savingsTypes.pel' as const },
-    { value: 'cel', labelKey: 'dashboard.savingsTypes.cel' as const },
-    { value: 'lep', labelKey: 'dashboard.savingsTypes.lep' as const },
+    { value: SavingType.LivretA, labelKey: 'dashboard.savingsTypes.livretA' as const },
+    { value: SavingType.LivretJeune, labelKey: 'dashboard.savingsTypes.livretJeune' as const },
+    { value: SavingType.PEA, labelKey: 'dashboard.savingsTypes.pea' as const },
+    { value: SavingType.PEL, labelKey: 'dashboard.savingsTypes.pel' as const },
 ] as const;
 
 const addSavingsSchema = z.object({
-    savingsType: z.string().min(1, 'Le type de compte d\'épargne est requis'),
+    savingsType: z.nativeEnum(SavingType),
 });
 
 type AddSavingsFormData = z.infer<typeof addSavingsSchema>;
 
-export const AddSavingsModal = ({ open, onOpenChange }: AddSavingsModalProps) => {
+export const AddSavingsModal = ({ open, onOpenChange, accounts, onSuccess }: AddSavingsModalProps) => {
     const { t } = useLanguage();
+    const { user } = useAuth();
+    const { toast } = useToast();
+
+    const usedSavingTypes = new Set(
+        accounts
+            .filter((acc) => acc.type === AccountType.SAVINGS && acc.savingType)
+            .map((acc) => acc.savingType)
+    );
+
+    const availableSavingsTypes = SAVINGS_TYPES.filter(
+        (type) => !usedSavingTypes.has(type.value)
+    );
 
     const form = useForm<AddSavingsFormData>({
         resolver: zodResolver(addSavingsSchema),
         defaultValues: {
-            savingsType: '',
+            savingsType: undefined,
         },
     });
 
     useEffect(() => {
         if (open) {
-            form.reset();
+            form.reset({
+                savingsType: undefined,
+            });
         }
     }, [open, form]);
 
     const handleSubmit = async (data: AddSavingsFormData) => {
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+        if (!user?.id) {
+            toast({
+                title: t('common.error'),
+                description: t('dashboard.addSavingsModal.authRequired'),
+                variant: 'destructive',
+            });
+            return;
+        }
 
-        form.reset();
-        onOpenChange(false);
+        const hasExistingAccount = accounts.some(
+            (acc) => acc.type === AccountType.SAVINGS && acc.savingType === data.savingsType
+        );
+
+        if (hasExistingAccount) {
+            toast({
+                title: t('common.error'),
+                description: t('dashboard.addSavingsModal.duplicateSavingType'),
+                variant: 'destructive',
+            });
+            return;
+        }
+
+        try {
+            await accountApi.addAccount({
+                name: data.savingsType,
+                type: AccountType.SAVINGS,
+                savingType: data.savingsType,
+            });
+
+            toast({
+                title: t('common.success'),
+                description: t('dashboard.addSavingsModal.successDescription'),
+            });
+
+            form.reset();
+            onOpenChange(false);
+            onSuccess?.();
+        } catch (error) {
+            toast({
+                title: t('common.error'),
+                description: error instanceof Error ? error.message : 'Une erreur est survenue',
+                variant: 'destructive',
+            });
+        }
     };
 
     const handleCancel = () => {
@@ -77,8 +135,8 @@ export const AddSavingsModal = ({ open, onOpenChange }: AddSavingsModalProps) =>
                                         <FormItem>
                                             <FormLabel>{t('dashboard.addSavingsModal.savingsType')}</FormLabel>
                                             <Select
+                                                value={field.value}
                                                 onValueChange={field.onChange}
-                                                defaultValue={field.value}
                                                 disabled={form.formState.isSubmitting}
                                             >
                                                 <FormControl>
@@ -87,11 +145,17 @@ export const AddSavingsModal = ({ open, onOpenChange }: AddSavingsModalProps) =>
                                                     </SelectTrigger>
                                                 </FormControl>
                                                 <SelectContent>
-                                                    {SAVINGS_TYPES.map((type) => (
-                                                        <SelectItem key={type.value} value={type.value}>
-                                                            {t(type.labelKey)}
-                                                        </SelectItem>
-                                                    ))}
+                                                    {availableSavingsTypes.length === 0 ? (
+                                                        <div className="px-2 py-6 text-center text-sm text-gray-500">
+                                                            {t('dashboard.addSavingsModal.allTypesUsed')}
+                                                        </div>
+                                                    ) : (
+                                                        availableSavingsTypes.map((type) => (
+                                                            <SelectItem key={type.value} value={type.value}>
+                                                                {t(type.labelKey)}
+                                                            </SelectItem>
+                                                        ))
+                                                    )}
                                                 </SelectContent>
                                             </Select>
                                             <FormMessage />
@@ -109,7 +173,7 @@ export const AddSavingsModal = ({ open, onOpenChange }: AddSavingsModalProps) =>
                                 <ModalButton
                                     type="submit"
                                     variant="primary"
-                                    disabled={form.formState.isSubmitting || !form.formState.isValid}
+                                    disabled={form.formState.isSubmitting || !form.formState.isValid || availableSavingsTypes.length === 0}
                                 >
                                     {form.formState.isSubmitting ? t('common.loading') : t('common.create')}
                                 </ModalButton>
