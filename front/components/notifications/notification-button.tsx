@@ -152,7 +152,7 @@ export const NotificationButton = () => {
                 </div>
               </div>
 
-              <div className="max-h-[500px] overflow-y-auto">
+              <div className="max-h-125 overflow-y-auto">
                 {isLoading ? (
                   <div className="p-8 text-center">
                     <p className="text-sm text-gray-500">Chargement...</p>
