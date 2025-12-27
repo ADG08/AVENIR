@@ -21,10 +21,7 @@ export class DeleteNewsUseCase {
       throw new UserNotFoundError(request.userId);
     }
 
-    const isAuthor = news.authorId === request.userId;
-    const isDirector = user.role === UserRole.DIRECTOR;
-
-    if (!isAuthor && !isDirector) {
+    if (user.role !== UserRole.ADVISOR) {
       throw new UnauthorizedNewsAccessError();
     }
 

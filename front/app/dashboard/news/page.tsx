@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
+import { useWebSocket, WebSocketMessageType } from '@/contexts/WebSocketContext';
 import { DashboardHeader } from '@/components/dashboard-header';
 import { CreateNewsModal } from '@/components/news/create-news-modal';
 import { NewsDetailModal } from '@/components/news/news-detail-modal';
@@ -18,6 +19,7 @@ export default function NewsPage() {
   const { t } = useTranslation();
   const { toast } = useToast();
   const { user, isLoading: isAuthLoading } = useAuth();
+  const { subscribe } = useWebSocket();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState('news');
   const [news, setNews] = useState<News[]>([]);
@@ -59,16 +61,55 @@ export default function NewsPage() {
     loadNews();
   }, [toast, user]);
 
+  useEffect(() => {
+    const unsubscribe = subscribe((message) => {
+      if (message.type === WebSocketMessageType.NEWS_CREATED && message.payload) {
+        const newsPayload = message.payload as {
+          id: string;
+          title: string;
+          description: string;
+          authorId: string;
+          authorName: string;
+          createdAt: string;
+        };
+
+        const newNews: News = {
+          id: newsPayload.id,
+          title: newsPayload.title,
+          description: newsPayload.description,
+          authorId: newsPayload.authorId,
+          authorName: newsPayload.authorName,
+          createdAt: new Date(newsPayload.createdAt),
+        };
+
+        setNews((prev) => {
+          if (prev.some((n) => n.id === newNews.id)) {
+            return prev;
+          }
+          return [newNews, ...prev];
+        });
+
+        toast({
+          title: 'Nouvelle actualité',
+          description: `${newsPayload.authorName} a publié une nouvelle actualité`,
+        });
+      } else if (message.type === WebSocketMessageType.NEWS_DELETED && message.payload) {
+        const { newsId } = message.payload as { newsId: string };
+        setNews((prev) => prev.filter((n) => n.id !== newsId));
+      }
+    });
+
+    return () => unsubscribe();
+  }, [subscribe, toast]);
+
   const handleCreateNews = async (title: string, description: string) => {
     try {
       setIsLoadingNews(true);
 
-      const newNews = await createNews({
+      await createNews({
         title,
         description,
       });
-
-      setNews([newNews, ...news]);
 
       toast({
         title: t('news.modal.success'),
@@ -100,8 +141,6 @@ export default function NewsPage() {
       setIsDeleting(true);
 
       await deleteNews(newsToDelete.id);
-
-      setNews(news.filter((n) => n.id !== newsToDelete.id));
 
       toast({
         title: t('news.delete.success'),

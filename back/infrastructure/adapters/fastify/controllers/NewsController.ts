@@ -5,11 +5,12 @@ import { DeleteNewsUseCase } from '@avenir/application/usecases/news/DeleteNewsU
 import { CreateNewsRequest } from '@avenir/application/requests/CreateNewsRequest';
 import { GetAllNewsRequest } from '@avenir/application/requests/GetAllNewsRequest';
 import { DeleteNewsRequest } from '@avenir/application/requests/DeleteNewsRequest';
+import { webSocketService } from '../../services/WebSocketService';
 import { ValidationError } from '@avenir/application/errors';
 import { NewsNotFoundError, UserNotFoundError, UnauthorizedNewsAccessError } from '@avenir/domain/errors';
 import {
   createNewsSchema,
-  deleteNewsSchema,
+  deleteNewsParamsSchema,
   getAllNewsSchema,
 } from '@avenir/shared/schemas/news.schema';
 import { ZodError } from 'zod';
@@ -53,6 +54,8 @@ export class NewsController {
       );
 
       const response = await this.createNewsUseCase.execute(createNewsRequest);
+
+      webSocketService.notifyNewsCreated(response);
 
       reply.code(201).send(response);
     } catch (error) {
@@ -127,17 +130,19 @@ export class NewsController {
         });
       }
 
-      const validatedData = deleteNewsSchema.parse({
+      // Valider uniquement les params (newsId)
+      const validatedParams = deleteNewsParamsSchema.parse({
         newsId: request.params.newsId,
-        userId: request.user.userId,
       });
 
       const deleteNewsRequest = new DeleteNewsRequest(
-        validatedData.newsId,
-        validatedData.userId
+        validatedParams.newsId,
+        request.user.userId
       );
 
       await this.deleteNewsUseCase.execute(deleteNewsRequest);
+
+      webSocketService.notifyNewsDeleted(validatedParams.newsId);
 
       reply.code(204).send();
     } catch (error) {

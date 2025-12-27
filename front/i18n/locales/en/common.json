@@ -405,7 +405,13 @@
       "closingConversation": "Unable to close conversation",
       "transferringConversation": "Unable to transfer conversation",
       "assigningAdvisor": "Unable to assign advisor",
-      "chatNotFound": "This conversation doesn't exist or you don't have access to it"
+      "chatNotFound": "This conversation does not exist or you do not have access"
     }
+  },
+  "notifications": {
+    "title": "Notifications",
+    "markAllAsRead": "Mark all as read",
+    "noNotifications": "No notifications",
+    "from": "From"
   }
 }

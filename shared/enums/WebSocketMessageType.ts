@@ -7,5 +7,8 @@ export enum WebSocketMessageType {
     CHAT_TRANSFERRED = 'chat_transferred',
     CHAT_CLOSED = 'chat_closed',
     USER_TYPING = 'user_typing',
+    NEWS_CREATED = 'news_created',
+    NEWS_DELETED = 'news_deleted',
+    NOTIFICATION_CREATED = 'notification_created',
     PONG = 'pong'
 }
