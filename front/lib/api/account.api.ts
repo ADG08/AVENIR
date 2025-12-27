@@ -1,4 +1,4 @@
-import { AccountType } from '@/types/enums';
+import { AccountType, SavingType } from '@/types/enums';
 
 const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001') + '/api';
 
@@ -110,12 +110,14 @@ export interface Account {
   cardNumber: string | null;
   cardHolderName: string | null;
   cardExpiryDate: string | null;
+  savingType: SavingType | null;
   createdAt: string;
 }
 
 export interface AddAccountRequest {
   name?: string;
   type: AccountType;
+  savingType?: SavingType;
 }
 
 export const accountApi = {

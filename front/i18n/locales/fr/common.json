@@ -3,6 +3,7 @@
     "welcome": "Bienvenue",
     "loading": "Chargement...",
     "error": "Une erreur est survenue",
+    "success": "Succès",
     "save": "Enregistrer",
     "cancel": "Annuler",
     "delete": "Supprimer",
@@ -85,6 +86,8 @@
     "livretA": "Livret A",
     "livretJeune": "Livret Jeune",
     "plafond": "Plafond",
+    "noSavingsAccounts": "Aucun compte d'épargne. Cliquez sur le bouton ci-dessus pour en créer un.",
+    "noLimit": "Aucune limite",
     "transactions": "Transactions",
     "electronics": "Électronique",
     "completed": "Terminé",
@@ -98,7 +101,6 @@
     "loans": "Mes crédits",
     "yearly": "Annuel",
     "spending": "Dépenses",
-    "receiveFunds": "Recevoir",
     "sendFunds": "Envoyer",
     "addAccountModal": {
       "title": "Ajouter un compte courant",
@@ -110,7 +112,11 @@
       "title": "Ajouter un compte d'épargne",
       "description": "Sélectionnez le type de compte d'épargne que vous souhaitez ouvrir.",
       "savingsType": "Type de compte d'épargne",
-      "savingsTypePlaceholder": "Sélectionnez un type de compte"
+      "savingsTypePlaceholder": "Sélectionnez un type de compte",
+      "authRequired": "Vous devez être connecté pour créer un compte d'épargne",
+      "successDescription": "Compte d'épargne créé avec succès",
+      "duplicateSavingType": "Vous avez déjà un compte d'épargne de ce type. Vous ne pouvez avoir qu'un seul compte par type.",
+      "allTypesUsed": "Vous avez déjà créé tous les types de comptes d'épargne disponibles."
     },
     "deleteAccountModal": {
       "title": "Supprimer un compte",
@@ -126,7 +132,10 @@
       "cannotDeleteLastCurrent": "Impossible de supprimer le dernier compte courant. Au moins un compte courant doit rester.",
       "cannotDeleteLastCurrentSuffix": " (Impossible de supprimer le dernier compte courant)",
       "deleteAccountTooltip": "Supprimer le compte",
-      "cannotDeleteLastCurrentTooltip": "Impossible de supprimer le dernier compte courant"
+      "cannotDeleteLastCurrentTooltip": "Impossible de supprimer le dernier compte courant",
+      "currentAccounts": "Comptes courants",
+      "savingsAccounts": "Comptes d'épargne",
+      "successDescription": "Compte supprimé avec succès"
     },
     "editAccountNameModal": {
       "title": "Modifier le nom du compte",
@@ -149,10 +158,8 @@
     "savingsTypes": {
       "livretA": "Livret A",
       "livretJeune": "Livret Jeune",
-      "ldds": "LDDS (Livret de Développement Durable et Solidaire)",
-      "pel": "PEL (Plan Épargne Logement)",
-      "cel": "CEL (Compte Épargne Logement)",
-      "lep": "LEP (Livret d'Épargne Populaire)"
+      "pea": "PEA (Plan d'Épargne en Actions)",
+      "pel": "PEL (Plan Épargne Logement)"
     }
   },
   "landing": {

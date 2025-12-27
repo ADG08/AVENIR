@@ -1,4 +1,5 @@
 import { Account } from "../../domain/entities/Account";
+import { SavingType } from "@avenir/shared/enums/SavingType";
 
 export interface AddAccountResponse {
     id: string;
@@ -7,6 +8,7 @@ export interface AddAccountResponse {
     name: string | null;
     type: string;
     balance: number;
+    savingType: SavingType | null;
     createdAt: Date;
 }
 
@@ -19,6 +21,7 @@ export class AddAccountResponseMapper {
             name: account.name,
             type: account.type,
             balance: account.balance,
+            savingType: account.savingType,
             createdAt: account.createdAt,
         };
     }

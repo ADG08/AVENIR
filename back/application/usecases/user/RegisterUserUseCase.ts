@@ -5,12 +5,12 @@ import { EmailService } from "../../../domain/services/EmailService";
 import { AccountFactory } from "../../../domain/services/AccountFactory";
 import { randomUUID, randomBytes } from "crypto";
 import * as bcrypt from "bcrypt";
-import { UserState } from "../../../domain/enumerations/UserState";
-import { UserRole } from "../../../domain/enumerations/UserRole";
+import { UserState } from "@avenir/shared/enums/UserState";
+import { UserRole } from "@avenir/shared/enums/UserRole";
 import { RegisterUserRequest } from "../../requests/RegisterUserRequest";
 import { RegisterUserResponse, RegisterUserResponseMapper } from "../../responses/RegisterUserResponse";
 import { UserAlreadyExistsError } from "../../../domain/errors/UserAlreadyExistsError";
-import { AccountType } from "../../../domain/enumerations/AccountType";
+import { AccountType } from "@avenir/shared/enums/AccountType";
 
 export class RegisterUserUseCase {
     private readonly SALT_ROUNDS = 10;
@@ -60,7 +60,8 @@ export class RegisterUserUseCase {
             user.id,
             `Compte courant de ${user.firstName} ${user.lastName}`,
             AccountType.CURRENT,
-            holderName
+            holderName,
+            null
         );
 
         await this.accountRepository.add(account);

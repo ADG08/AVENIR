@@ -11,3 +11,4 @@ export { UnauthorizedChatAccessError } from "./UnauthorizedChatAccessError";
 export { MessageNotFoundError } from "./MessageNotFoundError";
 export { AccountNotFoundError } from "./AccountNotFoundError";
 export { UnauthorizedAccountAccessError } from "./UnauthorizedAccountAccessError";
+export { DuplicateSavingTypeError } from "./DuplicateSavingTypeError";

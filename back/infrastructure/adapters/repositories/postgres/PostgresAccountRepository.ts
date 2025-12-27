@@ -1,7 +1,8 @@
 import { Pool } from 'pg';
 import { Account } from '../../../../domain/entities/Account';
 import { AccountRepository } from '../../../../domain/repositories/AccountRepository';
-import { AccountType } from '../../../../domain/enumerations/AccountType';
+import { AccountType } from '@avenir/shared/enums/AccountType';
+import { SavingType } from '@avenir/shared/enums/SavingType';
 
 export class PostgresAccountRepository implements AccountRepository {
     constructor(private pool: Pool) { }
@@ -11,7 +12,7 @@ export class PostgresAccountRepository implements AccountRepository {
             INSERT INTO accounts (
                 id, user_id, iban, name, type, balance, currency,
                 card_number, card_holder_name, card_expiry_date, card_cvv,
-                saving_rate_id, created_at
+                saving_type, created_at
             )
             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
             RETURNING *
@@ -30,7 +31,7 @@ export class PostgresAccountRepository implements AccountRepository {
                 account.cardHolderName,
                 account.cardExpiryDate,
                 account.cardCvv,
-                account.savingRate?.id || null,
+                account.savingType,
                 account.createdAt
             ]);
 
@@ -100,7 +101,7 @@ export class PostgresAccountRepository implements AccountRepository {
             UPDATE accounts
             SET iban = $2, name = $3, type = $4, balance = $5, currency = $6,
                 card_number = $7, card_holder_name = $8, card_expiry_date = $9,
-                card_cvv = $10, saving_rate_id = $11
+                card_cvv = $10, saving_type = $11
             WHERE id = $1
             RETURNING *
         `;
@@ -117,7 +118,7 @@ export class PostgresAccountRepository implements AccountRepository {
                 account.cardHolderName,
                 account.cardExpiryDate,
                 account.cardCvv,
-                account.savingRate?.id || null
+                account.savingType
             ]);
 
             return this.mapRowToAccount(result.rows[0]);
@@ -143,13 +144,13 @@ export class PostgresAccountRepository implements AccountRepository {
             row.iban,
             row.name,
             row.type as AccountType,
-            parseFloat(row.balance),
+            parseFloat(String(row.balance)),
             row.currency,
             row.card_number,
             row.card_holder_name,
             row.card_expiry_date,
             row.card_cvv,
-            null,
+            row.saving_type as SavingType | null,
             [],
             new Date(row.created_at)
         );

@@ -1,4 +1,5 @@
 import { Account } from "../../domain/entities/Account";
+import { SavingType } from "@avenir/shared/enums/SavingType";
 
 export interface GetAccountsResponse {
     id: string;
@@ -11,6 +12,7 @@ export interface GetAccountsResponse {
     cardNumber: string | null;
     cardHolderName: string | null;
     cardExpiryDate: string | null;
+    savingType: SavingType | null;
     createdAt: Date;
 }
 
@@ -27,6 +29,7 @@ export class GetAccountsResponseMapper {
             cardNumber: account.cardNumber,
             cardHolderName: account.cardHolderName,
             cardExpiryDate: account.cardExpiryDate,
+            savingType: account.savingType,
             createdAt: account.createdAt,
         };
     }

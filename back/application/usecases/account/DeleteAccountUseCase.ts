@@ -2,7 +2,7 @@ import { AccountRepository } from "../../../domain/repositories/AccountRepositor
 import { DeleteAccountRequest } from "../../requests/DeleteAccountRequest";
 import { AccountNotFoundError } from "../../../domain/errors/AccountNotFoundError";
 import { UnauthorizedAccountAccessError } from "../../../domain/errors/UnauthorizedAccountAccessError";
-import { AccountType } from "../../../domain/enumerations/AccountType";
+import { AccountType } from "@avenir/shared/enums/AccountType";
 import { ValidationError } from "../../errors/ValidationError";
 
 export class DeleteAccountUseCase {
@@ -14,7 +14,6 @@ export class DeleteAccountUseCase {
             throw new AccountNotFoundError(request.id);
         }
 
-        // Verify user owns the account
         if (account.userId !== request.userId) {
             throw new UnauthorizedAccountAccessError();
         }

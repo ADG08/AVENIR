@@ -1,7 +1,8 @@
 import mysql, { RowDataPacket } from 'mysql2/promise';
 import { Account } from '../../../../domain/entities/Account';
 import { AccountRepository } from '../../../../domain/repositories/AccountRepository';
-import { AccountType } from '../../../../domain/enumerations/AccountType';
+import { AccountType } from '@avenir/shared/enums/AccountType';
+import { SavingType } from '@avenir/shared/enums/SavingType';
 
 export class MySQLAccountRepository implements AccountRepository {
     constructor(private pool: mysql.Pool) { }
@@ -11,7 +12,7 @@ export class MySQLAccountRepository implements AccountRepository {
             INSERT INTO accounts (
                 id, user_id, iban, name, type, balance, currency,
                 card_number, card_holder_name, card_expiry_date, card_cvv,
-                saving_rate_id, created_at
+                saving_type, created_at
             )
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `;
@@ -29,7 +30,7 @@ export class MySQLAccountRepository implements AccountRepository {
                 account.cardHolderName,
                 account.cardExpiryDate,
                 account.cardCvv,
-                account.savingRate?.id || null,
+                account.savingType,
                 account.createdAt
             ]);
 
@@ -107,7 +108,7 @@ export class MySQLAccountRepository implements AccountRepository {
             UPDATE accounts
             SET iban = ?, name = ?, type = ?, balance = ?, currency = ?,
                 card_number = ?, card_holder_name = ?, card_expiry_date = ?,
-                card_cvv = ?, saving_rate_id = ?
+                card_cvv = ?, saving_type = ?
             WHERE id = ?
         `;
 
@@ -122,7 +123,7 @@ export class MySQLAccountRepository implements AccountRepository {
                 account.cardHolderName,
                 account.cardExpiryDate,
                 account.cardCvv,
-                account.savingRate?.id || null,
+                account.savingType,
                 account.id
             ]);
 
@@ -149,13 +150,13 @@ export class MySQLAccountRepository implements AccountRepository {
             row.iban,
             row.name,
             row.type as AccountType,
-            parseFloat(row.balance),
+            parseFloat(String(row.balance)),
             row.currency,
             row.card_number,
             row.card_holder_name,
             row.card_expiry_date,
             row.card_cvv,
-            null,
+            row.saving_type as SavingType | null,
             [],
             new Date(row.created_at)
         );

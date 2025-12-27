@@ -1,7 +1,8 @@
 import { Account } from '../entities/Account';
-import { AccountType } from '../enumerations/AccountType';
+import { AccountType } from '@avenir/shared/enums/AccountType';
 import { AccountRepository } from '../repositories/AccountRepository';
 import { Iban, Card } from '../value-objects/Account';
+import { SavingType } from '@avenir/shared/enums/SavingType';
 
 /**
  * Account Factory (Domain Service)
@@ -23,6 +24,7 @@ export class AccountFactory {
      * @param name Account name
      * @param type Account type (CURRENT or SAVINGS)
      * @param holderName Card holder name (only used for CURRENT accounts)
+     * @param savingType Saving type (only used for SAVINGS accounts)
      * @param balance Initial balance (default: 0)
      * @param currency Currency (default: 'EUR')
      * @returns Promise<Account>
@@ -33,6 +35,7 @@ export class AccountFactory {
         name: string,
         type: AccountType,
         holderName: string,
+        savingType: SavingType | null = null,
         balance: number = 0,
         currency: string = 'EUR'
     ): Promise<Account> {
@@ -63,7 +66,7 @@ export class AccountFactory {
             cardHolderName,
             cardExpiryDate,
             cardCvv,
-            null,
+            savingType,
             [],
             new Date()
         );

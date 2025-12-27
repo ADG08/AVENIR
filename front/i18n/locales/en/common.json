@@ -3,6 +3,7 @@
     "welcome": "Welcome",
     "loading": "Loading...",
     "error": "An error occurred",
+    "success": "Success",
     "save": "Save",
     "cancel": "Cancel",
     "delete": "Delete",
@@ -85,6 +86,8 @@
     "livretA": "Livret A",
     "livretJeune": "Livret Jeune",
     "plafond": "Limit",
+    "noSavingsAccounts": "No savings accounts. Click the button above to create one.",
+    "noLimit": "No limit",
     "transactions": "Transactions",
     "electronics": "Electronics",
     "completed": "Completed",
@@ -98,7 +101,6 @@
     "loans": "My loans",
     "yearly": "Yearly",
     "spending": "Spending",
-    "receiveFunds": "Receive",
     "sendFunds": "Send",
     "addAccountModal": {
       "title": "Add Current Account",
@@ -110,7 +112,11 @@
       "title": "Add Savings Account",
       "description": "Select the type of savings account you want to open.",
       "savingsType": "Savings Account Type",
-      "savingsTypePlaceholder": "Select an account type"
+      "savingsTypePlaceholder": "Select an account type",
+      "authRequired": "You must be logged in to create a savings account",
+      "successDescription": "Savings account created successfully",
+      "duplicateSavingType": "You already have a savings account of this type. You can only have one account per type.",
+      "allTypesUsed": "You have already created all available savings account types."
     },
     "deleteAccountModal": {
       "title": "Delete Account",
@@ -126,7 +132,10 @@
       "cannotDeleteLastCurrent": "Cannot delete the last current account. At least one current account must remain.",
       "cannotDeleteLastCurrentSuffix": " (Cannot delete last current account)",
       "deleteAccountTooltip": "Delete account",
-      "cannotDeleteLastCurrentTooltip": "Cannot delete the last current account"
+      "cannotDeleteLastCurrentTooltip": "Cannot delete the last current account",
+      "currentAccounts": "Current Accounts",
+      "savingsAccounts": "Savings Accounts",
+      "successDescription": "Account deleted successfully"
     },
     "editAccountNameModal": {
       "title": "Edit Account Name",
@@ -149,10 +158,8 @@
     "savingsTypes": {
       "livretA": "Livret A",
       "livretJeune": "Livret Jeune",
-      "ldds": "LDDS (Sustainable Development Savings Account)",
-      "pel": "PEL (Housing Savings Plan)",
-      "cel": "CEL (Housing Savings Account)",
-      "lep": "LEP (Popular Savings Account)"
+      "pea": "PEA (Equity Savings Plan)",
+      "pel": "PEL (Housing Savings Plan)"
     }
   },
   "landing": {

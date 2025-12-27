@@ -21,6 +21,7 @@ type DeleteAccountModalProps = {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     accounts: Account[];
+    accountType?: AccountType;
     onSuccess?: () => void;
 };
 
@@ -31,7 +32,20 @@ const deleteAccountSchema = z.object({
 
 type DeleteAccountFormData = z.infer<typeof deleteAccountSchema>;
 
-export const DeleteAccountModal = ({ open, onOpenChange, accounts, onSuccess }: DeleteAccountModalProps) => {
+const getFilteredAccounts = (accounts: Account[], accountType?: AccountType) => {
+    const filteredAccounts = accountType 
+        ? accounts.filter(account => account.type === accountType)
+        : accounts.filter(account => account.type === AccountType.CURRENT);
+    
+    const isLastCurrentAccount = accountType === AccountType.CURRENT && filteredAccounts.length === 1;
+    
+    return {
+        accounts: filteredAccounts,
+        isLastCurrentAccount,
+    };
+};
+
+export const DeleteAccountModal = ({ open, onOpenChange, accounts, accountType, onSuccess }: DeleteAccountModalProps) => {
     const { t } = useLanguage();
     const { toast } = useToast();
     const [copied, setCopied] = useState(false);
@@ -87,8 +101,8 @@ export const DeleteAccountModal = ({ open, onOpenChange, accounts, onSuccess }: 
             await accountApi.deleteAccount(data.selectedAccount);
 
             toast({
-                title: 'Succès',
-                description: 'Compte supprimé avec succès',
+                title: t('common.success'),
+                description: t('dashboard.deleteAccountModal.successDescription'),
             });
 
             form.reset();
@@ -147,9 +161,9 @@ export const DeleteAccountModal = ({ open, onOpenChange, accounts, onSuccess }: 
                                                 </FormControl>
                                                 <SelectContent>
                                                     {(() => {
-                                                        const currentAccounts = accounts.filter(account => account.type === AccountType.CURRENT);
-                                                        const isLastCurrentAccount = currentAccounts.length === 1;
-                                                        return currentAccounts.map((account) => (
+                                                        const { accounts: filteredAccounts, isLastCurrentAccount } = getFilteredAccounts(accounts, accountType);
+                                                        
+                                                        return filteredAccounts.map((account) => (
                                                             <SelectItem 
                                                                 key={account.id} 
                                                                 value={account.id}

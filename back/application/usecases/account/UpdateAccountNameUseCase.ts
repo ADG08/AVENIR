@@ -3,7 +3,7 @@ import { UpdateAccountNameRequest } from "../../requests/UpdateAccountNameReques
 import { AccountNotFoundError } from "../../../domain/errors/AccountNotFoundError";
 import { UnauthorizedAccountAccessError } from "../../../domain/errors/UnauthorizedAccountAccessError";
 import { Account } from "../../../domain/entities/Account";
-import { AccountType } from "../../../domain/enumerations/AccountType";
+import { AccountType } from "@avenir/shared/enums/AccountType";
 import { ValidationError } from "../../errors/ValidationError";
 
 export class UpdateAccountNameUseCase {
@@ -15,7 +15,6 @@ export class UpdateAccountNameUseCase {
             throw new AccountNotFoundError(request.id);
         }
 
-        // Verify user owns the account
         if (account.userId !== request.userId) {
             throw new UnauthorizedAccountAccessError();
         }
@@ -36,7 +35,7 @@ export class UpdateAccountNameUseCase {
             account.cardHolderName,
             account.cardExpiryDate,
             account.cardCvv,
-            account.savingRate,
+            account.savingType,
             account.transactions,
             account.createdAt
         );
