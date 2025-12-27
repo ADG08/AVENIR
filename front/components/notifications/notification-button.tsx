@@ -4,47 +4,79 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Bell, X, TrendingUp, Info, CheckCircle, AlertTriangle } from 'lucide-react';
 import { Notification } from '@/types/notification';
+import { NotificationType } from '@avenir/shared/enums';
 import { useAuth } from '@/contexts/AuthContext';
+import {
+  getNotifications,
+  markNotificationAsRead,
+  markAllNotificationsAsRead,
+  deleteNotification as deleteNotificationApi,
+} from '@/lib/api/notification.api';
 
 export const NotificationButton = () => {
   const { user: currentUser } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    // TODO: Implémenter la récupération des notifications depuis une API
-    /*
-    const notifications: Notification[] = [];
-    if (currentUser) {
-      setNotifications(notifications);
-    }
-    */
+    const loadNotifications = async () => {
+      if (!currentUser) return;
+
+      try {
+        setIsLoading(true);
+        const data = await getNotifications();
+        setNotifications(data);
+      } catch (error) {
+        console.error('Error loading notifications:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadNotifications();
   }, [currentUser]);
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
-  const markAsRead = (notificationId: string) => {
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === notificationId ? { ...n, read: true } : n))
-    );
+  const handleMarkAsRead = async (notificationId: string) => {
+    try {
+      await markNotificationAsRead(notificationId);
+      setNotifications((prev) =>
+        prev.map((n) => (n.id === notificationId ? { ...n, read: true } : n))
+      );
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
+    }
   };
 
-  const markAllAsRead = () => {
-    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+  const handleMarkAllAsRead = async () => {
+    try {
+      await markAllNotificationsAsRead();
+      setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+    } catch (error) {
+      console.error('Error marking all notifications as read:', error);
+    }
   };
 
-  const deleteNotification = (notificationId: string) => {
-    setNotifications((prev) => prev.filter((n) => n.id !== notificationId));
+  const handleDeleteNotification = async (notificationId: string) => {
+    try {
+      await deleteNotificationApi(notificationId);
+      setNotifications((prev) => prev.filter((n) => n.id !== notificationId));
+    } catch (error) {
+      console.error('Error deleting notification:', error);
+    }
   };
 
-  const getNotificationIcon = (type: Notification['type']) => {
+  const getNotificationIcon = (type: NotificationType) => {
     switch (type) {
-      case 'loan':
+      case NotificationType.LOAN:
         return <TrendingUp className="h-5 w-5 text-blue-600" />;
-      case 'success':
+      case NotificationType.SUCCESS:
         return <CheckCircle className="h-5 w-5 text-green-600" />;
-      case 'warning':
+      case NotificationType.WARNING:
         return <AlertTriangle className="h-5 w-5 text-indigo-600" />;
+      case NotificationType.INFO:
       default:
         return <Info className="h-5 w-5 text-gray-600" />;
     }
@@ -111,7 +143,7 @@ export const NotificationButton = () => {
                   </h3>
                   {unreadCount > 0 && (
                     <button
-                      onClick={markAllAsRead}
+                      onClick={handleMarkAllAsRead}
                       className="text-sm font-medium text-blue-600 transition-colors hover:text-blue-700"
                     >
                       Tout marquer comme lu
@@ -121,7 +153,11 @@ export const NotificationButton = () => {
               </div>
 
               <div className="max-h-[500px] overflow-y-auto">
-                {notifications.length === 0 ? (
+                {isLoading ? (
+                  <div className="p-8 text-center">
+                    <p className="text-sm text-gray-500">Chargement...</p>
+                  </div>
+                ) : notifications.length === 0 ? (
                   <div className="p-8 text-center">
                     <Bell className="mx-auto h-12 w-12 text-gray-300" />
                     <p className="mt-3 text-sm font-medium text-gray-900">
@@ -140,7 +176,7 @@ export const NotificationButton = () => {
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         onClick={() => {
-                          if (!notification.read) markAsRead(notification.id);
+                          if (!notification.read) handleMarkAsRead(notification.id);
                         }}
                         className={`group relative cursor-pointer p-4 transition-colors hover:bg-gray-50 ${
                           !notification.read ? 'bg-blue-50/50' : ''
@@ -159,7 +195,7 @@ export const NotificationButton = () => {
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  deleteNotification(notification.id);
+                                  handleDeleteNotification(notification.id);
                                 }}
                                 className="shrink-0 opacity-0 transition-opacity group-hover:opacity-100"
                               >

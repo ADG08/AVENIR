@@ -305,6 +305,8 @@
     "noNews": "Aucune actualité",
     "noNewsDescription": "Aucune actualité n'a été publiée pour le moment",
     "viewAll": "Voir toutes les actualités",
+    "item": "actualité",
+    "items": "actualités",
     "postedBy": "Publié par",
     "postedOn": "le",
     "modal": {
