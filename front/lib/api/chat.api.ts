@@ -1,42 +1,30 @@
 import {
   createChatSchema,
   sendMessageSchema,
-  getChatsSchema,
   getChatByIdSchema,
   transferChatSchema,
   closeChatSchema,
   markMessageAsReadSchema,
 } from '@avenir/shared/schemas/chat.schema';
-import {UserRole} from "@avenir/shared";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
 export interface SendMessageDto {
   chatId: string;
-  senderId: string;
   content: string;
 }
 
 export interface CreateChatDto {
-  clientId: string;
   initialMessage: string;
-}
-
-export interface GetChatsParams {
-  userId: string;
-  userRole: string;
 }
 
 export interface CloseChatDto {
   chatId: string;
-  userId: string;
-  userRole: UserRole;
 }
 
 export interface TransferChatDto {
   chatId: string;
   newAdvisorId: string;
-  currentUserId: string;
 }
 
 export interface AssignAdvisorDto {
@@ -44,16 +32,18 @@ export interface AssignAdvisorDto {
   advisorId: string;
 }
 
+export interface MarkMessageAsReadDto {
+  messageId: string;
+}
+
 export const chatApi = {
-  async getChats(params: GetChatsParams) {
-    const validatedParams = getChatsSchema.parse(params);
+  async getChats() {
     const response = await fetch(
-      `${API_BASE_URL}/chats?userId=${validatedParams.userId}&userRole=${validatedParams.userRole}`,
+      `${API_BASE_URL}/api/chats`,
       {
         method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
       }
     );
 
@@ -64,35 +54,32 @@ export const chatApi = {
     return response.json();
   },
 
-  async getChatById(chatId: string, userId: string, userRole: string) {
-    const validatedData = getChatByIdSchema.parse({ chatId, userId });
+  async getChatById(chatId: string) {
+    const validatedData = getChatByIdSchema.parse({ chatId });
     const response = await fetch(
-      `${API_BASE_URL}/chats/${validatedData.chatId}?userId=${validatedData.userId}&userRole=${userRole}`,
+      `${API_BASE_URL}/api/chats/${validatedData.chatId}`,
       {
         method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
       }
     );
 
     if (!response.ok) {
-      console.error('[chatApi.getChatById] Error:', { chatId, userId, status: response.status });
       throw new Error(`Failed to fetch chat: ${response.status} ${response.statusText}`);
     }
 
     return response.json();
   },
 
-  async getChatMessages(chatId: string, userId: string) {
-    const validatedData = getChatByIdSchema.parse({ chatId, userId });
+  async getChatMessages(chatId: string) {
+    const validatedData = getChatByIdSchema.parse({ chatId });
     const response = await fetch(
-      `${API_BASE_URL}/chats/${validatedData.chatId}/messages?userId=${validatedData.userId}`,
+      `${API_BASE_URL}/api/chats/${validatedData.chatId}/messages`,
       {
         method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
       }
     );
 
@@ -105,11 +92,10 @@ export const chatApi = {
 
   async sendMessage(data: SendMessageDto) {
     const validatedData = sendMessageSchema.parse(data);
-    const response = await fetch(`${API_BASE_URL}/messages`, {
+    const response = await fetch(`${API_BASE_URL}/api/messages`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify(validatedData),
     });
 
@@ -123,11 +109,10 @@ export const chatApi = {
 
   async createChat(data: CreateChatDto) {
     const validatedData = createChatSchema.parse(data);
-    const response = await fetch(`${API_BASE_URL}/chats`, {
+    const response = await fetch(`${API_BASE_URL}/api/chats`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify(validatedData),
     });
 
@@ -139,16 +124,10 @@ export const chatApi = {
   },
 
   async closeChat(data: CloseChatDto) {
-    const validatedData = closeChatSchema.parse(data);
-    const response = await fetch(`${API_BASE_URL}/chats/${validatedData.chatId}/close`, {
+    const validatedData = closeChatSchema.parse({ chatId: data.chatId });
+    const response = await fetch(`${API_BASE_URL}/api/chats/${validatedData.chatId}/close`, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        userId: validatedData.userId,
-        userRole: validatedData.userRole,
-      }),
+      credentials: 'include',
     });
 
     if (!response.ok) {
@@ -163,14 +142,12 @@ export const chatApi = {
       chatId: data.chatId,
       newAdvisorId: data.newAdvisorId,
     });
-    const response = await fetch(`${API_BASE_URL}/chats/${validatedData.chatId}/transfer`, {
+    const response = await fetch(`${API_BASE_URL}/api/chats/${validatedData.chatId}/transfer`, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify({
         newAdvisorId: validatedData.newAdvisorId,
-        currentUserId: data.currentUserId,
       }),
     });
 
@@ -182,11 +159,10 @@ export const chatApi = {
   },
 
   async assignAdvisor(data: AssignAdvisorDto) {
-    const response = await fetch(`${API_BASE_URL}/chats/${data.chatId}/assign`, {
+    const response = await fetch(`${API_BASE_URL}/api/chats/${data.chatId}/assign`, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify({ advisorId: data.advisorId }),
     });
 
@@ -197,14 +173,12 @@ export const chatApi = {
     return response.json();
   },
 
-  async markMessageAsRead(messageId: string) {
-    const validatedData = markMessageAsReadSchema.parse({ messageId });
-
-    const response = await fetch(`${API_BASE_URL}/messages/${validatedData.messageId}/read`, {
+  async markMessageAsRead(data: MarkMessageAsReadDto) {
+    const validatedData = markMessageAsReadSchema.parse(data);
+    const response = await fetch(`${API_BASE_URL}/api/messages/${validatedData.messageId}/read`, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
     });
 
     if (!response.ok) {

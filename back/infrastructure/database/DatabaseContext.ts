@@ -6,6 +6,7 @@ import { StockRepository } from '../../domain/repositories/StockRepository';
 import { PortfolioRepository } from '../../domain/repositories/PortfolioRepository';
 import { OrderBookRepository } from '../../domain/repositories/OrderBookRepository';
 import { TradeRepository } from '../../domain/repositories/TradeRepository';
+import { NewsRepository } from '../../domain/repositories/NewsRepository';
 
 export interface DatabaseContext {
     userRepository: UserRepository;
@@ -16,5 +17,6 @@ export interface DatabaseContext {
     portfolioRepository: PortfolioRepository;
     orderBookRepository: OrderBookRepository;
     tradeRepository: TradeRepository;
+    newsRepository: NewsRepository;
     close(): Promise<void>;
 }

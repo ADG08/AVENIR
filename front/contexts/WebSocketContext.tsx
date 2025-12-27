@@ -1,7 +1,7 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useRef, useState, useCallback } from 'react';
-import { useCurrentMockUser } from '@/components/dev-user-switcher';
+import React, { createContext, useContext, useEffect, useRef, useState, useCallback, useMemo } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
 import { MessageApiDto } from '@/lib/mapping/chat.mapper';
 import { WebSocketMessageType } from '@avenir/shared/enums';
 
@@ -59,7 +59,11 @@ const WebSocketContext = createContext<WebSocketContextType | undefined>(undefin
 const WS_URL = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:3001/api/ws';
 
 export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const currentUser = useCurrentMockUser();
+    const { user: authUser } = useAuth();
+    const currentUser = useMemo(() =>
+        authUser ? { id: authUser.id, role: authUser.role } : null,
+        [authUser]
+    );
     const [isConnected, setIsConnected] = useState(false);
     const wsRef = useRef<WebSocket | null>(null);
     const subscribersRef = useRef<Set<(message: WebSocketMessage) => void>>(new Set());

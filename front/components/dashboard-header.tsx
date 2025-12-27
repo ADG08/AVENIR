@@ -8,8 +8,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useLanguage } from '@/hooks/use-language';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
-import { useCurrentMockUser } from '@/components/dev-user-switcher';
-import { UserRole } from '@/types/chat';
+import { UserRole } from '@/types/enums';
 import { NotificationButton } from '@/components/notifications/notification-button';
 
 interface DashboardHeaderProps {
@@ -19,9 +18,8 @@ interface DashboardHeaderProps {
 
 export const DashboardHeader = ({ activeTab, setActiveTab }: DashboardHeaderProps) => {
     const { t, i18n, toggleLanguage } = useLanguage();
-    const { logout } = useAuth();
+    const { logout, user: currentUser } = useAuth();
     const router = useRouter();
-    const currentUser = useCurrentMockUser();
     const [hoveredTab, setHoveredTab] = useState<string | null>(null);
     const [activeIcon, setActiveIcon] = useState<string | null>(null);
     const [hoveredIcon, setHoveredIcon] = useState<string | null>(null);

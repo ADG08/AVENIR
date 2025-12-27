@@ -6,15 +6,21 @@ import { ClientCard } from '@/components/clients/client-card';
 import { ClientDetailsModal } from '@/components/clients/client-details-modal';
 import { SendNotificationModal } from '@/components/clients/send-notification-modal';
 import { GrantLoanModal, LoanCalculation } from '@/components/clients/grant-loan-modal';
-import { ClientWithDetails, MOCK_CLIENTS } from '@/types/client';
+import { ClientWithDetails } from '@/types/client';
 import { motion } from 'framer-motion';
 import { Users, Search } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from 'react-i18next';
+import { useAuth } from '@/contexts/AuthContext';
+import { chatApi } from '@/lib/api/chat.api';
+import { mapChatsFromApi } from '@/lib/mapping';
+import { Chat } from '@/types/chat';
+import { UserRole, UserState } from '@/types/enums';
 
 export default function ClientsPage() {
   const { t } = useTranslation();
   const { toast } = useToast();
+  const { user: currentUser } = useAuth();
   const [activeTab, setActiveTab] = useState('clients');
   const [searchQuery, setSearchQuery] = useState('');
   const [clients, setClients] = useState<ClientWithDetails[]>([]);
@@ -26,48 +32,63 @@ export default function ClientsPage() {
   const [isLoadingLoan, setIsLoadingLoan] = useState(false);
   const [isLoadingClients, setIsLoadingClients] = useState(true);
 
-  // Charger les clients (mock pour l'instant - sera remplacé par l'API quand le back sera prêt)
   useEffect(() => {
-    // Simuler un petit délai de chargement pour l'UX
-    const loadMockClients = async () => {
-      setIsLoadingClients(true);
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      setClients(MOCK_CLIENTS);
-      setIsLoadingClients(false);
+    const loadClientsFromChats = async () => {
+      if (!currentUser) return;
+
+      try {
+        setIsLoadingClients(true);
+        const chatsResponse = await chatApi.getChats();
+
+        if (!chatsResponse) {
+          setClients([]);
+          return;
+        }
+
+        const allChats = mapChatsFromApi(chatsResponse);
+
+        const clientsMap = new Map<string, ClientWithDetails>();
+
+        allChats.forEach((chat: Chat) => {
+          const clientId = chat.clientId;
+
+          if (!clientsMap.has(clientId)) {
+            clientsMap.set(clientId, {
+              id: clientId,
+              firstName: chat.client?.firstName || 'Unknown',
+              lastName: chat.client?.lastName || 'User',
+              email: chat.client?.email || '',
+              identityNumber: chat.client?.identityNumber || '',
+              role: UserRole.CLIENT,
+              state: UserState.ACTIVE,
+              createdAt: chat.client?.createdAt || new Date(),
+              updatedAt: chat.client?.updatedAt || new Date(),
+              activeChats: [],
+              loans: [],
+              notifications: [],
+              clientSince: chat.client?.createdAt || new Date(),
+            });
+          }
+
+          const client = clientsMap.get(clientId)!;
+          client.activeChats.push(chat);
+        });
+
+        const clientsList = Array.from(clientsMap.values());
+        setClients(clientsList);
+      } catch (error) {
+        console.error('Error loading clients:', error);
+        toast({
+          title: t('clients.errors.loadingClients'),
+          variant: 'destructive',
+        });
+      } finally {
+        setIsLoadingClients(false);
+      }
     };
 
-    loadMockClients();
-  }, []);
-
-  // TODO: Quand le back sera prêt, remplacer par cette logique :
-  // useEffect(() => {
-  //   const loadClientsFromChats = async () => {
-  //     if (!currentUser) return;
-  //     try {
-  //       setIsLoadingClients(true);
-  //       const chatsResponse = await chatApi.getChats({
-  //         userId: currentUser.id,
-  //         userRole: currentUser.role,
-  //       });
-  //       if (!chatsResponse || !chatsResponse.data) {
-  //         setClients([]);
-  //         return;
-  //       }
-  //       const allChats = mapChatsFromApi(chatsResponse.data);
-  //       // ... logique de groupement et création des ClientWithDetails
-  //       setClients(clientsList);
-  //     } catch (error) {
-  //       console.error('Error loading clients:', error);
-  //       toast({
-  //         title: t('clients.errors.loadingClients'),
-  //         variant: 'destructive',
-  //       });
-  //     } finally {
-  //       setIsLoadingClients(false);
-  //     }
-  //   };
-  //   loadClientsFromChats();
-  // }, [currentUser, toast, t]);
+    loadClientsFromChats();
+  }, [currentUser, toast, t]);
 
   const handleClientClick = (client: ClientWithDetails) => {
     setSelectedClient(client);
