@@ -24,10 +24,12 @@ import { motion } from 'framer-motion';
 import { useState, useRef, useEffect } from 'react';
 import { useLanguage } from '@/hooks/use-language';
 import { useAuth } from '@/contexts/AuthContext';
+import { useWebSocket, WebSocketMessageType } from '@/contexts/WebSocketContext';
 
 export default function Home() {
     const { t } = useLanguage();
     const { user: currentUser } = useAuth();
+    const { subscribe } = useWebSocket();
     const [period, setPeriod] = useState('yearly');
     const [activeTab, setActiveTab] = useState('overview');
     const [filterOpen, setFilterOpen] = useState(false);
@@ -69,6 +71,37 @@ export default function Home() {
 
         loadNews();
     }, [currentUser]);
+
+    useEffect(() => {
+        const unsubscribe = subscribe((message) => {
+            if (message.type === WebSocketMessageType.NEWS_CREATED && message.payload) {
+                const newsPayload = message.payload as {
+                    id: string;
+                    title: string;
+                    description: string;
+                    authorId: string;
+                    authorName: string;
+                    createdAt: string;
+                };
+
+                const newNews: News = {
+                    id: newsPayload.id,
+                    title: newsPayload.title,
+                    description: newsPayload.description,
+                    authorId: newsPayload.authorId,
+                    authorName: newsPayload.authorName,
+                    createdAt: new Date(newsPayload.createdAt),
+                };
+
+                setNews((prev) => [newNews, ...prev]);
+            } else if (message.type === WebSocketMessageType.NEWS_DELETED && message.payload) {
+                const { newsId } = message.payload as { newsId: string };
+                setNews((prev) => prev.filter((n) => n.id !== newsId));
+            }
+        });
+
+        return () => unsubscribe();
+    }, [subscribe]);
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {

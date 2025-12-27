@@ -26,6 +26,10 @@ export const getNewsByIdSchema = z.object({
     newsId: idSchema,
 });
 
+export const deleteNewsParamsSchema = z.object({
+    newsId: idSchema,
+});
+
 export const deleteNewsSchema = z.object({
     newsId: idSchema,
     userId: z.string(),

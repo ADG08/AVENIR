@@ -9,6 +9,7 @@ import { UserRole, NotificationType } from '@avenir/shared/enums';
 import { UserNotFoundError } from '@avenir/domain/errors';
 import { ValidationError } from '../../errors';
 import { randomUUID } from 'crypto';
+import { webSocketService } from '@avenir/infrastructure/adapters/services/WebSocketService';
 
 export class CreateNewsUseCase {
   constructor(
@@ -44,11 +45,12 @@ export class CreateNewsUseCase {
 
     const createdNews = await this.newsRepository.addNews(news);
 
-    const allUsers = await this.userRepository.getAll();
-    const clients = allUsers.filter((u) => u.role === UserRole.CLIENT);
+    try {
+      const allUsers = await this.userRepository.getAll();
+      const clients = allUsers.filter((u) => u.role === UserRole.CLIENT);
 
-    const notificationPromises = clients.map((client) => {
-      const notification = new Notification(
+      const notificationPromises = clients.map(async (client) => {
+        const notification = new Notification(
           randomUUID(),
           client.id,
           'Nouvelle actualité',
@@ -57,11 +59,28 @@ export class CreateNewsUseCase {
           authorName,
           false,
           now
-      );
-      return this.notificationRepository.addNotification(notification);
-    });
+        );
 
-    await Promise.all(notificationPromises);
+        const createdNotification = await this.notificationRepository.addNotification(notification);
+
+        webSocketService.notifyNotificationCreated(client.id, {
+          id: createdNotification.id,
+          userId: createdNotification.userId,
+          title: createdNotification.title,
+          message: createdNotification.message,
+          type: createdNotification.type,
+          advisorName: createdNotification.advisorName,
+          read: createdNotification.read,
+          createdAt: createdNotification.createdAt.toISOString(),
+        });
+
+        return createdNotification;
+      });
+
+      await Promise.all(notificationPromises);
+    } catch (error) {
+      console.error('Error creating notifications for news:', error);
+    }
 
     return NewsResponse.fromNews(createdNews);
   }

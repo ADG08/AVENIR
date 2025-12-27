@@ -14,6 +14,12 @@ export interface ChatMessage {
     payload: any;
 }
 
+export interface WebSocketMessage {
+    type: WebSocketMessageType;
+    chatId?: string;
+    payload: any;
+}
+
 export class WebSocketService {
     private clients: Map<string, WebSocketClient[]> = new Map();
 
@@ -49,7 +55,7 @@ export class WebSocketService {
         console.log(`[WebSocket] Total clients connectés: ${this.getConnectedClientsCount()}`);
     }
 
-    sendMessageToUser(userId: string, message: ChatMessage): void {
+    sendMessageToUser(userId: string, message: WebSocketMessage | ChatMessage): void {
         const userClients = this.clients.get(userId);
         if (userClients) {
             const payload = JSON.stringify(message);
@@ -64,6 +70,10 @@ export class WebSocketService {
                     console.log(`[WebSocket] Utilisateur non connecté, message non envoyé, state: ${client.socket.readyState}`);
                 }
             });
+
+            if (sentCount > 0) {
+                console.log(`[WebSocket] Message ${message.type} envoyé à ${sentCount} connexion(s) pour ${userId}`);
+            }
         } else {
             console.log(`[WebSocket] Utilisateur non connecté, message non envoyé`);
         }
@@ -143,6 +153,34 @@ export class WebSocketService {
             type: WebSocketMessageType.CHAT_CLOSED,
             chatId,
             payload: { closedAt: new Date().toISOString() },
+        });
+    }
+
+    notifyNewsCreated(newsData: any): void {
+        this.clients.forEach((clients, userId) => {
+            this.sendMessageToUser(userId, {
+                type: WebSocketMessageType.NEWS_CREATED,
+                chatId: '',
+                payload: newsData,
+            });
+        });
+    }
+
+    notifyNewsDeleted(newsId: string): void {
+        this.clients.forEach((clients, userId) => {
+            this.sendMessageToUser(userId, {
+                type: WebSocketMessageType.NEWS_DELETED,
+                chatId: '',
+                payload: { newsId },
+            });
+        });
+    }
+
+    notifyNotificationCreated(userId: string, notificationData: any): void {
+        this.sendMessageToUser(userId, {
+            type: WebSocketMessageType.NOTIFICATION_CREATED,
+            chatId: '',
+            payload: notificationData,
         });
     }
 

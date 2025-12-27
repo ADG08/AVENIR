@@ -84,7 +84,7 @@ export const deleteNews = async (newsId: string): Promise<void> => {
   });
 
   if (!response.ok) {
-    const error = await response.json();
+    const error = await response.json().catch(() => ({ error: 'Failed to delete news' }));
     throw new Error(error.error || error.message || 'Failed to delete news');
   }
 };

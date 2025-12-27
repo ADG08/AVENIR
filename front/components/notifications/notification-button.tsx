@@ -6,6 +6,7 @@ import { Bell, X, TrendingUp, Info, CheckCircle, AlertTriangle } from 'lucide-re
 import { Notification } from '@/types/notification';
 import { NotificationType } from '@avenir/shared/enums';
 import { useAuth } from '@/contexts/AuthContext';
+import { useWebSocket, WebSocketMessageType } from '@/contexts/WebSocketContext';
 import {
   getNotifications,
   markNotificationAsRead,
@@ -15,9 +16,12 @@ import {
 
 export const NotificationButton = () => {
   const { user: currentUser } = useAuth();
+  const { subscribe } = useWebSocket();
   const [isOpen, setIsOpen] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedNotification, setSelectedNotification] = useState<Notification | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     const loadNotifications = async () => {
@@ -36,6 +40,42 @@ export const NotificationButton = () => {
 
     loadNotifications();
   }, [currentUser]);
+
+  useEffect(() => {
+    const unsubscribe = subscribe((message) => {
+      if (message.type === WebSocketMessageType.NOTIFICATION_CREATED && message.payload) {
+        const notifPayload = message.payload as {
+          id: string;
+          title: string;
+          message: string;
+          type: string;
+          advisorName: string | null;
+          read: boolean;
+          createdAt: string;
+        };
+
+        const newNotification: Notification = {
+          id: notifPayload.id,
+          title: notifPayload.title,
+          message: notifPayload.message,
+          type: notifPayload.type as NotificationType,
+          advisorName: notifPayload.advisorName ?? undefined,
+          read: notifPayload.read,
+          createdAt: new Date(notifPayload.createdAt),
+        };
+
+        setNotifications((prev) => {
+          // Vérifier si la notification n'existe pas déjà
+          if (prev.some((n) => n.id === newNotification.id)) {
+            return prev;
+          }
+          return [newNotification, ...prev];
+        });
+      }
+    });
+
+    return () => unsubscribe();
+  }, [subscribe]);
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
@@ -66,6 +106,19 @@ export const NotificationButton = () => {
     } catch (error) {
       console.error('Error deleting notification:', error);
     }
+  };
+
+  const handleNotificationClick = async (notification: Notification) => {
+    if (!notification.read) {
+      await handleMarkAsRead(notification.id);
+    }
+    setSelectedNotification(notification);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setTimeout(() => setSelectedNotification(null), 300);
   };
 
   const getNotificationIcon = (type: NotificationType) => {
@@ -172,12 +225,11 @@ export const NotificationButton = () => {
                     {notifications.map((notification) => (
                       <motion.div
                         key={notification.id}
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        onClick={() => {
-                          if (!notification.read) handleMarkAsRead(notification.id);
-                        }}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: 20 }}
+                        transition={{ duration: 0.2 }}
+                        onClick={() => handleNotificationClick(notification)}
                         className={`group relative cursor-pointer p-4 transition-colors hover:bg-gray-50 ${
                           !notification.read ? 'bg-blue-50/50' : ''
                         }`}
@@ -228,6 +280,12 @@ export const NotificationButton = () => {
           </>
         )}
       </AnimatePresence>
+
+      {/*<NotificationDetailModal*/}
+      {/*  isOpen={isModalOpen}*/}
+      {/*  onClose={handleCloseModal}*/}
+      {/*  notification={selectedNotification}*/}
+      {/*/>*/}
     </div>
   );
 };

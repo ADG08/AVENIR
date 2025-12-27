@@ -547,5 +547,11 @@
       "assigningAdvisor": "Impossible d'assigner le conseiller",
       "chatNotFound": "Cette conversation n'existe pas ou vous n'y avez pas accès"
     }
+  },
+  "notifications": {
+    "title": "Notifications",
+    "markAllAsRead": "Tout marquer comme lu",
+    "noNotifications": "Aucune notification",
+    "from": "De"
   }
 }
