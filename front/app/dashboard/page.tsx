@@ -169,8 +169,7 @@ export default function Home() {
     const filteredTransactions = allTransactions.filter((transaction) => {
         if (activeFilters.card && transaction.cardType !== activeFilters.card) return false;
         if (activeFilters.category && transaction.category !== activeFilters.category) return false;
-        if (activeFilters.status && transaction.status !== activeFilters.status) return false;
-        return true;
+        return !(activeFilters.status && transaction.status !== activeFilters.status);
     });
 
     const groupedTransactions = filteredTransactions.reduce((acc, transaction) => {
@@ -214,7 +213,7 @@ export default function Home() {
                                     <h2 className="mt-1 text-2xl font-bold tracking-tight financial-amount text-gray-900 sm:text-3xl md:text-4xl">$102,489.00</h2>
                                 </div>
                                 <Select value={period} onValueChange={setPeriod}>
-                                    <SelectTrigger className="h-9 w-[115px] text-xs sm:h-10 sm:w-[140px] sm:text-sm">
+                                    <SelectTrigger className="h-9 w-28.75 text-xs sm:h-10 sm:w-35 sm:text-sm">
                                         <SelectValue placeholder="Select period" />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -228,7 +227,7 @@ export default function Home() {
                             <div className="mb-2">
                                 <h3 className="mb-4 text-lg font-semibold text-gray-900">{t('dashboard.spending')}</h3>
                                 <div className={period === 'yearly' ? 'overflow-x-auto md:overflow-x-visible' : ''}>
-                                    <div className={period === 'yearly' ? 'min-w-[600px] md:min-w-0' : ''}>
+                                    <div className={period === 'yearly' ? 'min-w-150 md:min-w-0' : ''}>
                                         <BarChart
                                             key={period}
                                             data={chartData}
