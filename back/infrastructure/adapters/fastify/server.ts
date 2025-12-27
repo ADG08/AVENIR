@@ -7,23 +7,28 @@ import { userRoutes } from './routes/user';
 import { authRoutes } from './routes/auth';
 import { chatRoutes } from './routes/chat';
 import { messageRoutes } from './routes/message';
+import { newsRoutes } from './routes/news';
 import { websocketRoutes } from './routes/websocket';
 import { UserController } from './controllers/UserController';
 import { ChatController } from './controllers/ChatController';
 import { MessageController } from './controllers/MessageController';
+import { NewsController } from './controllers/NewsController';
 import { GetUserUseCase } from '@avenir/application/usecases/user/GetUserUseCase';
 import { GetUsersUseCase } from '@avenir/application/usecases/user/GetUsersUseCase';
 import { AddUserUseCase } from '@avenir/application/usecases/user/AddUserUseCase';
 import { RegisterUserUseCase } from '@avenir/application/usecases/user/RegisterUserUseCase';
 import { VerifyEmailUseCase } from '@avenir/application/usecases/user/VerifyEmailUseCase';
 import { LoginUserUseCase } from '@avenir/application/usecases/user/LoginUserUseCase';
-import { NodemailerEmailService } from '../../adapters/email/NodemailerEmailService';
+import { NodemailerEmailService } from '../email/NodemailerEmailService';
 import { CreateChatUseCase } from '@avenir/application/usecases/chat/CreateChatUseCase';
 import { GetChatsUseCase } from '@avenir/application/usecases/chat/GetChatsUseCase';
 import { GetChatMessagesUseCase } from '@avenir/application/usecases/chat/GetChatMessagesUseCase';
 import { TransferChatUseCase } from '@avenir/application/usecases/chat/TransferChatUseCase';
 import { SendMessageUseCase } from '@avenir/application/usecases/chat/SendMessageUseCase';
 import { CloseChatUseCase } from '@avenir/application/usecases/chat/CloseChatUseCase';
+import { CreateNewsUseCase } from '@avenir/application/usecases/news/CreateNewsUseCase';
+import { GetAllNewsUseCase } from '@avenir/application/usecases/news/GetAllNewsUseCase';
+import { DeleteNewsUseCase } from '@avenir/application/usecases/news/DeleteNewsUseCase';
 import { RepositoryFactory } from '../../factories/RepositoryFactory';
 import { GetChatByIdUseCase } from "@avenir/application/usecases/chat/GetChatByIdUseCase";
 import { MarkMessageAsReadUseCase } from "@avenir/application/usecases/chat/MarkMessageAsReadUseCase";
@@ -52,7 +57,7 @@ const chatRepository = dbContext.chatRepository;
 const messageRepository = dbContext.messageRepository;
 
 const createChatUseCase = new CreateChatUseCase(chatRepository, messageRepository, userRepository);
-const getChatsUseCase = new GetChatsUseCase(chatRepository, messageRepository);
+const getChatsUseCase = new GetChatsUseCase(chatRepository, messageRepository, userRepository);
 const getChatByIdUseCase = new GetChatByIdUseCase(chatRepository, messageRepository);
 const getChatMessagesUseCase = new GetChatMessagesUseCase(chatRepository, messageRepository);
 const markChatMessagesAsReadUseCase = new MarkChatMessagesAsReadUseCase(chatRepository, messageRepository);
@@ -75,6 +80,13 @@ const chatController = new ChatController(
 
 const messageController = new MessageController(sendMessageUseCase, markMessageAsReadUseCase, chatRepository);
 
+// News
+const newsRepository = dbContext.newsRepository;
+const createNewsUseCase = new CreateNewsUseCase(newsRepository, userRepository);
+const getAllNewsUseCase = new GetAllNewsUseCase(newsRepository);
+const deleteNewsUseCase = new DeleteNewsUseCase(newsRepository, userRepository);
+const newsController = new NewsController(createNewsUseCase, getAllNewsUseCase, deleteNewsUseCase);
+
 async function setupRoutes() {
     await fastify.register(cors, {
         origin: process.env.FRONTEND_URL || 'http://localhost:3000',
@@ -91,6 +103,7 @@ async function setupRoutes() {
     await fastify.register(authRoutes, { prefix: '/api/auth', userController });
     await fastify.register(chatRoutes, { prefix: '/api', chatController, messageRepository, chatRepository });
     await fastify.register(messageRoutes, { prefix: '/api', messageController });
+    await fastify.register(newsRoutes, { prefix: '/api', newsController });
     await fastify.register(websocketRoutes, { prefix: '/api' });
 }
 

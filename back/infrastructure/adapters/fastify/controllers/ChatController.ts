@@ -12,13 +12,11 @@ import { TransferChatRequest } from '@avenir/application/requests';
 import { ChatNotFoundError } from '@avenir/domain/errors';
 import { UnauthorizedChatAccessError } from '@avenir/domain/errors';
 import { ValidationError } from '@avenir/application/errors';
-import { UserRole } from '@avenir/domain/enumerations/UserRole';
 import { ChatRepository } from '@avenir/domain/repositories/ChatRepository';
 import { MessageRepository } from '@avenir/domain/repositories/MessageRepository';
 import { webSocketService } from '../../services/WebSocketService';
 import {
     createChatSchema,
-    getChatsSchema,
     getChatByIdSchema,
     closeChatSchema,
 } from '@avenir/shared/schemas/chat.schema';
@@ -95,15 +93,18 @@ export class ChatController {
         }
     }
 
-    async getChats(request: FastifyRequest<{ Querystring: { userId: string; userRole: string } }>, reply: FastifyReply) {
+    async getChats(request: FastifyRequest, reply: FastifyReply) {
         try {
-            const validatedData = getChatsSchema.parse({
-                userId: request.query.userId,
-                userRole: request.query.userRole,
-            });
+            if (!request.user) {
+                return reply.code(401).send({
+                    error: 'Unauthorized',
+                    message: 'User not authenticated',
+                });
+            }
+
             const getChatsRequest: GetChatsRequest = {
-                userId: validatedData.userId,
-                userRole: validatedData.userRole as UserRole,
+                userId: request.user.userId,
+                userRole: undefined as any,
             };
 
             const response = await this.getChatsUseCase.execute(getChatsRequest);
@@ -131,18 +132,26 @@ export class ChatController {
     }
 
     async getChatById(
-        request: FastifyRequest<{ Params: { chatId: string }; Querystring: { userId: string; userRole: string } }>,
+        request: FastifyRequest<{ Params: { chatId: string } }>,
         reply: FastifyReply
     ) {
         try {
+            if (!request.user) {
+                return reply.code(401).send({
+                    error: 'Unauthorized',
+                    message: 'User not authenticated',
+                });
+            }
+
             const validatedData = getChatByIdSchema.parse({
                 chatId: request.params.chatId,
-                userId: request.query.userId,
             });
+
+            // Le use case récupère le user et son role depuis la DB
             const response = await this.getChatByIdUseCase.execute({
                 chatId: validatedData.chatId,
-                userId: validatedData.userId,
-                userRole: request.query.userRole as UserRole,
+                userId: request.user.userId,
+                userRole: undefined as any,
             });
 
             return reply.code(200).send(response);
@@ -175,10 +184,17 @@ export class ChatController {
         }
     }
 
-    async getChatMessages(request: FastifyRequest<{ Params: { chatId: string }; Querystring: { userId: string } }>, reply: FastifyReply) {
+    async getChatMessages(request: FastifyRequest<{ Params: { chatId: string } }>, reply: FastifyReply) {
         try {
+            if (!request.user) {
+                return reply.code(401).send({
+                    error: 'Unauthorized',
+                    message: 'User not authenticated',
+                });
+            }
+
             const { chatId } = request.params;
-            const { userId } = request.query;
+            const userId = request.user.userId;
 
             const response = await this.getChatMessagesUseCase.execute(chatId, userId);
             return reply.code(200).send(response);
@@ -324,13 +340,22 @@ export class ChatController {
     }
 
     async markChatMessagesAsRead(
-        request: FastifyRequest<{ Params: { chatId: string }; Querystring: { userId: string } }>,
+        request: FastifyRequest<{ Params: { chatId: string } }>,
         reply: FastifyReply
     ) {
         try {
+            if (!request.user) {
+                return reply.code(401).send({
+                    error: 'Unauthorized',
+                    message: 'User not authenticated',
+                });
+            }
+
+            const userId = request.user.userId;
+
             await this.markChatMessagesAsReadUseCase.execute(
                 request.params.chatId,
-                request.query.userId
+                userId
             );
             return reply.code(200).send({ success: true });
         } catch (error) {
@@ -356,17 +381,19 @@ export class ChatController {
     }
 
     async closeChat(
-        request: FastifyRequest<{
-            Params: { chatId: string };
-            Body: { userId: string; userRole?: string }
-        }>,
+        request: FastifyRequest<{ Params: { chatId: string } }>,
         reply: FastifyReply
     ) {
         try {
+            if (!request.user) {
+                return reply.code(401).send({
+                    error: 'Unauthorized',
+                    message: 'User not authenticated',
+                });
+            }
+
             const validatedData = closeChatSchema.parse({
                 chatId: request.params.chatId,
-                userId: request.body.userId,
-                userRole: request.body.userRole || 'ADVISOR',
             });
 
             const chat = await this.chatRepository.getById(validatedData.chatId);
@@ -381,8 +408,8 @@ export class ChatController {
 
             await this.closeChatUseCase.execute({
                 chatId: validatedData.chatId,
-                userId: validatedData.userId,
-                userRole: validatedData.userRole,
+                userId: request.user.userId,
+                userRole: undefined as any,
             });
 
             const participantIds: string[] = [];

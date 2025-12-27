@@ -3,12 +3,14 @@
 import { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
+import { UserRole } from '@/types/enums';
 
 interface User {
+  id: string;
   firstName: string;
   lastName: string;
   email: string;
-  role: string;
+  role: UserRole;
 }
 
 interface AuthContextType {

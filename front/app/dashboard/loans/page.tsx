@@ -2,32 +2,36 @@
 
 import { useState, useEffect } from 'react';
 import { DashboardHeader } from '@/components/dashboard-header';
-import { ClientLoan, MOCK_CLIENTS } from '@/types/client';
+import { ClientLoan } from '@/types/client';
 import { motion } from 'framer-motion';
 import { TrendingUp, Calendar, Euro, Percent, FileText } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import {LoanStatus} from "@avenir/shared/enums";
+import { LoanStatus } from "@avenir/shared/enums";
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function LoansPage() {
   const { t } = useTranslation();
+  const { user: currentUser } = useAuth();
   const [activeTab, setActiveTab] = useState('loans');
   const [loans, setLoans] = useState<ClientLoan[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // TODO : Modifier avec le vrai appel api
+    // TODO : Implémenter l'appel API pour récupérer les crédits depuis le back
     const loadLoans = async () => {
+      if (!currentUser) return;
+
       setIsLoading(true);
       await new Promise((resolve) => setTimeout(resolve, 500));
 
-      // Récupérer tous les crédits de tous les clients mock
-      const allLoans = MOCK_CLIENTS.flatMap((client) => client.loans);
-      setLoans(allLoans);
+      // Pour l'instant, liste vide en attendant l'implémentation de l'API
+
+      setLoans([]);
       setIsLoading(false);
     };
 
     loadLoans();
-  }, []);
+  }, [currentUser]);
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('fr-FR', {

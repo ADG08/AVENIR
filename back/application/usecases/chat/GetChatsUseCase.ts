@@ -1,21 +1,29 @@
 import { ChatRepository } from "@avenir/domain/repositories/ChatRepository";
 import { MessageRepository } from "@avenir/domain/repositories/MessageRepository";
+import { UserRepository } from "@avenir/domain/repositories/UserRepository";
 import { GetChatsRequest } from "../../requests";
 import { ChatResponse } from "../../responses";
 import { Chat } from "@avenir/domain/entities/Chat";
 import { UserRole } from "@avenir/domain/enumerations/UserRole";
 import { ChatStatus } from "@avenir/domain/enumerations/ChatStatus";
+import { UserNotFoundError } from "@avenir/domain/errors";
 
 export class GetChatsUseCase {
     constructor(
         private readonly chatRepository: ChatRepository,
         private readonly messageRepository: MessageRepository,
+        private readonly userRepository: UserRepository
     ) {}
 
     async execute(request: GetChatsRequest): Promise<ChatResponse[]> {
+        const user = await this.userRepository.getById(request.userId);
+        if (!user) {
+            throw new UserNotFoundError(`User with id ${request.userId} not found`);
+        }
+
         let chats: Chat[] = [];
 
-        switch (request.userRole) {
+        switch (user.role) {
             case UserRole.CLIENT:
                 chats = await this.chatRepository.getByClientId(request.userId);
                 break;

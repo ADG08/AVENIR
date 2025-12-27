@@ -3,16 +3,23 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Bell, X, TrendingUp, Info, CheckCircle, AlertTriangle } from 'lucide-react';
-import { Notification, MOCK_NOTIFICATIONS } from '@/types/notification';
+import { Notification } from '@/types/notification';
+import { useAuth } from '@/contexts/AuthContext';
 
 export const NotificationButton = () => {
+  const { user: currentUser } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
 
   useEffect(() => {
-    // Charger les notifications mock
-    setTimeout(() => setNotifications(MOCK_NOTIFICATIONS), 0);
-  }, []);
+    // TODO: Implémenter la récupération des notifications depuis une API
+    /*
+    const notifications: Notification[] = [];
+    if (currentUser) {
+      setNotifications(notifications);
+    }
+    */
+  }, [currentUser]);
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
