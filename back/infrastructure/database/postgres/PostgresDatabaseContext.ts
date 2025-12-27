@@ -9,6 +9,7 @@ import { PostgresPortfolioRepository } from '../../adapters/repositories/postgre
 import { PostgresOrderBookRepository } from '../../adapters/repositories/postgres/PostgresOrderBookRepository';
 import { PostgresTradeRepository } from '../../adapters/repositories/postgres/PostgresTradeRepository';
 import { PostgresNewsRepository } from '../../adapters/repositories/postgres/PostgresNewsRepository';
+import { PostgresNotificationRepository } from '../../adapters/repositories/postgres/PostgresNotificationRepository';
 import { UserRepository } from '@avenir/domain/repositories/UserRepository';
 import { ChatRepository } from '@avenir/domain/repositories/ChatRepository';
 import { MessageRepository } from '@avenir/domain/repositories/MessageRepository';
@@ -18,6 +19,7 @@ import { PortfolioRepository } from '@avenir/domain/repositories/PortfolioReposi
 import { OrderBookRepository } from '@avenir/domain/repositories/OrderBookRepository';
 import { TradeRepository } from '@avenir/domain/repositories/TradeRepository';
 import { NewsRepository } from '@avenir/domain/repositories/NewsRepository';
+import { NotificationRepository } from '@avenir/domain/repositories/NotificationRepository';
 
 export class PostgresDatabaseContext implements DatabaseContext {
     public readonly userRepository: UserRepository;
@@ -29,6 +31,7 @@ export class PostgresDatabaseContext implements DatabaseContext {
     public readonly orderBookRepository: OrderBookRepository;
     public readonly tradeRepository: TradeRepository;
     public readonly newsRepository: NewsRepository;
+    public readonly notificationRepository: NotificationRepository;
 
     constructor() {
         this.userRepository = new PostgresUserRepository(pool);
@@ -40,6 +43,7 @@ export class PostgresDatabaseContext implements DatabaseContext {
         this.orderBookRepository = new PostgresOrderBookRepository(pool);
         this.tradeRepository = new PostgresTradeRepository(pool);
         this.newsRepository = new PostgresNewsRepository(pool);
+        this.notificationRepository = new PostgresNotificationRepository(pool);
     }
 
     async close(): Promise<void> {

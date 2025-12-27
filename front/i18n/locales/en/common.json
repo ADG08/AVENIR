@@ -446,6 +446,8 @@
     "noNews": "No news",
     "noNewsDescription": "No news has been published yet",
     "viewAll": "View all news",
+    "item": "news item",
+    "items": "news items",
     "postedBy": "Posted by",
     "postedOn": "on",
     "modal": {

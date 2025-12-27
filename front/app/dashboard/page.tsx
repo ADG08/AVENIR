@@ -17,14 +17,17 @@ import { AddSavingsModal } from '@/components/modals/AddSavingsModal';
 import { DeleteAccountModal } from '@/components/modals/DeleteAccountModal';
 import { EditAccountNameModal } from '@/components/modals/EditAccountNameModal';
 import { SendMoneyModal } from '@/components/modals/SendMoneyModal';
-import { MOCK_NEWS } from '@/types/news';
+import { News } from '@/types/news';
+import { getAllNews } from '@/lib/api/news.api';
 import { Search, ArrowUp, ArrowDown, Plus, ChevronLeft, ChevronRight, Trash2, List } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useState, useRef, useEffect } from 'react';
 import { useLanguage } from '@/hooks/use-language';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function Home() {
     const { t } = useLanguage();
+    const { user: currentUser } = useAuth();
     const [period, setPeriod] = useState('yearly');
     const [activeTab, setActiveTab] = useState('overview');
     const [filterOpen, setFilterOpen] = useState(false);
@@ -35,6 +38,8 @@ export default function Home() {
     const [deleteAccountModalOpen, setDeleteAccountModalOpen] = useState(false);
     const [editAccountNameModalOpen, setEditAccountNameModalOpen] = useState(false);
     const [sendMoneyModalOpen, setSendMoneyModalOpen] = useState(false);
+    const [news, setNews] = useState<News[]>([]);
+    const [isLoadingNews, setIsLoadingNews] = useState(false);
     const [activeFilters, setActiveFilters] = useState<{
         card: string | null;
         category: string | null;
@@ -46,6 +51,24 @@ export default function Home() {
     });
     const filterRef = useRef<HTMLDivElement>(null);
     const transactionsRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const loadNews = async () => {
+            if (!currentUser) return;
+
+            try {
+                setIsLoadingNews(true);
+                const newsData = await getAllNews();
+                setNews(newsData);
+            } catch (error) {
+                console.error('Error loading news:', error);
+            } finally {
+                setIsLoadingNews(false);
+            }
+        };
+
+        loadNews();
+    }, [currentUser]);
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -168,10 +191,10 @@ export default function Home() {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+        <div className="min-h-screen bg-linear-to-br from-gray-50 to-gray-100">
             <DashboardHeader activeTab={activeTab} setActiveTab={setActiveTab} />
 
-            <main className="mx-auto max-w-[1800px] p-6">
+            <main className="mx-auto max-w-450 p-6">
                 <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
                     <div className="space-y-6 lg:col-span-8">
                         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
@@ -503,7 +526,17 @@ export default function Home() {
                             </div>
                         </motion.div>
 
-                        <NewsCard news={MOCK_NEWS} />
+                        {isLoadingNews ? (
+                            <div className="rounded-3xl border border-gray-200 bg-white p-6">
+                                <p className="text-center text-sm text-gray-500">Chargement des actualités...</p>
+                            </div>
+                        ) : news.length > 0 ? (
+                            <NewsCard news={news} />
+                        ) : (
+                            <div className="rounded-3xl border border-gray-200 bg-white p-6">
+                                <p className="text-center text-sm text-gray-500">Aucune actualité disponible</p>
+                            </div>
+                        )}
                     </div>
                 </div>
             </main>

@@ -31,6 +31,13 @@ import { CloseChatUseCase } from '@avenir/application/usecases/chat/CloseChatUse
 import { CreateNewsUseCase } from '@avenir/application/usecases/news/CreateNewsUseCase';
 import { GetAllNewsUseCase } from '@avenir/application/usecases/news/GetAllNewsUseCase';
 import { DeleteNewsUseCase } from '@avenir/application/usecases/news/DeleteNewsUseCase';
+import { CreateNotificationUseCase } from '@avenir/application/usecases/notification/CreateNotificationUseCase';
+import { GetNotificationsUseCase } from '@avenir/application/usecases/notification/GetNotificationsUseCase';
+import { MarkNotificationAsReadUseCase } from '@avenir/application/usecases/notification/MarkNotificationAsReadUseCase';
+import { MarkAllNotificationsAsReadUseCase } from '@avenir/application/usecases/notification/MarkAllNotificationsAsReadUseCase';
+import { DeleteNotificationUseCase } from '@avenir/application/usecases/notification/DeleteNotificationUseCase';
+import { NotificationController } from './controllers/NotificationController';
+import { notificationRoutes } from './routes/notification';
 import { RepositoryFactory } from '../../factories/RepositoryFactory';
 import { GetChatByIdUseCase } from "@avenir/application/usecases/chat/GetChatByIdUseCase";
 import { MarkMessageAsReadUseCase } from "@avenir/application/usecases/chat/MarkMessageAsReadUseCase";
@@ -93,10 +100,25 @@ const investmentController = new InvestmentController(stockRepository, portfolio
 
 // News
 const newsRepository = dbContext.newsRepository;
-const createNewsUseCase = new CreateNewsUseCase(newsRepository, userRepository);
+const notificationRepository = dbContext.notificationRepository;
+const createNewsUseCase = new CreateNewsUseCase(newsRepository, userRepository, notificationRepository);
 const getAllNewsUseCase = new GetAllNewsUseCase(newsRepository);
 const deleteNewsUseCase = new DeleteNewsUseCase(newsRepository, userRepository);
 const newsController = new NewsController(createNewsUseCase, getAllNewsUseCase, deleteNewsUseCase);
+
+// Notifications
+const createNotificationUseCase = new CreateNotificationUseCase(notificationRepository);
+const getNotificationsUseCase = new GetNotificationsUseCase(notificationRepository);
+const markNotificationAsReadUseCase = new MarkNotificationAsReadUseCase(notificationRepository);
+const markAllNotificationsAsReadUseCase = new MarkAllNotificationsAsReadUseCase(notificationRepository);
+const deleteNotificationUseCase = new DeleteNotificationUseCase(notificationRepository);
+const notificationController = new NotificationController(
+    createNotificationUseCase,
+    getNotificationsUseCase,
+    markNotificationAsReadUseCase,
+    markAllNotificationsAsReadUseCase,
+    deleteNotificationUseCase
+);
 
 async function setupRoutes() {
     await fastify.register(cors, {
@@ -115,6 +137,7 @@ async function setupRoutes() {
     await fastify.register(chatRoutes, { prefix: '/api', chatController, messageRepository, chatRepository });
     await fastify.register(messageRoutes, { prefix: '/api', messageController });
     await fastify.register(newsRoutes, { prefix: '/api', newsController });
+    await fastify.register(notificationRoutes, { prefix: '/api', notificationController });
     await fastify.register(websocketRoutes, { prefix: '/api' });
     await fastify.register(investmentRoutes, { prefix: '/api/investment', investmentController, userRepository });
 }

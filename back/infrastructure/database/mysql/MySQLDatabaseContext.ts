@@ -9,6 +9,7 @@ import { MySQLPortfolioRepository } from '../../adapters/repositories/mysql/MySQ
 import { MySQLOrderBookRepository } from '../../adapters/repositories/mysql/MySQLOrderBookRepository';
 import { MySQLTradeRepository } from '../../adapters/repositories/mysql/MySQLTradeRepository';
 import { MySQLNewsRepository } from '../../adapters/repositories/mysql/MySQLNewsRepository';
+import { MySQLNotificationRepository } from '../../adapters/repositories/mysql/MySQLNotificationRepository';
 import { UserRepository } from '@avenir/domain/repositories/UserRepository';
 import { ChatRepository } from '@avenir/domain/repositories/ChatRepository';
 import { MessageRepository } from '@avenir/domain/repositories/MessageRepository';
@@ -18,6 +19,7 @@ import { PortfolioRepository } from '@avenir/domain/repositories/PortfolioReposi
 import { OrderBookRepository } from '@avenir/domain/repositories/OrderBookRepository';
 import { TradeRepository } from '@avenir/domain/repositories/TradeRepository';
 import { NewsRepository } from '@avenir/domain/repositories/NewsRepository';
+import { NotificationRepository } from '@avenir/domain/repositories/NotificationRepository';
 
 export class MySQLDatabaseContext implements DatabaseContext {
     public readonly userRepository: UserRepository;
@@ -29,6 +31,7 @@ export class MySQLDatabaseContext implements DatabaseContext {
     public readonly orderBookRepository: OrderBookRepository;
     public readonly tradeRepository: TradeRepository;
     public readonly newsRepository: NewsRepository;
+    public readonly notificationRepository: NotificationRepository;
 
     constructor() {
         this.userRepository = new MySQLUserRepository(pool);
@@ -40,6 +43,7 @@ export class MySQLDatabaseContext implements DatabaseContext {
         this.orderBookRepository = new MySQLOrderBookRepository(pool);
         this.tradeRepository = new MySQLTradeRepository(pool);
         this.newsRepository = new MySQLNewsRepository(pool);
+        this.notificationRepository = new MySQLNotificationRepository(pool);
     }
 
     async close(): Promise<void> {
