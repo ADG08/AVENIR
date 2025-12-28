@@ -564,4 +564,69 @@ export class InvestmentController {
             return reply.status(500).send({ error: 'Failed to fetch user orders' });
         }
     }
+
+    async getStockPrices(request: FastifyRequest<{ Params: { stockId: string }; Querystring: { period?: string } }>, reply: FastifyReply) {
+        try {
+            if (!request.user) {
+                return reply.status(401).send({ error: 'Unauthorized' });
+            }
+
+            const { stockId } = request.params;
+            const { period } = request.query;
+
+            if (!stockId) {
+                return reply.status(400).send({ error: 'Stock ID is required' });
+            }
+
+            const stock = await this.stockRepository.getById(stockId);
+            if (!stock) {
+                return reply.status(404).send({ error: 'Stock not found' });
+            }
+
+            const allTrades = await this.tradeRepository.getByStockId(stockId);
+
+            let startDate: Date | undefined;
+            if (period === 'weekly') {
+                startDate = new Date();
+                startDate.setDate(startDate.getDate() - 7);
+            } else if (period === 'monthly') {
+                startDate = new Date();
+                startDate.setMonth(startDate.getMonth() - 1);
+            }
+
+            const filteredTrades = startDate
+                ? allTrades.filter(trade => trade.createdAt >= startDate)
+                : allTrades;
+
+            const pricesMap = new Map<string, { prices: number[]; volumes: number[] }>();
+
+            filteredTrades.forEach(trade => {
+                const dateKey = trade.createdAt.toISOString().split('T')[0];
+                if (!pricesMap.has(dateKey)) {
+                    pricesMap.set(dateKey, { prices: [], volumes: [] });
+                }
+                pricesMap.get(dateKey)!.prices.push(trade.price);
+                pricesMap.get(dateKey)!.volumes.push(trade.quantity);
+            });
+
+            const pricesData = Array.from(pricesMap.entries())
+                .map(([date, data]) => ({
+                    price: data.prices[data.prices.length - 1],
+                    volume: data.volumes.reduce((sum, v) => sum + v, 0),
+                    timestamp: new Date(date + 'T16:00:00Z').toISOString(),
+                }))
+                .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+
+            return reply.status(200).send({
+                stockId,
+                stockSymbol: stock.symbol,
+                stockName: stock.name,
+                period: period || 'all',
+                prices: pricesData,
+            });
+        } catch (error) {
+            console.error('Error fetching stock prices:', error);
+            return reply.status(500).send({ error: 'Failed to fetch stock prices' });
+        }
+    }
 }

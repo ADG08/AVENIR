@@ -307,9 +307,9 @@ VALUES
     'pf_hugo_5',
     'd2e5f6a4-8b1c-7d2e-9f3a-0c4b8d5e1f2a',
     'stock_2',  -- GOOGL
-    2000.00,
+    15000.00,
     168.00,
-    336000.00,
+    2520000.00,
     DATE_SUB(NOW(), INTERVAL 1 MONTH),
     NOW()
 );

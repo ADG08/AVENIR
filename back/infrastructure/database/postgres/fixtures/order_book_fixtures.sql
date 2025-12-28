@@ -435,7 +435,7 @@ VALUES
 ('ob_system_ask_aapl', 'stock_1', 'SYSTEM', 'ASK', 'LIMIT', 1000.00, 1000.00, 192.00, NULL, 'PENDING', NOW(), NOW()),
 
 -- GOOGL - Alphabet Inc.
-('ob_system_ask_googl', 'stock_2', 'SYSTEM', 'ASK', 'LIMIT', 1000.00, 1000.00, 175.20, NULL, 'PENDING', NOW(), NOW()),
+('ob_system_ask_googl', 'stock_2', 'SYSTEM', 'ASK', 'LIMIT', 7500.00, 7500.00, 175.40, NULL, 'PENDING', NOW(), NOW()),
 
 -- MSFT - Microsoft Corporation
 ('ob_system_ask_msft', 'stock_3', 'SYSTEM', 'ASK', 'LIMIT', 1000.00, 1000.00, 420.50, NULL, 'PENDING', NOW(), NOW()),
@@ -480,7 +480,7 @@ VALUES
 ('ob_system_bid_aapl', 'stock_1', 'SYSTEM', 'BID', 'LIMIT', 1000.00, 1000.00, 191.00, NULL, 'PENDING', NOW(), NOW()),
 
 -- GOOGL - Alphabet Inc.
-('ob_system_bid_googl', 'stock_2', 'SYSTEM', 'BID', 'LIMIT', 1000.00, 1000.00, 174.20, NULL, 'PENDING', NOW(), NOW()),
+('ob_system_bid_googl', 'stock_2', 'SYSTEM', 'BID', 'LIMIT', 7500.00, 7500.00, 175.20, NULL, 'PENDING', NOW(), NOW()),
 
 -- MSFT - Microsoft Corporation
 ('ob_system_bid_msft', 'stock_3', 'SYSTEM', 'BID', 'LIMIT', 1000.00, 1000.00, 419.50, NULL, 'PENDING', NOW(), NOW()),

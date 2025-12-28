@@ -10,16 +10,113 @@ import { useLanguage } from '@/hooks/use-language';
 import Image from 'next/image';
 import type { Stock } from './types';
 
+const API_BASE_URL = 'http://localhost:3001/api';
+
 interface StockChartProps {
   symbol: string;
   currentPrice: number;
   period: string;
   animationKey: number;
+  stockId: string;
 }
 
-const StockChart = React.memo<StockChartProps>(({ symbol, currentPrice, period, animationKey }) => {
+const StockChart = React.memo<StockChartProps>(({ symbol, currentPrice, period, animationKey, stockId }) => {
+  const [chartData, setChartData] = React.useState<Array<{ date: string; value: number }>>([]);
+  const [isLoadingChart, setIsLoadingChart] = React.useState(true);
+  const [isSimulatedData, setIsSimulatedData] = React.useState(false);
+  const { t } = useLanguage();
+
+  const generateFallbackData = React.useCallback((basePrice: number, periodType: string) => {
+    let fallbackData: Array<{ date: string; value: number }> = [];
+    if (periodType === 'monthly') {
+      fallbackData = Array.from({ length: 29 }, (_, i) => ({
+        date: new Date(2024, 11, i + 1).toISOString().split('T')[0],
+        value: basePrice * (0.85 + Math.random() * 0.3),
+      }));
+    } else if (periodType === 'weekly') {
+      fallbackData = Array.from({ length: 6 }, (_, i) => ({
+        date: new Date(2024, 11, 18 + i).toISOString().split('T')[0],
+        value: basePrice * (0.95 + Math.random() * 0.1),
+      }));
+    } else {
+      fallbackData = Array.from({ length: 11 }, (_, i) => ({
+        date: new Date(2024, i, 1).toISOString().split('T')[0],
+        value: basePrice * (0.7 + Math.random() * 0.6),
+      }));
+    }
+
+    fallbackData.push({
+      date: new Date().toISOString().split('T')[0],
+      value: basePrice,
+    });
+
+    return fallbackData;
+  }, []);
+
+  React.useEffect(() => {
+    const fetchStockPrices = async () => {
+      setIsLoadingChart(true);
+      setIsSimulatedData(false);
+      try {
+        const response = await fetch(`${API_BASE_URL}/investment/prices/${stockId}?period=${period}`, {
+          credentials: 'include',
+        });
+        if (response.ok) {
+          const data = await response.json();
+          if (data.prices && data.prices.length > 0) {
+            const formattedData = data.prices.map((price: any) => ({
+              date: new Date(price.timestamp).toISOString().split('T')[0],
+              value: price.price,
+            }));
+
+            const lastDataPoint = formattedData[formattedData.length - 1];
+            const today = new Date().toISOString().split('T')[0];
+
+            if (lastDataPoint.date !== today) {
+              formattedData.push({
+                date: today,
+                value: currentPrice,
+              });
+            } else {
+              formattedData[formattedData.length - 1].value = currentPrice;
+            }
+
+            setChartData(formattedData);
+          } else {
+            setChartData(generateFallbackData(currentPrice, period));
+            setIsSimulatedData(true);
+          }
+        } else {
+          setChartData(generateFallbackData(currentPrice, period));
+          setIsSimulatedData(true);
+        }
+      } catch (error) {
+        console.error('Error fetching stock prices:', error);
+        setChartData(generateFallbackData(currentPrice, period));
+        setIsSimulatedData(true);
+      } finally {
+        setIsLoadingChart(false);
+      }
+    };
+
+    fetchStockPrices();
+  }, [stockId, period, currentPrice, generateFallbackData]);
+
+  if (isLoadingChart) {
+    return (
+      <div className="flex items-center justify-center h-[300px]">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+      </div>
+    );
+  }
+
   return (
     <div key={animationKey} className="relative">
+      {isSimulatedData && (
+        <div className="absolute top-2 right-2 z-10 bg-orange-100 text-orange-800 text-xs px-2 py-1 rounded-md border border-orange-300 shadow-sm">
+          <span className="font-medium">{t('dashboard.simulatedData') || 'Simulated Data'}</span>
+        </div>
+      )}
       <style>{`
         @keyframes drawLine-${animationKey} {
           to {
@@ -40,27 +137,7 @@ const StockChart = React.memo<StockChartProps>(({ symbol, currentPrice, period, 
       }} className="aspect-auto h-[300px] w-full">
         <LineChart
           accessibilityLayer
-          data={(() => {
-            const basePrice = currentPrice;
-            let data: Array<{ date: string; value: number }> = [];
-            if (period === 'monthly') {
-              data = Array.from({ length: 30 }, (_, i) => ({
-                date: new Date(2024, 11, i + 1).toISOString().split('T')[0],
-                value: basePrice * (0.85 + Math.random() * 0.3),
-              }));
-            } else if (period === 'weekly') {
-              data = Array.from({ length: 7 }, (_, i) => ({
-                date: new Date(2024, 11, 18 + i).toISOString().split('T')[0],
-                value: basePrice * (0.95 + Math.random() * 0.1),
-              }));
-            } else {
-              data = Array.from({ length: 12 }, (_, i) => ({
-                date: new Date(2024, i, 1).toISOString().split('T')[0],
-                value: basePrice * (0.7 + Math.random() * 0.6),
-              }));
-            }
-            return data;
-          })()}
+          data={chartData}
           margin={{ left: 12, right: 12 }}
         >
           <CartesianGrid vertical={false} />
@@ -148,7 +225,7 @@ export const StockDetailModal = ({ isOpen, onClose, stock, onPurchaseSuccess }: 
   const fetchTrades = async () => {
     if (!stock) return;
     try {
-      const response = await fetch(`http://localhost:3001/api/investment/trades/${stock.id}?limit=20`, {
+      const response = await fetch(`${API_BASE_URL}/investment/trades/${stock.id}?limit=20`, {
         credentials: 'include',
       });
       if (response.ok) {
@@ -163,7 +240,7 @@ export const StockDetailModal = ({ isOpen, onClose, stock, onPurchaseSuccess }: 
   const fetchPendingOrders = async () => {
     if (!stock) return;
     try {
-      const response = await fetch(`http://localhost:3001/api/investment/orders?stockId=${stock.id}`, {
+      const response = await fetch(`${API_BASE_URL}/investment/orders?stockId=${stock.id}`, {
         credentials: 'include',
       });
       if (response.ok) {
@@ -181,7 +258,7 @@ export const StockDetailModal = ({ isOpen, onClose, stock, onPurchaseSuccess }: 
   const fetchOrderBook = async () => {
     if (!stock) return;
     try {
-      const response = await fetch(`http://localhost:3001/api/investment/orderbook/${stock.id}`, {
+      const response = await fetch(`${API_BASE_URL}/investment/orderbook/${stock.id}`, {
         credentials: 'include',
       });
       if (response.ok) {
@@ -198,7 +275,7 @@ export const StockDetailModal = ({ isOpen, onClose, stock, onPurchaseSuccess }: 
 
   const cancelOrder = async (orderId: string) => {
     try {
-      const response = await fetch(`http://localhost:3001/api/investment/order/${orderId}`, {
+      const response = await fetch(`${API_BASE_URL}/investment/order/${orderId}`, {
         method: 'DELETE',
         credentials: 'include',
       });
@@ -257,7 +334,7 @@ export const StockDetailModal = ({ isOpen, onClose, stock, onPurchaseSuccess }: 
   const fetchBalance = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch('http://localhost:3001/api/investment/balance', {
+      const response = await fetch(`${API_BASE_URL}/investment/balance`, {
         credentials: 'include',
       });
       if (response.ok) {
@@ -275,7 +352,7 @@ export const StockDetailModal = ({ isOpen, onClose, stock, onPurchaseSuccess }: 
     if (!stock) return;
 
     try {
-      const response = await fetch('http://localhost:3001/api/investment/portfolio', {
+      const response = await fetch(`${API_BASE_URL}/investment/portfolio`, {
         credentials: 'include',
       });
       if (response.ok) {
@@ -355,7 +432,7 @@ export const StockDetailModal = ({ isOpen, onClose, stock, onPurchaseSuccess }: 
         orderData.limitPrice = numericLimitPrice;
       }
 
-      const response = await fetch('http://localhost:3001/api/investment/order', {
+      const response = await fetch(`${API_BASE_URL}/investment/order`, {
         method: 'POST',
         credentials: 'include',
         headers: {
@@ -465,6 +542,7 @@ export const StockDetailModal = ({ isOpen, onClose, stock, onPurchaseSuccess }: 
                       currentPrice={stock.currentPrice}
                       period={period}
                       animationKey={animationKey}
+                      stockId={stock.id}
                     />
 
                     {/* Time & Sales + Market Depth Tabs */}
@@ -524,7 +602,7 @@ export const StockDetailModal = ({ isOpen, onClose, stock, onPurchaseSuccess }: 
                                   <span className="text-right">{t('dashboard.investmentPage.total')}</span>
                                 </div>
                                 {/* Trades List */}
-                                {trades.map((trade, index) => {
+                                {trades.slice(0, 10).map((trade, index) => {
                                   const tradeTime = new Date(trade.createdAt);
                                   const hours = tradeTime.getHours().toString().padStart(2, '0');
                                   const minutes = tradeTime.getMinutes().toString().padStart(2, '0');
