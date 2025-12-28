@@ -11,7 +11,8 @@ export class CreateNotificationUseCase {
     title: string,
     message: string,
     type: NotificationType,
-    advisorName: string | null = null
+    advisorName: string | null = null,
+    newsId: string | null = null
   ): Promise<Notification> {
     const notification = new Notification(
       randomUUID(),
@@ -21,7 +22,8 @@ export class CreateNotificationUseCase {
       type,
       advisorName,
       false,
-      new Date()
+      new Date(),
+      newsId
     );
 
     return await this.notificationRepository.addNotification(notification);

@@ -76,6 +76,31 @@ export const getAllNews = async (limit?: number, offset?: number): Promise<News[
   }));
 };
 
+export const getNewsById = async (newsId: string): Promise<News> => {
+  const response = await fetch(`${API_URL}/api/news/${newsId}`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    credentials: 'include',
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || error.error || 'Failed to fetch news');
+  }
+
+  const newsData: NewsResponse = await response.json();
+
+  return {
+    id: newsData.id,
+    title: newsData.title,
+    description: newsData.description,
+    authorId: newsData.authorId,
+    authorName: newsData.authorName,
+    createdAt: new Date(newsData.createdAt),
+  };
+};
 
 export const deleteNews = async (newsId: string): Promise<void> => {
   const response = await fetch(`${API_URL}/api/news/${newsId}`, {

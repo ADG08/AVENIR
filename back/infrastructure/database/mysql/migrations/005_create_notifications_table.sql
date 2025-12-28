@@ -12,11 +12,17 @@ CREATE TABLE IF NOT EXISTS notifications (
     advisor_name VARCHAR(255),
     `read` BOOLEAN NOT NULL DEFAULT FALSE,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    news_id VARCHAR(255) NULL,
 
     -- Foreign key to users table
     CONSTRAINT fk_notifications_user
         FOREIGN KEY (user_id) REFERENCES users(id)
         ON DELETE CASCADE,
+
+    -- Foreign key to news table (optional)
+    CONSTRAINT fk_notifications_news
+        FOREIGN KEY (news_id) REFERENCES news(id)
+        ON DELETE SET NULL,
 
     -- Check constraint for notification type
     CONSTRAINT notifications_type_check
@@ -58,3 +64,16 @@ SET @sql = IF(@index_exists = 0,
 PREPARE stmt FROM @sql;
 EXECUTE stmt;
 DEALLOCATE PREPARE stmt;
+
+-- Add index on news_id for faster lookups
+SET @index_exists = (SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS
+  WHERE TABLE_SCHEMA = DATABASE()
+  AND TABLE_NAME = 'notifications'
+  AND INDEX_NAME = 'idx_notifications_news_id');
+SET @sql = IF(@index_exists = 0,
+  'CREATE INDEX idx_notifications_news_id ON notifications(news_id)',
+  'SELECT 1');
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+

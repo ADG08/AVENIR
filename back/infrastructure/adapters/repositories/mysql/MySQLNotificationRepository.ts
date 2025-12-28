@@ -7,8 +7,8 @@ export class MySQLNotificationRepository implements NotificationRepository {
 
   async addNotification(notification: Notification): Promise<Notification> {
     const query = `
-      INSERT INTO notifications (id, user_id, title, message, type, advisor_name, \`read\`, created_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO notifications (id, user_id, title, message, type, advisor_name, \`read\`, created_at, news_id)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
     const values = [
@@ -20,6 +20,7 @@ export class MySQLNotificationRepository implements NotificationRepository {
       notification.advisorName,
       notification.read,
       notification.createdAt,
+      notification.newsId ?? null,
     ];
 
     await this.db.query(query, values);
@@ -46,7 +47,8 @@ export class MySQLNotificationRepository implements NotificationRepository {
           row.type as NotificationType,
           row.advisor_name,
           row.read,
-          new Date(row.created_at)
+          new Date(row.created_at),
+          row.news_id
         )
     );
   }
@@ -80,4 +82,3 @@ export class MySQLNotificationRepository implements NotificationRepository {
     await this.db.query(query, [notificationId]);
   }
 }
-

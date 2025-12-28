@@ -9,6 +9,7 @@ export class Notification {
     public readonly type: NotificationType,
     public readonly advisorName: string | null,
     public readonly read: boolean,
-    public readonly createdAt: Date
+    public readonly createdAt: Date,
+    public readonly newsId?: string | null
   ) {}
 }

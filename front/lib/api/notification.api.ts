@@ -12,6 +12,7 @@ export interface NotificationResponse {
   advisorName: string | null;
   read: boolean;
   createdAt: string;
+  newsId?: string | null;
 }
 
 export const getNotifications = async (): Promise<Notification[]> => {
@@ -35,6 +36,7 @@ export const getNotifications = async (): Promise<Notification[]> => {
     advisorName: notification.advisorName ?? undefined,
     read: notification.read,
     createdAt: new Date(notification.createdAt),
+    newsId: notification.newsId ?? undefined,
   }));
 };
 
