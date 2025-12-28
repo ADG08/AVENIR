@@ -138,17 +138,43 @@ docker compose exec mysql mysql -u avenir_user -pavenir_password avenir_db < bac
 GET http://localhost:3000/health
 ```
 
-### Users
-
-**GET /users/:id** - Récupérer un utilisateur
-
-**POST /users** - Créer un utilisateur
+### Client
 ```json
 {
-  "firstName": "John",
-  "lastName": "Doe",
-  "email": "john@example.com",
-  "identityNumber": "123456789",
-  "passcode": "securePassword123"
+  "firstName": "Clement",
+  "lastName": "Tine",
+  "email": "clement.tine@example.com",
+  "identityNumber": "CLIENT001",
+  "passcode": "password"
+}
+```
+### Conseillers
+```json
+{
+  "firstName": "Marie",
+  "lastName": "Martin",
+  "email": "marie.martin@avenir-bank.fr",
+  "identityNumber": "ADV001",
+  "passcode": "password"
+}
+```
+```json
+{
+  "firstName": "Thomas",
+  "lastName": "Bernard",
+  "email": "thomas.bernard@avenir-bank.fr",
+  "identityNumber": "ADV002",
+  "passcode": "password"
+}
+```
+
+### Directeur
+```json
+{
+  "firstName": "Pierre",
+  "lastName": "Durand",
+  "email": "pierre.durand@avenir-bank.fr",
+  "identityNumber": "DIR001",
+  "passcode": "password"
 }
 ```

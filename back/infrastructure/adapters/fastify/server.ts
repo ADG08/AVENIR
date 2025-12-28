@@ -19,6 +19,7 @@ import { AddUserUseCase } from '@avenir/application/usecases/user/AddUserUseCase
 import { RegisterUserUseCase } from '@avenir/application/usecases/user/RegisterUserUseCase';
 import { VerifyEmailUseCase } from '@avenir/application/usecases/user/VerifyEmailUseCase';
 import { LoginUserUseCase } from '@avenir/application/usecases/user/LoginUserUseCase';
+import { GetAdvisorClientsWithChatsAndLoansUseCase } from '@avenir/application/usecases/user/GetAdvisorClientsWithChatsAndLoansUseCase';
 import { NodemailerEmailService } from '../email/NodemailerEmailService';
 import { CreateChatUseCase } from '@avenir/application/usecases/chat/CreateChatUseCase';
 import { GetChatsUseCase } from '@avenir/application/usecases/chat/GetChatsUseCase';
@@ -48,9 +49,15 @@ const fastify = Fastify({
 
 const dbContext = RepositoryFactory.createDatabaseContext();
 
-// User
+// Repositories
 const userRepository = dbContext.userRepository;
 const accountRepository = dbContext.accountRepository;
+const chatRepository = dbContext.chatRepository;
+const messageRepository = dbContext.messageRepository;
+const newsRepository = dbContext.newsRepository;
+const notificationRepository = dbContext.notificationRepository;
+
+// User
 const emailService = new NodemailerEmailService();
 const getUserUseCase = new GetUserUseCase(userRepository);
 const getUsersUseCase = new GetUsersUseCase(userRepository);
@@ -58,12 +65,10 @@ const addUserUseCase = new AddUserUseCase(userRepository);
 const registerUserUseCase = new RegisterUserUseCase(userRepository, accountRepository, emailService);
 const verifyEmailUseCase = new VerifyEmailUseCase(userRepository, emailService);
 const loginUserUseCase = new LoginUserUseCase(userRepository);
-const userController = new UserController(getUserUseCase, getUsersUseCase, addUserUseCase, registerUserUseCase, verifyEmailUseCase, loginUserUseCase);
+const getAdvisorClientsWithChatsAndLoansUseCase = new GetAdvisorClientsWithChatsAndLoansUseCase(userRepository, chatRepository);
+const userController = new UserController(getUserUseCase, getUsersUseCase, addUserUseCase, registerUserUseCase, verifyEmailUseCase, loginUserUseCase, getAdvisorClientsWithChatsAndLoansUseCase);
 
 // Chat
-const chatRepository = dbContext.chatRepository;
-const messageRepository = dbContext.messageRepository;
-
 const createChatUseCase = new CreateChatUseCase(chatRepository, messageRepository, userRepository);
 const getChatsUseCase = new GetChatsUseCase(chatRepository, messageRepository, userRepository);
 const getChatByIdUseCase = new GetChatByIdUseCase(chatRepository, messageRepository);
@@ -89,8 +94,6 @@ const chatController = new ChatController(
 const messageController = new MessageController(sendMessageUseCase, markMessageAsReadUseCase, chatRepository);
 
 // News
-const newsRepository = dbContext.newsRepository;
-const notificationRepository = dbContext.notificationRepository;
 const createNewsUseCase = new CreateNewsUseCase(newsRepository, userRepository, notificationRepository);
 const getAllNewsUseCase = new GetAllNewsUseCase(newsRepository);
 const getNewsByIdUseCase = new GetNewsByIdUseCase(newsRepository);

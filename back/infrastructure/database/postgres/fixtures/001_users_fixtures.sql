@@ -18,7 +18,7 @@ VALUES (
     'Durand',
     'pierre.durand@avenir-bank.fr',
     'DIR001',
-    '$2b$10$v/NDOH5aws1CRVD6gbhgWeiBorIsLagnXSk5kP9ZnRmRYtRMysVc6',
+    '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
     'DIRECTOR',
     'ACTIVE',
     NOW() - INTERVAL '2 years',
@@ -37,7 +37,7 @@ VALUES
     'Martin',
     'marie.martin@avenir-bank.fr',
     'ADV001',
-    '$2b$10$v/NDOH5aws1CRVD6gbhgWeiBorIsLagnXSk5kP9ZnRmRYtRMysVc6',
+    '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
     'ADVISOR',
     'ACTIVE',
     NOW() - INTERVAL '1 year',
@@ -49,7 +49,7 @@ VALUES
     'Bernard',
     'thomas.bernard@avenir-bank.fr',
     'ADV002',
-    '$2b$10$v/NDOH5aws1CRVD6gbhgWeiBorIsLagnXSk5kP9ZnRmRYtRMysVc6',
+    '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
     'ADVISOR',
     'ACTIVE',
     NOW() - INTERVAL '1 year',
@@ -61,7 +61,7 @@ VALUES
     'Dubois',
     'sophie.dubois@avenir-bank.fr',
     'ADV003',
-    '$2b$10$v/NDOH5aws1CRVD6gbhgWeiBorIsLagnXSk5kP9ZnRmRYtRMysVc6',
+    '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
     'ADVISOR',
     'ACTIVE',
     NOW() - INTERVAL '6 months',
@@ -69,26 +69,27 @@ VALUES
 ) ON CONFLICT (id) DO NOTHING;
 
 -- =========================================
--- CLIENTS (5 + John Doe)
+-- CLIENTS (5)
 -- =========================================
 
--- John Doe (utilisateur existant à préserver)
-INSERT INTO users (id, first_name, last_name, email, identity_number, passcode, role, state, created_at, updated_at)
+-- Clement Tine (utilisateur existant à préserver)
+INSERT INTO users (id, first_name, last_name, email, identity_number, passcode, role, state, advisor_id, created_at, updated_at)
 VALUES (
     'b2c3d4e5-6f7a-8b9c-0d1e-2f3a4b5c6d7e',
-    'John',
-    'Doe',
-    'john.doe@example.com',
-    'JD001',
-    '$2b$10$v/NDOH5aws1CRVD6gbhgWeiBorIsLagnXSk5kP9ZnRmRYtRMysVc6',
+    'Clement',
+    'Tine',
+    'clement.tine@example.com',
+    'CLIENT001',
+    '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
     'CLIENT',
     'ACTIVE',
+    'd1f5a6b4-8e2a-7d5f-1c9b-4a7e0f2b5d8c', -- Marie Martin
     NOW() - INTERVAL '6 months',
     NOW()
 ) ON CONFLICT (id) DO NOTHING;
 
 -- Autres clients
-INSERT INTO users (id, first_name, last_name, email, identity_number, passcode, role, state, created_at, updated_at)
+INSERT INTO users (id, first_name, last_name, email, identity_number, passcode, role, state, advisor_id, created_at, updated_at)
 VALUES
 (
     'f7f35a80-0a07-4f07-a429-70be5f5c4d86',
@@ -96,9 +97,10 @@ VALUES
     'Dupont',
     'jean.dupont@gmail.com',
     'CLI001',
-    '$2b$10$v/NDOH5aws1CRVD6gbhgWeiBorIsLagnXSk5kP9ZnRmRYtRMysVc6',
+    '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
     'CLIENT',
     'ACTIVE',
+    'd1f5a6b4-8e2a-7d5f-1c9b-4a7e0f2b5d8c', -- Marie Martin
     NOW() - INTERVAL '3 months',
     NOW()
 ),
@@ -108,9 +110,10 @@ VALUES
     'Leroy',
     'emma.leroy@gmail.com',
     'CLI002',
-    '$2b$10$v/NDOH5aws1CRVD6gbhgWeiBorIsLagnXSk5kP9ZnRmRYtRMysVc6',
+    '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
     'CLIENT',
     'ACTIVE',
+    'e2a6b7c5-9f3b-8e6a-2d0c-5b8f1a3c6e9d', -- Thomas Bernard
     NOW() - INTERVAL '2 months',
     NOW()
 ),
@@ -120,9 +123,10 @@ VALUES
     'Moreau',
     'lucas.moreau@gmail.com',
     'CLI003',
-    '$2b$10$v/NDOH5aws1CRVD6gbhgWeiBorIsLagnXSk5kP9ZnRmRYtRMysVc6',
+    '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
     'CLIENT',
     'ACTIVE',
+    'e2a6b7c5-9f3b-8e6a-2d0c-5b8f1a3c6e9d', -- Thomas Bernard
     NOW() - INTERVAL '1 month',
     NOW()
 ),
@@ -132,9 +136,10 @@ VALUES
     'Simon',
     'lea.simon@gmail.com',
     'CLI004',
-    '$2b$10$v/NDOH5aws1CRVD6gbhgWeiBorIsLagnXSk5kP9ZnRmRYtRMysVc6',
+    '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
     'CLIENT',
     'ACTIVE',
+    'a1b2c3d4-5e6f-7a8b-9c0d-1e2f3a4b5c6d', -- Sophie Dubois
     NOW() - INTERVAL '2 weeks',
     NOW()
 ),
@@ -144,9 +149,10 @@ VALUES
     'Laurent',
     'hugo.laurent@gmail.com',
     'CLI005',
-    '$2b$10$v/NDOH5aws1CRVD6gbhgWeiBorIsLagnXSk5kP9ZnRmRYtRMysVc6',
+    '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
     'CLIENT',
     'ACTIVE',
+    'd1f5a6b4-8e2a-7d5f-1c9b-4a7e0f2b5d8c', -- Marie Martin
     NOW() - INTERVAL '1 week',
     NOW()
 ) ON CONFLICT (id) DO NOTHING;
@@ -155,19 +161,19 @@ VALUES
 -- COMPTES BANCAIRES pour quelques clients
 -- =========================================
 
--- Compte pour John Doe
+-- Comptes pour Clement Tine
 INSERT INTO accounts (id, user_id, iban, name, type, balance, currency, card_number, card_holder_name, card_expiry_date, card_cvv, saving_rate_id, created_at)
 VALUES
 (
     'e3f6a7b5-9c2d-8e3f-0a4b-1d5c9e6a2b7c',
     'b2c3d4e5-6f7a-8b9c-0d1e-2f3a4b5c6d7e',
     'FR7612345678901234567890128',
-    'Compte Courant - John Doe',
+    'Compte Courant - Clement Tine',
     'CURRENT',
     2500.00,
     'EUR',
     '4444444444444444',
-    'JOHN DOE',
+    'CLEMENT TINE',
     '12/29',
     '321',
     NULL,
@@ -177,7 +183,7 @@ VALUES
     'f4a7b8c6-0d3e-9f4a-1b5c-2e6d0a7b3c8d',
     'b2c3d4e5-6f7a-8b9c-0d1e-2f3a4b5c6d7e',
     'FR7612345678901234567890129',
-    'Livret Épargne - John Doe',
+    'Livret Épargne - Clement Tine',
     'SAVINGS',
     10000.00,
     'EUR',

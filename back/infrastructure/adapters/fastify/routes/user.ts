@@ -3,6 +3,7 @@ import { UserController } from '../controllers/UserController';
 import { AddUserRequest, RegisterUserRequest, LoginUserRequest } from '../../../../application/requests';
 import { registrationSchema, loginSchema } from '@avenir/shared';
 import { ZodError } from 'zod';
+import {authMiddleware} from "../middleware/authMiddleware";
 
 export async function userRoutes(
     fastify: FastifyInstance,
@@ -24,8 +25,7 @@ export async function userRoutes(
 
     fastify.post('/register', async (request: FastifyRequest<{ Body: RegisterUserRequest }>, reply: FastifyReply) => {
         try {
-            const validatedData = registrationSchema.parse(request.body);
-            request.body = validatedData;
+            request.body = registrationSchema.parse(request.body);
             return userController.registerUser(request, reply);
         } catch (error) {
             if (error instanceof ZodError) {
@@ -65,5 +65,12 @@ export async function userRoutes(
         }
         return userController.verifyEmail(request, reply);
     });
-}
 
+    fastify.get(
+        '/advisors/:advisorId/clients',
+        { preHandler: authMiddleware },
+        async (request, reply) => {
+            return userController.getAdvisorClients(request as any, reply);
+        }
+    );
+}
