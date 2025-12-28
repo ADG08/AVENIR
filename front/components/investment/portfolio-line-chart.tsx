@@ -20,6 +20,8 @@ interface PortfolioLineChartProps {
   change: string;
   isPositive: boolean;
   data: Array<{ date: string; value: number }>;
+  period: 'yearly' | 'monthly' | 'weekly';
+  onPeriodChange: (period: 'yearly' | 'monthly' | 'weekly') => void;
 }
 
 export const PortfolioLineChart = ({
@@ -29,9 +31,10 @@ export const PortfolioLineChart = ({
   change,
   isPositive,
   data,
+  period,
+  onPeriodChange,
 }: PortfolioLineChartProps) => {
   const { t } = useLanguage();
-  const [period, setPeriod] = React.useState('yearly');
 
   const chartConfig = {
     value: {
@@ -40,37 +43,13 @@ export const PortfolioLineChart = ({
     },
   } satisfies ChartConfig;
 
-  const getFilteredData = () => {
-    if (period === 'monthly') {
-      return [
-        { date: '2024-12-01', value: 127000 },
-        { date: '2024-12-08', value: 131500 },
-        { date: '2024-12-15', value: 129000 },
-        { date: '2024-12-22', value: 134815 },
-      ];
-    } else if (period === 'weekly') {
-      return [
-        { date: '2024-12-18', value: 132000 },
-        { date: '2024-12-19', value: 134000 },
-        { date: '2024-12-20', value: 133200 },
-        { date: '2024-12-21', value: 135500 },
-        { date: '2024-12-22', value: 134200 },
-        { date: '2024-12-23', value: 136000 },
-        { date: '2024-12-24', value: 134815 },
-      ];
-    }
-    return data;
-  };
-
-  const filteredData = getFilteredData();
-
   return (
     <Card className="py-4 sm:py-0">
       <CardHeader className="flex flex-col border-b !p-0">
         <div className="flex flex-col gap-4 px-6 pb-4 pt-6">
           <div className="flex items-center justify-between">
             <CardTitle className="font-manrope text-lg font-semibold text-gray-900">{title}</CardTitle>
-            <Select value={period} onValueChange={setPeriod}>
+            <Select value={period} onValueChange={onPeriodChange}>
               <SelectTrigger className="h-9 w-[115px] text-xs sm:h-10 sm:w-[140px] sm:text-sm">
                 <SelectValue placeholder={t('dashboard.investmentPage.selectPeriod')} />
               </SelectTrigger>
@@ -102,7 +81,7 @@ export const PortfolioLineChart = ({
         <ChartContainer config={chartConfig} className="aspect-auto h-[250px] w-full">
           <LineChart
             accessibilityLayer
-            data={filteredData}
+            data={data}
             margin={{
               left: 12,
               right: 12,

@@ -82,4 +82,16 @@ export async function investmentRoutes(fastify: FastifyInstance, options: Invest
         { preHandler: authMiddleware },
         async (request, reply) => investmentController.getStockPrices(request, reply)
     );
+
+    fastify.get<{ Querystring: { period?: string } }>(
+        '/portfolio/history',
+        { preHandler: authMiddleware },
+        async (request, reply) => investmentController.getPortfolioHistory(request, reply)
+    );
+
+    fastify.get<{ Querystring: { period?: string } }>(
+        '/profits/breakdown',
+        { preHandler: authMiddleware },
+        async (request, reply) => investmentController.getProfitsBreakdown(request, reply)
+    );
 }

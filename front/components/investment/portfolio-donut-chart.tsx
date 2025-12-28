@@ -15,6 +15,8 @@ interface PortfolioDonutChartProps {
   centerLabel: string;
   data: Array<{ name: string; value: number; fill: string }>;
   config: ChartConfig;
+  period: 'yearly' | 'monthly' | 'weekly';
+  onPeriodChange: (period: 'yearly' | 'monthly' | 'weekly') => void;
 }
 
 export const PortfolioDonutChart = ({
@@ -24,42 +26,10 @@ export const PortfolioDonutChart = ({
   centerLabel,
   data,
   config,
+  period,
+  onPeriodChange,
 }: PortfolioDonutChartProps) => {
   const { t } = useLanguage();
-  const [period, setPeriod] = React.useState('yearly');
-
-  const getFilteredData = () => {
-    if (period === 'monthly') {
-      return [
-        { name: 'stocks', value: 1850, fill: 'hsl(262, 83%, 58%)' },
-        { name: 'funds', value: 380, fill: 'hsl(270, 70%, 62%)' },
-        { name: 'bonds', value: 220, fill: 'hsl(330, 81%, 60%)' },
-        { name: 'realStocks', value: 150, fill: 'hsl(24, 100%, 50%)' },
-      ];
-    } else if (period === 'weekly') {
-      return [
-        { name: 'stocks', value: 195, fill: 'hsl(262, 83%, 58%)' },
-        { name: 'funds', value: 135, fill: 'hsl(270, 70%, 62%)' },
-        { name: 'bonds', value: 98, fill: 'hsl(330, 81%, 60%)' },
-        { name: 'realStocks', value: 72, fill: 'hsl(24, 100%, 50%)' },
-      ];
-    }
-    return data;
-  };
-
-  const filteredData = getFilteredData();
-
-  const getTotalAmount = () => {
-    if (period === 'monthly') return '$2,600';
-    if (period === 'weekly') return '$500';
-    return totalAmount;
-  };
-
-  const getCenterLabel = () => {
-    if (period === 'monthly') return `$85.50 ${t('dashboard.investmentPage.thisMonth')}`;
-    if (period === 'weekly') return `$18.20 ${t('dashboard.investmentPage.thisWeek')}`;
-    return `$278.90 ${t('dashboard.investmentPage.thisYear')}`;
-  };
 
   return (
     <Card className="flex h-full flex-col">
@@ -69,7 +39,7 @@ export const PortfolioDonutChart = ({
             <CardTitle className="text-lg font-semibold text-gray-900">{title}</CardTitle>
             <CardDescription className="text-sm text-gray-500">{description}</CardDescription>
           </div>
-          <Select value={period} onValueChange={setPeriod}>
+          <Select value={period} onValueChange={onPeriodChange}>
             <SelectTrigger className="h-9 w-[115px] text-xs sm:h-10 sm:w-[140px] sm:text-sm">
               <SelectValue placeholder={t('dashboard.investmentPage.selectPeriod')} />
             </SelectTrigger>
@@ -112,7 +82,7 @@ export const PortfolioDonutChart = ({
                 );
               }}
             />
-            <Pie data={filteredData} dataKey="value" nameKey="name" innerRadius={95} strokeWidth={5}>
+            <Pie data={data} dataKey="value" nameKey="name" innerRadius={95} strokeWidth={5}>
               <Label
                 content={({ viewBox }) => {
                   if (viewBox && 'cx' in viewBox && 'cy' in viewBox) {
@@ -124,7 +94,7 @@ export const PortfolioDonutChart = ({
                             y={viewBox.cy}
                             className="fill-foreground text-3xl font-bold"
                           >
-                            {getTotalAmount()}
+                            {totalAmount}
                           </tspan>
                         </text>
                         <foreignObject
@@ -135,7 +105,7 @@ export const PortfolioDonutChart = ({
                         >
                           <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground">
                             <ArrowUp className="h-3 w-3 text-green-600" />
-                            <span>{getCenterLabel()}</span>
+                            <span>{centerLabel}</span>
                           </div>
                         </foreignObject>
                       </g>
@@ -147,7 +117,7 @@ export const PortfolioDonutChart = ({
           </PieChart>
         </ChartContainer>
         <div className="mt-2 flex flex-wrap items-center justify-center gap-4">
-          {filteredData.map((item) => {
+          {data.map((item) => {
             const itemConfig = config[item.name as keyof typeof config];
             return (
               <div key={item.name} className="flex items-center gap-2">

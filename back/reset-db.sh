@@ -133,6 +133,7 @@ FIXTURES=(
     "portfolios_fixtures.sql"
     "order_book_fixtures.sql"
     "trades_fixtures.sql"
+    "hugo_laurent_trades_fixtures.sql"
     "user_actions_fixtures.sql"
     "chat_fixtures.sql"
 )

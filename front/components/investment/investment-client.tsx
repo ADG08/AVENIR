@@ -17,9 +17,18 @@ import type { Stock } from '@/components/investment/types';
 import type { PortfolioSummary, StockData } from '@/types/investment';
 import { fetchJSON } from '@/lib/api-client';
 import { getAvatarUrl, formatCurrency, formatPercent, getStockColor } from '@/lib/investment-utils';
-import { PORTFOLIO_CHART_DATA, PROFITS_CHART_DATA, MARKET_INSIGHTS } from '@/constants/investment';
+import { MARKET_INSIGHTS } from '@/constants/investment';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+
+const CHART_COLORS = [
+  'hsl(262, 83%, 58%)',
+  'hsl(270, 70%, 62%)',
+  'hsl(330, 81%, 60%)',
+  'hsl(24, 100%, 50%)',
+  'hsl(142, 76%, 36%)',
+  'hsl(221, 83%, 53%)',
+];
 
 interface InvestmentClientProps {
   initialStocks: StockData[];
@@ -34,6 +43,9 @@ export const InvestmentClient = ({ initialStocks, initialPortfolio }: Investment
   const [stocks, setStocks] = useState<StockData[]>(initialStocks);
   const [portfolio, setPortfolio] = useState<PortfolioSummary | null>(initialPortfolio);
   const [isLoading, setIsLoading] = useState(false);
+  const [period, setPeriod] = useState<'yearly' | 'monthly' | 'weekly'>('yearly');
+  const [portfolioHistory, setPortfolioHistory] = useState<Array<{ date: string; value: number }>>([]);
+  const [profitsBreakdown, setProfitsBreakdown] = useState<Array<{ symbol: string; name: string; profitLoss: number; percentage: number }>>([]);
 
   const fetchStocks = async () => {
     const data = await fetchJSON<StockData[]>(`${API_BASE_URL}/api/investment/stocks`);
@@ -45,8 +57,22 @@ export const InvestmentClient = ({ initialStocks, initialPortfolio }: Investment
     if (data) setPortfolio(data);
   };
 
+  const fetchPortfolioHistory = async (selectedPeriod: string) => {
+    const data = await fetchJSON<{ history: Array<{ date: string; value: number }> }>(
+      `${API_BASE_URL}/api/investment/portfolio/history?period=${selectedPeriod}`
+    );
+    if (data) setPortfolioHistory(data.history);
+  };
+
+  const fetchProfitsBreakdown = async (selectedPeriod: string) => {
+    const data = await fetchJSON<{ breakdown: Array<{ symbol: string; name: string; profitLoss: number; percentage: number }> }>(
+      `${API_BASE_URL}/api/investment/profits/breakdown?period=${selectedPeriod}`
+    );
+    if (data) setProfitsBreakdown(data.breakdown);
+  };
+
   const refreshData = async () => {
-    await Promise.all([fetchStocks(), fetchPortfolio()]);
+    await Promise.all([fetchStocks(), fetchPortfolio(), fetchPortfolioHistory(period), fetchProfitsBreakdown(period)]);
   };
 
   useEffect(() => {
@@ -55,6 +81,11 @@ export const InvestmentClient = ({ initialStocks, initialPortfolio }: Investment
       refreshData().finally(() => setIsLoading(false));
     }
   }, []);
+
+  useEffect(() => {
+    fetchPortfolioHistory(period);
+    fetchProfitsBreakdown(period);
+  }, [period]);
 
   const handleStockClick = (stock: Stock) => {
     setSelectedStock(stock);
@@ -72,13 +103,21 @@ export const InvestmentClient = ({ initialStocks, initialPortfolio }: Investment
     currentPrice: stock.currentPrice,
   }));
 
-  const profitsChartConfig = {
-    value: { label: t('dashboard.investmentPage.profit') },
-    stocks: { label: t('dashboard.investmentPage.stocks'), color: 'hsl(262, 83%, 58%)' },
-    funds: { label: t('dashboard.investmentPage.funds'), color: 'hsl(270, 70%, 62%)' },
-    bonds: { label: t('dashboard.investmentPage.bonds'), color: 'hsl(330, 81%, 60%)' },
-    realStocks: { label: t('dashboard.investmentPage.realStocks'), color: 'hsl(24, 100%, 50%)' },
-  } satisfies ChartConfig;
+  const profitsChartData = profitsBreakdown.map((item, index) => ({
+    name: item.symbol,
+    value: item.profitLoss,
+    fill: CHART_COLORS[index % CHART_COLORS.length],
+  }));
+
+  const profitsChartConfig = profitsBreakdown.reduce((config, item) => {
+    config[item.symbol] = {
+      label: item.name,
+      color: profitsChartData.find(d => d.name === item.symbol)?.fill || 'hsl(262, 83%, 58%)',
+    };
+    return config;
+  }, {} as Record<string, { label: string; color: string }>) satisfies ChartConfig;
+
+  const totalProfits = profitsBreakdown.reduce((sum, item) => sum + item.profitLoss, 0);
 
   const distributionItems = portfolio?.positions.map(position => ({
     symbol: position.symbol,
@@ -138,7 +177,9 @@ export const InvestmentClient = ({ initialStocks, initialPortfolio }: Investment
               currentValue={formatCurrency(portfolio?.totalValue ?? 0)}
               change={formatPercent(portfolio?.totalProfitLossPercent ?? 0)}
               isPositive={(portfolio?.totalProfitLossPercent ?? 0) >= 0}
-              data={PORTFOLIO_CHART_DATA}
+              data={portfolioHistory}
+              period={period}
+              onPeriodChange={setPeriod}
             />
           </motion.div>
 
@@ -151,10 +192,12 @@ export const InvestmentClient = ({ initialStocks, initialPortfolio }: Investment
             <PortfolioDonutChart
               title={t('dashboard.investmentPage.totalProfits')}
               description=""
-              totalAmount={formatCurrency(portfolio?.totalProfitLoss ?? 0)}
+              totalAmount={formatCurrency(totalProfits)}
               centerLabel={`${formatPercent(portfolio?.totalProfitLossPercent ?? 0)} total`}
-              data={PROFITS_CHART_DATA}
+              data={profitsChartData}
               config={profitsChartConfig}
+              period={period}
+              onPeriodChange={setPeriod}
             />
           </motion.div>
         </div>

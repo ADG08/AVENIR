@@ -25,6 +25,28 @@ export class InvestmentController {
         private orderMatchingService: OrderMatchingService
     ) { }
 
+    private getStartDateByPeriod(period: string | undefined, allTrades: any[]): Date {
+        const now = new Date();
+
+        if (period === 'weekly') {
+            now.setDate(now.getDate() - 7);
+            return now;
+        }
+
+        if (period === 'monthly') {
+            now.setMonth(now.getMonth() - 1);
+            return now;
+        }
+
+        if (allTrades.length > 0) {
+            const sortedTrades = [...allTrades].sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
+            return sortedTrades[0].createdAt;
+        }
+
+        now.setFullYear(now.getFullYear() - 1);
+        return now;
+    }
+
     async getStocks(request: FastifyRequest, reply: FastifyReply) {
         try {
             const stocks = await this.stockRepository.getAllActive();
@@ -627,6 +649,231 @@ export class InvestmentController {
         } catch (error) {
             console.error('Error fetching stock prices:', error);
             return reply.status(500).send({ error: 'Failed to fetch stock prices' });
+        }
+    }
+
+    async getPortfolioHistory(request: FastifyRequest<{ Querystring: { period?: string } }>, reply: FastifyReply) {
+        try {
+            if (!request.user) {
+                return reply.status(401).send({ error: 'Unauthorized' });
+            }
+
+            const userId = request.user.userId;
+            const { period } = request.query;
+
+            const portfolios = await this.portfolioRepository.getByUserId(userId);
+            if (portfolios.length === 0) {
+                return reply.status(200).send({ history: [] });
+            }
+
+            const stockIds = portfolios.map(p => p.stock.id);
+
+            const allUserTrades: any[] = [];
+            for (const stockId of stockIds) {
+                const trades = await this.tradeRepository.getByStockId(stockId);
+                allUserTrades.push(...trades.filter(t => t.buyer.id === userId || t.seller.id === userId));
+            }
+
+            const allTradesForPrices: any[] = [];
+            for (const stockId of stockIds) {
+                const trades = await this.tradeRepository.getByStockId(stockId);
+                allTradesForPrices.push(...trades);
+            }
+            allTradesForPrices.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
+
+            const priceHistory = new Map<string, Map<string, number>>();
+            for (const trade of allTradesForPrices) {
+                const stockId = trade.stock.id;
+                const dateKey = trade.createdAt.toISOString().split('T')[0];
+
+                if (!priceHistory.has(stockId)) {
+                    priceHistory.set(stockId, new Map());
+                }
+                priceHistory.get(stockId)!.set(dateKey, trade.price);
+            }
+
+            const startDate = this.getStartDateByPeriod(period, allUserTrades);
+
+            const filteredTrades = allUserTrades.filter(trade => trade.createdAt >= startDate);
+            filteredTrades.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
+
+            const valueByDate = new Map<string, number>();
+            const holdings = new Map<string, { quantity: number }>();
+
+            const getPriceAtDate = (stockId: string, targetDate: string): number => {
+                const stockPrices = priceHistory.get(stockId);
+                if (!stockPrices) {
+                    return portfolios.find(p => p.stock.id === stockId)?.stock.currentPrice || 0;
+                }
+
+                let price = 0;
+                for (const [date, p] of Array.from(stockPrices.entries()).sort()) {
+                    if (date <= targetDate) {
+                        price = p;
+                    } else {
+                        break;
+                    }
+                }
+
+                return price || portfolios.find(p => p.stock.id === stockId)?.stock.currentPrice || 0;
+            };
+
+            if (period === 'weekly' || period === 'monthly') {
+                const tradesBeforePeriod = allUserTrades.filter(trade => trade.createdAt < startDate);
+                for (const trade of tradesBeforePeriod) {
+                    const isBuy = trade.buyer.id === userId;
+                    const stockId = trade.stock.id;
+
+                    if (!holdings.has(stockId)) {
+                        holdings.set(stockId, { quantity: 0 });
+                    }
+
+                    const holding = holdings.get(stockId)!;
+
+                    if (isBuy) {
+                        holding.quantity += trade.quantity;
+                    } else {
+                        holding.quantity -= trade.quantity;
+                    }
+                }
+
+                const startDateKey = startDate.toISOString().split('T')[0];
+                let initialValue = 0;
+                for (const [hStockId, hData] of holdings.entries()) {
+                    const priceAtStart = getPriceAtDate(hStockId, startDateKey);
+                    initialValue += hData.quantity * priceAtStart;
+                }
+                if (initialValue > 0) {
+                    valueByDate.set(startDateKey, initialValue);
+                }
+            }
+
+            for (const trade of filteredTrades) {
+                const isBuy = trade.buyer.id === userId;
+                const stockId = trade.stock.id;
+
+                if (!holdings.has(stockId)) {
+                    holdings.set(stockId, { quantity: 0 });
+                }
+
+                const holding = holdings.get(stockId)!;
+
+                if (isBuy) {
+                    holding.quantity += trade.quantity;
+                } else {
+                    holding.quantity -= trade.quantity;
+                }
+
+                const dateKey = trade.createdAt.toISOString().split('T')[0];
+                let totalValue = 0;
+
+                for (const [hStockId, hData] of holdings.entries()) {
+                    const historicalPrice = getPriceAtDate(hStockId, dateKey);
+                    totalValue += hData.quantity * historicalPrice;
+                }
+
+                valueByDate.set(dateKey, totalValue);
+            }
+
+            const currentValue = portfolios.reduce((sum, p) => sum + p.getCurrentValue(), 0);
+            const today = new Date().toISOString().split('T')[0];
+            valueByDate.set(today, currentValue);
+
+            const history = Array.from(valueByDate.entries())
+                .map(([date, value]) => ({
+                    date,
+                    value: parseFloat(value.toFixed(2)),
+                }))
+                .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+            return reply.status(200).send({
+                period: period || 'yearly',
+                history,
+            });
+        } catch (error) {
+            console.error('Error fetching portfolio history:', error);
+            return reply.status(500).send({ error: 'Failed to fetch portfolio history' });
+        }
+    }
+
+    async getProfitsBreakdown(request: FastifyRequest<{ Querystring: { period?: string } }>, reply: FastifyReply) {
+        try {
+            if (!request.user) {
+                return reply.status(401).send({ error: 'Unauthorized' });
+            }
+
+            const userId = request.user.userId;
+            const { period } = request.query;
+
+            const portfolios = await this.portfolioRepository.getByUserId(userId);
+            if (portfolios.length === 0) {
+                return reply.status(200).send({ breakdown: [] });
+            }
+
+            const allUserTrades: any[] = [];
+            for (const portfolio of portfolios) {
+                const trades = await this.tradeRepository.getByStockId(portfolio.stock.id);
+                allUserTrades.push(...trades.filter(t => t.buyer.id === userId || t.seller.id === userId));
+            }
+
+            const startDate = period ? this.getStartDateByPeriod(period, allUserTrades) : undefined;
+
+            const breakdown = await Promise.all(portfolios.map(async (portfolio) => {
+                let profitLoss = 0;
+
+                if (!startDate) {
+                    profitLoss = portfolio.getProfitLoss();
+                } else {
+                    let allTrades = await this.tradeRepository.getByStockId(portfolio.stock.id);
+                    allTrades = allTrades.filter(t => t.buyer.id === userId || t.seller.id === userId);
+
+                    let quantityAtStart = 0;
+                    let quantityAtEnd = 0;
+
+                    for (const trade of allTrades) {
+                        const isBuy = trade.buyer.id === userId;
+                        const qty = isBuy ? trade.quantity : -trade.quantity;
+
+                        if (trade.createdAt < startDate) {
+                            quantityAtStart += qty;
+                        }
+                        quantityAtEnd += qty;
+                    }
+
+                    const tradesInPeriod = allTrades.filter(t => t.createdAt >= startDate);
+                    const priceAtStart = tradesInPeriod.length > 0
+                        ? tradesInPeriod[0].price
+                        : portfolio.stock.currentPrice;
+
+                    const valueAtStart = quantityAtStart * priceAtStart;
+                    const valueAtEnd = quantityAtEnd * portfolio.stock.currentPrice;
+
+                    profitLoss = valueAtEnd - valueAtStart;
+                }
+
+                return {
+                    symbol: portfolio.stock.symbol,
+                    name: portfolio.stock.name,
+                    profitLoss: parseFloat(profitLoss.toFixed(2)),
+                    percentage: 0,
+                };
+            }));
+
+            const totalProfits = breakdown.reduce((sum, item) => sum + Math.max(0, item.profitLoss), 0);
+            breakdown.forEach(item => {
+                item.percentage = totalProfits > 0 ? (Math.max(0, item.profitLoss) / totalProfits) * 100 : 0;
+            });
+
+            const filteredBreakdown = breakdown.filter(item => item.profitLoss > 0);
+
+            return reply.status(200).send({
+                period: period || 'yearly',
+                breakdown: filteredBreakdown,
+                totalProfits: parseFloat(totalProfits.toFixed(2)),
+            });
+        } catch (error) {
+            console.error('Error fetching profits breakdown:', error);
+            return reply.status(500).send({ error: 'Failed to fetch profits breakdown' });
         }
     }
 }
