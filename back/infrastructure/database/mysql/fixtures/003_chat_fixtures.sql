@@ -188,53 +188,42 @@ LIMIT 1 OFFSET 1;
 
 -- Chat 4: Chat fermé (CLOSED)
 INSERT INTO chats (id, client_id, advisor_id, status, created_at, updated_at)
-SELECT
+VALUES (
     'chat-closed-1',
-    c.id,
-    a.id,
+    'b2c3d4e5-6f7a-8b9c-0d1e-2f3a4b5c6d7e', -- Clement Tine
+    'a1b2c3d4-5e6f-7a8b-9c0d-1e2f3a4b5c6d', -- Sophie Dubois
     'CLOSED',
     DATE_SUB(NOW(), INTERVAL 7 DAY),
     DATE_SUB(NOW(), INTERVAL 5 DAY)
-FROM
-    (SELECT id FROM users WHERE role = 'CLIENT' LIMIT 1) c,
-    (SELECT id FROM users WHERE role = 'ADVISOR' LIMIT 1) a;
+);
 
 -- Messages pour le chat fermé
 INSERT INTO messages (id, chat_id, sender_id, content, is_read, created_at)
-SELECT
+VALUES
+(
     'msg-closed-1-1',
     'chat-closed-1',
-    u.id,
+    'b2c3d4e5-6f7a-8b9c-0d1e-2f3a4b5c6d7e', -- Clement Tine
     'Bonjour, j\'ai une question sur ma carte bancaire. Comment augmenter mon plafond ?',
     TRUE,
     DATE_SUB(NOW(), INTERVAL 7 DAY)
-FROM users u
-WHERE u.role = 'CLIENT'
-LIMIT 1;
-
-INSERT INTO messages (id, chat_id, sender_id, content, is_read, created_at)
-SELECT
+),
+(
     'msg-closed-1-2',
     'chat-closed-1',
-    u.id,
+    'a1b2c3d4-5e6f-7a8b-9c0d-1e2f3a4b5c6d', -- Sophie Dubois
     'Bonjour ! Pour augmenter votre plafond, vous pouvez faire la demande directement depuis votre espace client, section "Paramètres de carte". La modification sera effective sous 24h.',
     TRUE,
     DATE_SUB(DATE_SUB(NOW(), INTERVAL 6 DAY), INTERVAL 23 HOUR)
-FROM users u
-WHERE u.role = 'ADVISOR'
-LIMIT 1;
-
-INSERT INTO messages (id, chat_id, sender_id, content, is_read, created_at)
-SELECT
+),
+(
     'msg-closed-1-3',
     'chat-closed-1',
-    u.id,
+    'b2c3d4e5-6f7a-8b9c-0d1e-2f3a4b5c6d7e', -- Clement Tine
     'Parfait, merci beaucoup pour votre aide !',
     TRUE,
     DATE_SUB(NOW(), INTERVAL 5 DAY)
-FROM users u
-WHERE u.role = 'CLIENT'
-LIMIT 1;
+);
 
 -- Afficher un résumé des données insérées
 SELECT

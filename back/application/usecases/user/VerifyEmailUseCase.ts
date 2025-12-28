@@ -2,8 +2,8 @@ import { User } from "../../../domain/entities/User";
 import { UserRepository } from "../../../domain/repositories/UserRepository";
 import { EmailService } from "../../../domain/services/EmailService";
 import { UserState } from "../../../domain/enumerations/UserState";
-import { VerifyEmailRequest } from "../../requests/VerifyEmailRequest";
-import { VerifyEmailResponse, VerifyEmailResponseMapper } from "../../responses/VerifyEmailResponse";
+import { VerifyEmailRequest } from "../../requests";
+import { VerifyEmailResponse, VerifyEmailResponseMapper } from "../../responses";
 import {
     InvalidVerificationTokenError,
     EmailAlreadyVerifiedError,
@@ -50,7 +50,8 @@ export class VerifyEmailUseCase {
             user.orders,
             user.createdAt,
             undefined,
-            new Date()
+            new Date(),
+            user.advisorId
         );
 
         await this.userRepository.update(verifiedUser);

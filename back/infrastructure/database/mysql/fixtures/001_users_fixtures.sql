@@ -16,12 +16,12 @@ SET CHARACTER_SET_CLIENT = utf8mb4;
 
 INSERT INTO users (id, first_name, last_name, email, identity_number, passcode, role, state, created_at, updated_at)
 VALUES (
-    'dir-001',
+    'f3b7c8d6-0a4c-9f7b-3e1d-6c9a2b4d7f0e',
     'Pierre',
     'Durand',
     'pierre.durand@avenir-bank.fr',
     'DIR001',
-    '$2b$10$YourHashedPasswordHere', -- À remplacer par un vrai hash bcrypt
+    '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
     'DIRECTOR',
     'ACTIVE',
     DATE_SUB(NOW(), INTERVAL 2 YEAR),
@@ -35,121 +35,127 @@ VALUES (
 INSERT INTO users (id, first_name, last_name, email, identity_number, passcode, role, state, created_at, updated_at)
 VALUES
 (
-    'adv-001',
+    'd1f5a6b4-8e2a-7d5f-1c9b-4a7e0f2b5d8c',
     'Marie',
     'Martin',
     'marie.martin@avenir-bank.fr',
     'ADV001',
-    '$2b$10$YourHashedPasswordHere',
+    '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
     'ADVISOR',
     'ACTIVE',
     DATE_SUB(NOW(), INTERVAL 1 YEAR),
     NOW()
 ),
 (
-    'adv-002',
+    'e2a6b7c5-9f3b-8e6a-2d0c-5b8f1a3c6e9d',
     'Thomas',
     'Bernard',
     'thomas.bernard@avenir-bank.fr',
     'ADV002',
-    '$2b$10$YourHashedPasswordHere',
+    '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
     'ADVISOR',
     'ACTIVE',
     DATE_SUB(NOW(), INTERVAL 1 YEAR),
     NOW()
 ),
 (
-    'adv-003',
+    'a1b2c3d4-5e6f-7a8b-9c0d-1e2f3a4b5c6d',
     'Sophie',
     'Dubois',
     'sophie.dubois@avenir-bank.fr',
     'ADV003',
-    '$2b$10$YourHashedPasswordHere',
+    '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
     'ADVISOR',
     'ACTIVE',
     DATE_SUB(NOW(), INTERVAL 6 MONTH),
     NOW()
-) ON DUPLICATE KEY UPDATE id = id;
+) ON DUPLICATE KEY UPDATE id = id; ON DUPLICATE KEY UPDATE id = id;
 
 -- =========================================
--- CLIENTS (5 + John Doe)
+-- CLIENTS (5)
 -- =========================================
 
--- John Doe (utilisateur existant à préserver)
-INSERT INTO users (id, first_name, last_name, email, identity_number, passcode, role, state, created_at, updated_at)
+-- Clement Tine (utilisateur existant à préserver)
+INSERT INTO users (id, first_name, last_name, email, identity_number, passcode, role, state, advisor_id, created_at, updated_at)
 VALUES (
-    'client-john-doe',
-    'John',
-    'Doe',
-    'john.doe@example.com',
-    'JD001',
-    '$2b$10$YourHashedPasswordHere',
+    'b2c3d4e5-6f7a-8b9c-0d1e-2f3a4b5c6d7e',
+    'Clement',
+    'Tine',
+    'clement.tine@example.com',
+    'CLIENT001',
+    '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
     'CLIENT',
     'ACTIVE',
+    'd1f5a6b4-8e2a-7d5f-1c9b-4a7e0f2b5d8c', -- Marie Martin
     DATE_SUB(NOW(), INTERVAL 6 MONTH),
     NOW()
 ) ON DUPLICATE KEY UPDATE id = id;
 
 -- Autres clients
-INSERT INTO users (id, first_name, last_name, email, identity_number, passcode, role, state, created_at, updated_at)
+INSERT INTO users (id, first_name, last_name, email, identity_number, passcode, role, state, advisor_id, created_at, updated_at)
 VALUES
 (
-    'client-001',
+    'f7f35a80-0a07-4f07-a429-70be5f5c4d86',
     'Jean',
     'Dupont',
     'jean.dupont@gmail.com',
     'CLI001',
-    '$2b$10$YourHashedPasswordHere',
+    '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
     'CLIENT',
     'ACTIVE',
+    'd1f5a6b4-8e2a-7d5f-1c9b-4a7e0f2b5d8c', -- Marie Martin
     DATE_SUB(NOW(), INTERVAL 3 MONTH),
     NOW()
 ),
 (
-    'client-002',
+    'a8c2f3e1-5b9d-4a2c-8f6e-1d4b7c9e2a5f',
     'Emma',
     'Leroy',
     'emma.leroy@gmail.com',
     'CLI002',
-    '$2b$10$YourHashedPasswordHere',
+    '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
     'CLIENT',
     'ACTIVE',
+    'e2a6b7c5-9f3b-8e6a-2d0c-5b8f1a3c6e9d', -- Thomas Bernard
     DATE_SUB(NOW(), INTERVAL 2 MONTH),
     NOW()
 ),
 (
-    'client-003',
+    'b9d3e4f2-6c0e-5b3d-9a7f-2e5c8d0f3b6a',
     'Lucas',
     'Moreau',
     'lucas.moreau@gmail.com',
     'CLI003',
-    '$2b$10$YourHashedPasswordHere',
+    '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
     'CLIENT',
     'ACTIVE',
+    'e2a6b7c5-9f3b-8e6a-2d0c-5b8f1a3c6e9d', -- Thomas Bernard
     DATE_SUB(NOW(), INTERVAL 1 MONTH),
     NOW()
 ),
 (
-    'client-004',
+    'c0e4f5a3-7d1f-6c4e-0b8a-3f6d9e1a4c7b',
     'Léa',
     'Simon',
     'lea.simon@gmail.com',
     'CLI004',
-    '$2b$10$YourHashedPasswordHere',
+    '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
     'CLIENT',
     'ACTIVE',
+    'a1b2c3d4-5e6f-7a8b-9c0d-1e2f3a4b5c6d', -- Sophie Dubois
     DATE_SUB(NOW(), INTERVAL 2 WEEK),
     NOW()
 ),
 (
-    'client-005',
+    'd2e5f6a4-8b1c-7d2e-9f3a-0c4b8d5e1f2a',
     'Hugo',
     'Laurent',
     'hugo.laurent@gmail.com',
     'CLI005',
-    '$2b$10$YourHashedPasswordHere',
+    '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
     'CLIENT',
     'ACTIVE',
+    'd1f5a6b4-8e2a-7d5f-1c9b-4a7e0f2b5d8c', -- Marie Martin
     DATE_SUB(NOW(), INTERVAL 1 WEEK),
     NOW()
 ) ON DUPLICATE KEY UPDATE id = id;
@@ -158,19 +164,19 @@ VALUES
 -- COMPTES BANCAIRES pour quelques clients
 -- =========================================
 
--- Compte pour John Doe
+-- Comptes pour Clement Tine
 INSERT INTO accounts (id, user_id, iban, name, type, balance, currency, card_number, card_holder_name, card_expiry_date, card_cvv, saving_rate_id, created_at, updated_at)
 VALUES
 (
-    'acc-john-doe-1',
-    'client-john-doe',
+    'acc-clement-tine-1',
+    'b2c3d4e5-6f7a-8b9c-0d1e-2f3a4b5c6d7e',
     'FR7612345678901234567890128',
-    'Compte Courant - John Doe',
+    'Compte Courant - Clement Tine',
     'CURRENT',
     2500.00,
     'EUR',
     '4444444444444444',
-    'JOHN DOE',
+    'CLEMENT TINE',
     '12/29',
     '321',
     NULL,
@@ -178,10 +184,10 @@ VALUES
     NOW()
 ),
 (
-    'acc-john-doe-2',
-    'client-john-doe',
+    'acc-clement-tine-2',
+    'b2c3d4e5-6f7a-8b9c-0d1e-2f3a4b5c6d7e',
     'FR7612345678901234567890129',
-    'Livret Épargne - John Doe',
+    'Livret Épargne - Clement Tine',
     'SAVINGS',
     10000.00,
     'EUR',
@@ -199,7 +205,7 @@ INSERT INTO accounts (id, user_id, iban, name, type, balance, currency, card_num
 VALUES
 (
     'acc-client-001-1',
-    'client-001',
+    'f7f35a80-0a07-4f07-a429-70be5f5c4d86',
     'FR7612345678901234567890130',
     'Compte Courant - Jean Dupont',
     'CURRENT',
@@ -219,7 +225,7 @@ INSERT INTO accounts (id, user_id, iban, name, type, balance, currency, card_num
 VALUES
 (
     'acc-client-002-1',
-    'client-002',
+    'a8c2f3e1-5b9d-4a2c-8f6e-1d4b7c9e2a5f',
     'FR7612345678901234567890131',
     'Compte Courant - Emma Leroy',
     'CURRENT',
@@ -235,7 +241,7 @@ VALUES
 ),
 (
     'acc-client-002-2',
-    'client-002',
+    'a8c2f3e1-5b9d-4a2c-8f6e-1d4b7c9e2a5f',
     'FR7612345678901234567890132',
     'Livret Épargne - Emma Leroy',
     'SAVINGS',
