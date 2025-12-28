@@ -1,9 +1,11 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { CreateNewsUseCase } from '@avenir/application/usecases/news/CreateNewsUseCase';
 import { GetAllNewsUseCase } from '@avenir/application/usecases/news/GetAllNewsUseCase';
+import { GetNewsByIdUseCase } from '@avenir/application/usecases/news/GetNewsByIdUseCase';
 import { DeleteNewsUseCase } from '@avenir/application/usecases/news/DeleteNewsUseCase';
 import { CreateNewsRequest } from '@avenir/application/requests/CreateNewsRequest';
 import { GetAllNewsRequest } from '@avenir/application/requests/GetAllNewsRequest';
+import { GetNewsByIdRequest } from '@avenir/application/requests/GetNewsByIdRequest';
 import { DeleteNewsRequest } from '@avenir/application/requests/DeleteNewsRequest';
 import { webSocketService } from '../../services/WebSocketService';
 import { ValidationError } from '@avenir/application/errors';
@@ -26,6 +28,7 @@ export class NewsController {
   constructor(
     private readonly createNewsUseCase: CreateNewsUseCase,
     private readonly getAllNewsUseCase: GetAllNewsUseCase,
+    private readonly getNewsByIdUseCase: GetNewsByIdUseCase,
     private readonly deleteNewsUseCase: DeleteNewsUseCase
   ) {}
 
@@ -118,6 +121,38 @@ export class NewsController {
     }
   }
 
+  async getNewsById(
+    request: FastifyRequest<{ Params: { newsId: string } }>,
+    reply: FastifyReply
+  ) {
+    try {
+      if (!request.user) {
+        return reply.code(401).send({
+          error: 'Unauthorized',
+          message: 'Authentication required',
+        });
+      }
+
+      const getNewsByIdRequest = new GetNewsByIdRequest(request.params.newsId);
+
+      const response = await this.getNewsByIdUseCase.execute(getNewsByIdRequest);
+
+      reply.code(200).send(response);
+    } catch (error) {
+      if (error instanceof NewsNotFoundError) {
+        reply.code(404).send({
+          error: error.message,
+        });
+        return;
+      }
+
+      reply.code(500).send({
+        error: 'Internal server error',
+        message: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
+  }
+
   async deleteNews(
     request: FastifyRequest<{ Params: { newsId: string } }>,
     reply: FastifyReply
@@ -130,7 +165,6 @@ export class NewsController {
         });
       }
 
-      // Valider uniquement les params (newsId)
       const validatedParams = deleteNewsParamsSchema.parse({
         newsId: request.params.newsId,
       });

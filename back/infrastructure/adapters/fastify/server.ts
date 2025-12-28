@@ -30,6 +30,7 @@ import { SendMessageUseCase } from '@avenir/application/usecases/chat/SendMessag
 import { CloseChatUseCase } from '@avenir/application/usecases/chat/CloseChatUseCase';
 import { CreateNewsUseCase } from '@avenir/application/usecases/news/CreateNewsUseCase';
 import { GetAllNewsUseCase } from '@avenir/application/usecases/news/GetAllNewsUseCase';
+import { GetNewsByIdUseCase } from '@avenir/application/usecases/news/GetNewsByIdUseCase';
 import { DeleteNewsUseCase } from '@avenir/application/usecases/news/DeleteNewsUseCase';
 import { CreateNotificationUseCase } from '@avenir/application/usecases/notification/CreateNotificationUseCase';
 import { GetNotificationsUseCase } from '@avenir/application/usecases/notification/GetNotificationsUseCase';
@@ -103,8 +104,9 @@ const newsRepository = dbContext.newsRepository;
 const notificationRepository = dbContext.notificationRepository;
 const createNewsUseCase = new CreateNewsUseCase(newsRepository, userRepository, notificationRepository);
 const getAllNewsUseCase = new GetAllNewsUseCase(newsRepository);
+const getNewsByIdUseCase = new GetNewsByIdUseCase(newsRepository);
 const deleteNewsUseCase = new DeleteNewsUseCase(newsRepository, userRepository);
-const newsController = new NewsController(createNewsUseCase, getAllNewsUseCase, deleteNewsUseCase);
+const newsController = new NewsController(createNewsUseCase, getAllNewsUseCase, getNewsByIdUseCase, deleteNewsUseCase);
 
 // Notifications
 const createNotificationUseCase = new CreateNotificationUseCase(notificationRepository);

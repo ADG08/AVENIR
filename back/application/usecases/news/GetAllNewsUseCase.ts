@@ -8,13 +8,18 @@ export class GetAllNewsUseCase {
   async execute(request: GetAllNewsRequest): Promise<NewsResponse[]> {
     const newsList = await this.newsRepository.getAllNewsOrderedByDate();
 
+    const threeMonthsAgo = new Date();
+    threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+
+    const recentNews = newsList.filter(news => news.createdAt >= threeMonthsAgo);
+
     if (request.limit !== undefined || request.offset !== undefined) {
       const offset = request.offset || 0;
-      const limit = request.limit || newsList.length;
-      const paginatedNews = newsList.slice(offset, offset + limit);
+      const limit = request.limit || recentNews.length;
+      const paginatedNews = recentNews.slice(offset, offset + limit);
       return NewsResponse.fromNewsList(paginatedNews);
     }
 
-    return NewsResponse.fromNewsList(newsList);
+    return NewsResponse.fromNewsList(recentNews);
   }
 }

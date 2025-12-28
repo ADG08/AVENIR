@@ -7,8 +7,8 @@ export class PostgresNotificationRepository implements NotificationRepository {
 
   async addNotification(notification: Notification): Promise<Notification> {
     const query = `
-      INSERT INTO notifications (id, user_id, title, message, type, advisor_name, read, created_at)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      INSERT INTO notifications (id, user_id, title, message, type, advisor_name, read, created_at, news_id)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
       RETURNING *
     `;
 
@@ -21,6 +21,7 @@ export class PostgresNotificationRepository implements NotificationRepository {
       notification.advisorName,
       notification.read,
       notification.createdAt,
+      notification.newsId ?? null,
     ];
 
     const result = await this.db.query(query, values);
@@ -34,7 +35,8 @@ export class PostgresNotificationRepository implements NotificationRepository {
       row.type as NotificationType,
       row.advisor_name,
       row.read,
-      new Date(row.created_at)
+      new Date(row.created_at),
+      row.news_id
     );
   }
 
@@ -57,7 +59,8 @@ export class PostgresNotificationRepository implements NotificationRepository {
           row.type as NotificationType,
           row.advisor_name,
           row.read,
-          new Date(row.created_at)
+          new Date(row.created_at),
+          row.news_id
         )
     );
   }
@@ -91,4 +94,3 @@ export class PostgresNotificationRepository implements NotificationRepository {
     await this.db.query(query, [notificationId]);
   }
 }
-

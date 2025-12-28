@@ -8,4 +8,5 @@ export interface Notification {
   read: boolean;
   createdAt: Date;
   advisorName?: string | null;
+  newsId?: string | null;
 }

@@ -552,6 +552,9 @@
     "title": "Notifications",
     "markAllAsRead": "Tout marquer comme lu",
     "noNotifications": "Aucune notification",
-    "from": "De"
+    "from": "De",
+    "notAvailable": "La notification n'est plus disponible.",
+    "errorOpening": "Impossible d'ouvrir la notification. Veuillez réessayer.",
+    "upToDate": "Vous êtes à jour !"
   }
 }

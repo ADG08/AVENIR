@@ -58,7 +58,8 @@ export class CreateNewsUseCase {
           NotificationType.INFO,
           authorName,
           false,
-          now
+          now,
+          newsId
         );
 
         const createdNotification = await this.notificationRepository.addNotification(notification);
@@ -72,6 +73,7 @@ export class CreateNewsUseCase {
           advisorName: createdNotification.advisorName,
           read: createdNotification.read,
           createdAt: createdNotification.createdAt.toISOString(),
+          newsId: createdNotification.newsId
         });
 
         return createdNotification;

@@ -26,6 +26,14 @@ export async function newsRoutes(
     }
   );
 
+  fastify.get(
+    '/news/:newsId',
+    { preHandler: authMiddleware },
+    async (request: FastifyRequest, reply: FastifyReply) => {
+      return newsController.getNewsById(request as any, reply);
+    }
+  );
+
   fastify.delete(
     '/news/:newsId',
     { preHandler: authMiddleware },

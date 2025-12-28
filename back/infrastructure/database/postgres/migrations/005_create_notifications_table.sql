@@ -12,11 +12,17 @@ CREATE TABLE IF NOT EXISTS notifications (
     advisor_name VARCHAR(255),
     read BOOLEAN NOT NULL DEFAULT FALSE,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    news_id VARCHAR(255),
 
     -- Foreign key to users table
     CONSTRAINT fk_notifications_user
         FOREIGN KEY (user_id) REFERENCES users(id)
         ON DELETE CASCADE,
+
+    -- Foreign key to news table (optional)
+    CONSTRAINT fk_notifications_news
+        FOREIGN KEY (news_id) REFERENCES news(id)
+        ON DELETE SET NULL,
 
     -- Check constraint for notification type
     CONSTRAINT notifications_type_check
@@ -27,6 +33,7 @@ CREATE TABLE IF NOT EXISTS notifications (
 CREATE INDEX IF NOT EXISTS idx_notifications_user_id ON notifications(user_id);
 CREATE INDEX IF NOT EXISTS idx_notifications_created_at ON notifications(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_notifications_read ON notifications(read);
+CREATE INDEX IF NOT EXISTS idx_notifications_news_id ON notifications(news_id);
 
 -- Add table and column comments
 COMMENT ON TABLE notifications IS 'Table storing user notifications';
@@ -38,3 +45,4 @@ COMMENT ON COLUMN notifications.type IS 'Type of notification: loan, success, wa
 COMMENT ON COLUMN notifications.advisor_name IS 'Name of the advisor who sent the notification (optional)';
 COMMENT ON COLUMN notifications.read IS 'Whether the notification has been read';
 COMMENT ON COLUMN notifications.created_at IS 'Timestamp when the notification was created';
+COMMENT ON COLUMN notifications.news_id IS 'ID of the related news (optional, NULL if not related to a news)';
