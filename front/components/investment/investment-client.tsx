@@ -12,6 +12,7 @@ import { StockListItem } from '@/components/investment/stock-list-item';
 import { MarketInsightItem } from '@/components/investment/market-insight-item';
 import { StockDetailModal } from '@/components/investment/stock-detail-modal';
 import { InvestmentLoading } from '@/components/investment/investment-loading';
+import { EmptyState } from '@/components/investment/empty-state';
 import type { ChartConfig } from '@/components/ui/chart';
 import type { Stock } from '@/components/investment/types';
 import type { PortfolioSummary, StockData } from '@/types/investment';
@@ -219,26 +220,35 @@ export const InvestmentClient = ({ initialStocks, initialPortfolio }: Investment
           >
             <div className="mb-4 flex items-center justify-between">
               <h3 className="text-lg font-semibold text-gray-900">{t('dashboard.investmentPage.myAssets')}</h3>
-              <button className="cursor-pointer text-sm font-medium text-blue-600 transition-colors hover:text-blue-700">
-                {t('dashboard.investmentPage.viewAll')}
-              </button>
+              {myAssets.length > 0 && (
+                <button className="cursor-pointer text-sm font-medium text-blue-600 transition-colors hover:text-blue-700">
+                  {t('dashboard.investmentPage.viewAll')}
+                </button>
+              )}
             </div>
-            <div className="space-y-3">
-              {myAssets.map((asset, index) => (
-                <StockListItem
-                  key={asset.symbol}
-                  symbol={asset.symbol}
-                  name={asset.name}
-                  logo={asset.logo}
-                  price={asset.price}
-                  change={asset.change}
-                  isPositive={asset.isPositive}
-                  quantity={asset.quantity}
-                  index={index}
-                  onClick={asset.stockData ? () => handleStockClick(asset.stockData!) : undefined}
-                />
-              ))}
-            </div>
+            {myAssets.length === 0 ? (
+              <EmptyState
+                title={t('dashboard.investmentPage.emptyState.myAssets')}
+                description={t('dashboard.investmentPage.emptyState.myAssetsDescription')}
+              />
+            ) : (
+              <div className="space-y-3">
+                {myAssets.map((asset, index) => (
+                  <StockListItem
+                    key={asset.symbol}
+                    symbol={asset.symbol}
+                    name={asset.name}
+                    logo={asset.logo}
+                    price={asset.price}
+                    change={asset.change}
+                    isPositive={asset.isPositive}
+                    quantity={asset.quantity}
+                    index={index}
+                    onClick={asset.stockData ? () => handleStockClick(asset.stockData!) : undefined}
+                  />
+                ))}
+              </div>
+            )}
           </motion.div>
 
           <motion.div

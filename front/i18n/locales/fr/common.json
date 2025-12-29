@@ -221,7 +221,17 @@
       "selling": "Vente en cours...",
       "currentPriceLabel": "Prix actuel",
       "available": "Disponible",
-      "selectOrderType": "Sélectionner un type d'ordre"
+      "selectOrderType": "Sélectionner un type d'ordre",
+      "emptyState": {
+        "portfolioValue": "Aucune donnée disponible",
+        "portfolioValueDescription": "Commencez par investir dans vos premières actions pour voir l'évolution de votre portefeuille",
+        "totalProfits": "Aucun profit enregistré",
+        "totalProfitsDescription": "Effectuez votre premier investissement pour commencer à générer des profits",
+        "portfolioDistribution": "Aucune distribution à afficher",
+        "portfolioDistributionDescription": "Votre portefeuille est vide. Investissez dans des actions pour voir la répartition de vos actifs",
+        "myAssets": "Aucun actif détenu",
+        "myAssetsDescription": "Vous ne détenez actuellement aucune action. Parcourez le marché pour effectuer votre premier investissement"
+      }
     }
   },
   "landing": {

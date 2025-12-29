@@ -50,16 +50,35 @@ export class InvestmentController {
     async getStocks(request: FastifyRequest, reply: FastifyReply) {
         try {
             const stocks = await this.stockRepository.getAllActive();
+            const now = new Date();
+            const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
 
-            const stocksData = stocks.map(stock => ({
-                id: stock.id,
-                symbol: stock.symbol,
-                name: stock.name,
-                currentPrice: stock.currentPrice,
-                bestBid: stock.bestBid,
-                bestAsk: stock.bestAsk,
-                change: 0,
-                changePercent: 0,
+            const stocksData = await Promise.all(stocks.map(async (stock) => {
+                const trades = await this.tradeRepository.getByStockId(stock.id);
+
+                let changePercent = 0;
+                let change = 0;
+
+                if (trades.length > 0) {
+                    const tradesBeforeCutoff = trades.filter(t => t.createdAt <= twentyFourHoursAgo);
+                    const referencePrice = tradesBeforeCutoff.length > 0
+                        ? [...tradesBeforeCutoff].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())[0].price
+                        : [...trades].sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())[0].price;
+
+                    change = stock.currentPrice - referencePrice;
+                    changePercent = (change / referencePrice) * 100;
+                }
+
+                return {
+                    id: stock.id,
+                    symbol: stock.symbol,
+                    name: stock.name,
+                    currentPrice: stock.currentPrice,
+                    bestBid: stock.bestBid,
+                    bestAsk: stock.bestAsk,
+                    change: parseFloat(change.toFixed(2)),
+                    changePercent: parseFloat(changePercent.toFixed(2)),
+                };
             }));
 
             return reply.status(200).send(stocksData);

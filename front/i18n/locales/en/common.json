@@ -222,7 +222,17 @@
       "selling": "Selling...",
       "currentPriceLabel": "Current price",
       "available": "Available",
-      "selectOrderType": "Select order type"
+      "selectOrderType": "Select order type",
+      "emptyState": {
+        "portfolioValue": "No data available",
+        "portfolioValueDescription": "Start by investing in your first shares to see your portfolio evolution",
+        "totalProfits": "No profits recorded",
+        "totalProfitsDescription": "Make your first investment to start generating profits",
+        "portfolioDistribution": "No distribution to display",
+        "portfolioDistributionDescription": "Your portfolio is empty. Invest in shares to see your asset allocation",
+        "myAssets": "No assets held",
+        "myAssetsDescription": "You currently do not hold any shares. Browse the market to make your first investment"
+      }
     }
   },
   "landing": {
