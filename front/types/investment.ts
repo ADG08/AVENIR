@@ -17,6 +17,8 @@ export interface PortfolioSummary {
   totalInvested: number;
   totalProfitLoss: number;
   totalProfitLossPercent: number;
+  yesterdayIncome: number;
+  yesterdayIncomePercent: number;
   positions: PortfolioPosition[];
 }
 

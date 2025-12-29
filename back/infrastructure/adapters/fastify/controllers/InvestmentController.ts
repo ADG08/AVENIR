@@ -47,6 +47,48 @@ export class InvestmentController {
         return now;
     }
 
+    private async calculatePortfolioValueAtDate(userId: string, targetDate: Date): Promise<number> {
+        const allUserTrades = await this.tradeRepository.getAll();
+        const userTrades = allUserTrades.filter(t => t.buyer.id === userId || t.seller.id === userId);
+
+        const tradesBeforeDate = userTrades.filter(t => t.createdAt <= targetDate);
+
+        const holdings = new Map<string, { quantity: number }>();
+
+        for (const trade of tradesBeforeDate) {
+            const isBuy = trade.buyer.id === userId;
+            const stockId = trade.stock.id;
+
+            if (!holdings.has(stockId)) {
+                holdings.set(stockId, { quantity: 0 });
+            }
+
+            const holding = holdings.get(stockId)!;
+
+            if (isBuy) {
+                holding.quantity += trade.quantity;
+            } else {
+                holding.quantity -= trade.quantity;
+            }
+        }
+
+        let totalValue = 0;
+
+        for (const [stockId, holding] of holdings.entries()) {
+            if (holding.quantity > 0) {
+                const stockTrades = userTrades.filter(t => t.stock.id === stockId && t.createdAt <= targetDate);
+
+                if (stockTrades.length > 0) {
+                    const sortedTrades = [...stockTrades].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+                    const priceAtDate = sortedTrades[0].price;
+                    totalValue += holding.quantity * priceAtDate;
+                }
+            }
+        }
+
+        return totalValue;
+    }
+
     async getStocks(request: FastifyRequest, reply: FastifyReply) {
         try {
             const stocks = await this.stockRepository.getAllActive();
@@ -117,11 +159,57 @@ export class InvestmentController {
             const totalProfitLoss = totalValue - totalInvested;
             const totalProfitLossPercent = totalInvested > 0 ? (totalProfitLoss / totalInvested) * 100 : 0;
 
+            let yesterdayIncome = 0;
+            let yesterdayIncomePercent = 0;
+
+            try {
+                const mockRequest = {
+                    user: request.user,
+                    query: { period: 'weekly' }
+                } as any;
+
+                const mockReply = {
+                    status: (code: number) => ({
+                        send: (data: any) => data
+                    })
+                } as any;
+
+                const historyResponse = await this.getPortfolioHistory(mockRequest, mockReply);
+                const history = (historyResponse as any).history || [];
+
+                if (history.length >= 2) {
+                    const sortedHistory = [...history].sort((a: any, b: any) =>
+                        new Date(b.date).getTime() - new Date(a.date).getTime()
+                    );
+
+                    const todayData = sortedHistory[0];
+                    const yesterdayData = sortedHistory[1];
+
+                    if (todayData && yesterdayData) {
+                        yesterdayIncome = todayData.value - yesterdayData.value;
+                        yesterdayIncomePercent = yesterdayData.value > 0
+                            ? (yesterdayIncome / yesterdayData.value) * 100
+                            : 0;
+                    }
+                } else if (history.length === 1) {
+                    yesterdayIncome = totalValue - history[0].value;
+                    yesterdayIncomePercent = history[0].value > 0
+                        ? (yesterdayIncome / history[0].value) * 100
+                        : 0;
+                }
+            } catch (error) {
+                console.error('Error calculating yesterday income:', error);
+                yesterdayIncome = 0;
+                yesterdayIncomePercent = 0;
+            }
+
             const portfolioSummary = {
                 totalValue,
                 totalInvested,
                 totalProfitLoss,
                 totalProfitLossPercent,
+                yesterdayIncome,
+                yesterdayIncomePercent,
                 positions,
             };
 
@@ -767,36 +855,55 @@ export class InvestmentController {
                 }
             }
 
+            const tradesByDate = new Map<string, any[]>();
             for (const trade of filteredTrades) {
-                const isBuy = trade.buyer.id === userId;
-                const stockId = trade.stock.id;
-
-                if (!holdings.has(stockId)) {
-                    holdings.set(stockId, { quantity: 0 });
-                }
-
-                const holding = holdings.get(stockId)!;
-
-                if (isBuy) {
-                    holding.quantity += trade.quantity;
-                } else {
-                    holding.quantity -= trade.quantity;
-                }
-
                 const dateKey = trade.createdAt.toISOString().split('T')[0];
-                let totalValue = 0;
+                if (!tradesByDate.has(dateKey)) {
+                    tradesByDate.set(dateKey, []);
+                }
+                tradesByDate.get(dateKey)!.push(trade);
+            }
 
+            const today = new Date();
+            const todayKey = today.toISOString().split('T')[0];
+            const currentDate = new Date(startDate);
+
+            while (currentDate <= today) {
+                const dateKey = currentDate.toISOString().split('T')[0];
+
+                const tradesOnThisDay = tradesByDate.get(dateKey) || [];
+                for (const trade of tradesOnThisDay) {
+                    const isBuy = trade.buyer.id === userId;
+                    const stockId = trade.stock.id;
+
+                    if (!holdings.has(stockId)) {
+                        holdings.set(stockId, { quantity: 0 });
+                    }
+
+                    const holding = holdings.get(stockId)!;
+
+                    if (isBuy) {
+                        holding.quantity += trade.quantity;
+                    } else {
+                        holding.quantity -= trade.quantity;
+                    }
+                }
+
+                let totalValue = 0;
                 for (const [hStockId, hData] of holdings.entries()) {
                     const historicalPrice = getPriceAtDate(hStockId, dateKey);
                     totalValue += hData.quantity * historicalPrice;
                 }
 
-                valueByDate.set(dateKey, totalValue);
+                if (totalValue > 0 || valueByDate.size > 0) {
+                    valueByDate.set(dateKey, totalValue);
+                }
+
+                currentDate.setDate(currentDate.getDate() + 1);
             }
 
             const currentValue = portfolios.reduce((sum, p) => sum + p.getCurrentValue(), 0);
-            const today = new Date().toISOString().split('T')[0];
-            valueByDate.set(today, currentValue);
+            valueByDate.set(todayKey, currentValue);
 
             const history = Array.from(valueByDate.entries())
                 .map(([date, value]) => ({

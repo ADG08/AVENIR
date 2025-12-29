@@ -232,7 +232,9 @@
         "portfolioDistributionDescription": "Your portfolio is empty. Invest in shares to see your asset allocation",
         "myAssets": "No assets held",
         "myAssetsDescription": "You currently do not hold any shares. Browse the market to make your first investment"
-      }
+      },
+      "totalInvested": "Total Invested",
+      "totalProfit": "Total Profit"
     }
   },
   "landing": {

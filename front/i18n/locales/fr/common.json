@@ -231,7 +231,9 @@
         "portfolioDistributionDescription": "Votre portefeuille est vide. Investissez dans des actions pour voir la répartition de vos actifs",
         "myAssets": "Aucun actif détenu",
         "myAssetsDescription": "Vous ne détenez actuellement aucune action. Parcourez le marché pour effectuer votre premier investissement"
-      }
+      },
+      "totalInvested": "Total investi",
+      "totalProfit": "Profit total"
     }
   },
   "landing": {

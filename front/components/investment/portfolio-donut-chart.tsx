@@ -104,7 +104,7 @@ export const PortfolioDonutChart = ({
                               <tspan
                                 x={viewBox.cx}
                                 y={viewBox.cy}
-                                className="fill-foreground text-3xl font-bold"
+                                className="fill-foreground text-2xl font-bold"
                               >
                                 {totalAmount}
                               </tspan>
@@ -128,7 +128,7 @@ export const PortfolioDonutChart = ({
                 </Pie>
               </PieChart>
             </ChartContainer>
-            <div className="mt-2 flex flex-wrap items-center justify-center gap-4">
+            <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
               {data.map((item) => {
                 const itemConfig = config[item.name as keyof typeof config];
                 return (

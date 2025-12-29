@@ -174,13 +174,17 @@ export const InvestmentClient = ({ initialStocks, initialPortfolio }: Investment
           >
             <PortfolioLineChart
               title={t('dashboard.investmentPage.portfolioValue')}
-              description={`${formatPercent(portfolio?.totalProfitLoss ?? 0)} ${t('dashboard.investmentPage.yesterdaysIncome')}`}
+              description={`${formatCurrency(portfolio?.yesterdayIncome ?? 0)} (${formatPercent(portfolio?.yesterdayIncomePercent ?? 0)}) ${t('dashboard.investmentPage.yesterdaysIncome')}`}
               currentValue={formatCurrency(portfolio?.totalValue ?? 0)}
               change={formatPercent(portfolio?.totalProfitLossPercent ?? 0)}
               isPositive={(portfolio?.totalProfitLossPercent ?? 0) >= 0}
               data={portfolioHistory}
               period={period}
               onPeriodChange={setPeriod}
+              totalInvested={formatCurrency(portfolio?.totalInvested ?? 0)}
+              totalProfit={formatCurrency(portfolio?.totalProfitLoss ?? 0)}
+              totalProfitPercent={formatPercent(portfolio?.totalProfitLossPercent ?? 0)}
+              isProfitPositive={(portfolio?.totalProfitLossPercent ?? 0) >= 0}
             />
           </motion.div>
 
