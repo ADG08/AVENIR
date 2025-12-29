@@ -1,13 +1,19 @@
 import { FastifyInstance } from 'fastify';
 import { InvestmentController } from '../controllers/InvestmentController';
 import { authMiddleware } from '../middleware/authMiddleware';
+import { createRoleMiddleware } from '../middleware/roleMiddleware';
+import { UserRepository } from '../../../../domain/repositories/UserRepository';
+import { UserRole } from '@avenir/shared/enums/UserRole';
 
 interface InvestmentRoutesOptions {
     investmentController: InvestmentController;
+    userRepository: UserRepository;
 }
 
 export async function investmentRoutes(fastify: FastifyInstance, options: InvestmentRoutesOptions) {
-    const { investmentController } = options;
+    const { investmentController, userRepository } = options;
+
+    const directorOnly = createRoleMiddleware(userRepository, UserRole.DIRECTOR);
 
     fastify.get<{ Querystring: never }>(
         '/stocks',
@@ -93,5 +99,29 @@ export async function investmentRoutes(fastify: FastifyInstance, options: Invest
         '/profits/breakdown',
         { preHandler: authMiddleware },
         async (request, reply) => investmentController.getProfitsBreakdown(request, reply)
+    );
+
+    fastify.get<{ Querystring: never }>(
+        '/admin/stocks',
+        { preHandler: [authMiddleware, directorOnly] },
+        async (request, reply) => investmentController.getAllStocksAdmin(request, reply)
+    );
+
+    fastify.post<{ Body: any }>(
+        '/admin/stocks',
+        { preHandler: [authMiddleware, directorOnly] },
+        async (request, reply) => investmentController.createStock(request, reply)
+    );
+
+    fastify.put<{ Params: { id: string }; Body: any }>(
+        '/admin/stocks/:id',
+        { preHandler: [authMiddleware, directorOnly] },
+        async (request, reply) => investmentController.updateStock(request, reply)
+    );
+
+    fastify.delete<{ Params: { id: string } }>(
+        '/admin/stocks/:id',
+        { preHandler: [authMiddleware, directorOnly] },
+        async (request, reply) => investmentController.deleteStock(request, reply)
     );
 }

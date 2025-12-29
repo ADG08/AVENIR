@@ -103,7 +103,7 @@ async function setupRoutes() {
     await fastify.register(chatRoutes, { prefix: '/api', chatController, messageRepository, chatRepository });
     await fastify.register(messageRoutes, { prefix: '/api', messageController });
     await fastify.register(websocketRoutes, { prefix: '/api' });
-    await fastify.register(investmentRoutes, { prefix: '/api/investment', investmentController });
+    await fastify.register(investmentRoutes, { prefix: '/api/investment', investmentController, userRepository });
 }
 
 const start = async () => {

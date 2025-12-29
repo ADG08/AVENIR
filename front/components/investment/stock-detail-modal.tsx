@@ -1,14 +1,18 @@
 'use client';
 
 import * as React from 'react';
-import { X } from 'lucide-react';
+import { X, Edit, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CartesianGrid, Line, LineChart, XAxis } from 'recharts';
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from '@/components/ui/chart';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useLanguage } from '@/hooks/use-language';
+import { useAuth } from '@/contexts/AuthContext';
 import Image from 'next/image';
 import type { Stock } from './types';
+import { StockAdminModal } from './stock-admin-modal';
+import { DeleteStockModal } from './delete-stock-modal';
+import type { CreateStockFormInput, UpdateStockFormInput } from '@avenir/shared/schemas/stock.schema';
 
 const API_BASE_URL = 'http://localhost:3001/api';
 
@@ -193,6 +197,7 @@ interface StockDetailModalProps {
 
 export const StockDetailModal = ({ isOpen, onClose, stock, onPurchaseSuccess }: StockDetailModalProps) => {
   const { t } = useLanguage();
+  const { isDirector, isLoading: isLoadingUser } = useAuth();
   const [period, setPeriod] = React.useState('yearly');
   const [amount, setAmount] = React.useState('');
   const [shares, setShares] = React.useState('');
@@ -221,6 +226,16 @@ export const StockDetailModal = ({ isOpen, onClose, stock, onPurchaseSuccess }: 
     createdAt: string;
   }>>([]);
   const [activeTab, setActiveTab] = React.useState<'time-sales' | 'market-depth'>('time-sales');
+
+  // Admin states
+  const [isEditModalOpen, setIsEditModalOpen] = React.useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = React.useState(false);
+  const [isAdminSubmitting, setIsAdminSubmitting] = React.useState(false);
+  const [adminStockData, setAdminStockData] = React.useState<{
+    isin: string | null;
+    isActive: boolean;
+  } | null>(null);
+  const [deleteError, setDeleteError] = React.useState<string>('');
 
   const fetchTrades = async () => {
     if (!stock) return;
@@ -293,6 +308,97 @@ export const StockDetailModal = ({ isOpen, onClose, stock, onPurchaseSuccess }: 
     } catch (error) {
       console.error('Error canceling order:', error);
       setError('An error occurred while canceling order');
+    }
+  };
+
+  // Fetch admin stock data when edit modal opens
+  React.useEffect(() => {
+    const fetchAdminStockData = async () => {
+      if (isEditModalOpen && stock && isDirector) {
+        try {
+          const response = await fetch(`${API_BASE_URL}/investment/admin/stocks`, {
+            credentials: 'include',
+          });
+          if (response.ok) {
+            const stocks = await response.json();
+            const adminStock = stocks.find((s: any) => s.id === stock.id);
+            if (adminStock) {
+              setAdminStockData({
+                isin: adminStock.isin,
+                isActive: adminStock.isActive,
+              });
+            }
+          }
+        } catch (error) {
+          console.error('Error fetching admin stock data:', error);
+        }
+      }
+    };
+
+    fetchAdminStockData();
+  }, [isEditModalOpen, stock, isDirector]);
+
+  // Admin handlers
+  const handleUpdateStock = async (data: CreateStockFormInput | UpdateStockFormInput) => {
+    if (!stock) return;
+    if (!('id' in data)) return;
+    setIsAdminSubmitting(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/investment/admin/stocks/${stock.id}`, {
+        method: 'PUT',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.message || t('admin.stock.updateError'));
+      }
+
+      setIsEditModalOpen(false);
+      if (onPurchaseSuccess) {
+        onPurchaseSuccess();
+      }
+      onClose();
+    } catch (err: any) {
+      setError(err.message || t('admin.stock.updateError'));
+    } finally {
+      setIsAdminSubmitting(false);
+    }
+  };
+
+  const handleDeleteStock = async () => {
+    if (!stock) return;
+    setIsAdminSubmitting(true);
+    setDeleteError(''); // Reset error
+    try {
+      const response = await fetch(`${API_BASE_URL}/investment/admin/stocks/${stock.id}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.message || t('admin.stock.deleteError'));
+      }
+
+      // Success: close modal and refresh
+      setIsDeleteModalOpen(false);
+      setDeleteError('');
+      if (onPurchaseSuccess) {
+        onPurchaseSuccess();
+      }
+      onClose();
+    } catch (err: any) {
+      // Error: set error state and re-throw to prevent modal from closing
+      const errorMessage = err.message || t('admin.stock.deleteError');
+      setDeleteError(errorMessage);
+      throw err; // Re-throw to be caught by DeleteStockModal
+    } finally {
+      setIsAdminSubmitting(false);
     }
   };
 
@@ -510,12 +616,32 @@ export const StockDetailModal = ({ isOpen, onClose, stock, onPurchaseSuccess }: 
                     <p className="text-sm text-gray-500">{stock.name}</p>
                   </div>
                 </div>
-                <button
-                  onClick={onClose}
-                  className="flex h-8 w-8 items-center justify-center rounded-lg transition-colors hover:bg-gray-100"
-                >
-                  <X className="h-5 w-5 text-gray-500" />
-                </button>
+                <div className="flex items-center gap-2">
+                  {isDirector && !isLoadingUser && (
+                    <>
+                      <button
+                        onClick={() => setIsEditModalOpen(true)}
+                        className="flex h-8 w-8 items-center justify-center rounded-lg transition-colors hover:bg-blue-50"
+                        title={t('admin.stock.edit')}
+                      >
+                        <Edit className="h-4 w-4 text-blue-600" />
+                      </button>
+                      <button
+                        onClick={() => setIsDeleteModalOpen(true)}
+                        className="flex h-8 w-8 items-center justify-center rounded-lg transition-colors hover:bg-red-50"
+                        title={t('admin.stock.delete')}
+                      >
+                        <Trash2 className="h-4 w-4 text-red-600" />
+                      </button>
+                    </>
+                  )}
+                  <button
+                    onClick={onClose}
+                    className="flex h-8 w-8 items-center justify-center rounded-lg transition-colors hover:bg-gray-100"
+                  >
+                    <X className="h-5 w-5 text-gray-500" />
+                  </button>
+                </div>
               </div>
 
               <div className="grid grid-cols-1 gap-6 p-6 lg:grid-cols-3">
@@ -966,6 +1092,35 @@ export const StockDetailModal = ({ isOpen, onClose, stock, onPurchaseSuccess }: 
               </div>
             </motion.div>
           </div>
+
+          {/* Admin Modals */}
+          <StockAdminModal
+            isOpen={isEditModalOpen}
+            onClose={() => setIsEditModalOpen(false)}
+            onSubmit={handleUpdateStock}
+            mode="update"
+            initialData={{
+              id: stock.id,
+              symbol: stock.symbol,
+              name: stock.name || '',
+              isin: adminStockData?.isin || '',
+              currentPrice: stock.currentPrice.toString(),
+              isActive: adminStockData?.isActive ?? true,
+            }}
+            isLoading={isAdminSubmitting}
+          />
+
+          <DeleteStockModal
+            isOpen={isDeleteModalOpen}
+            onClose={() => {
+              setIsDeleteModalOpen(false);
+              setDeleteError('');
+            }}
+            onConfirm={handleDeleteStock}
+            stockSymbol={stock.symbol}
+            isLoading={isAdminSubmitting}
+            error={deleteError}
+          />
         </>
       )}
     </AnimatePresence>

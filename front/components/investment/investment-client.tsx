@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useLanguage } from '@/hooks/use-language';
+import { useAuth } from '@/contexts/AuthContext';
 import { DashboardHeader } from '@/components/dashboard-header';
 import { StockTicker } from '@/components/investment/stock-ticker';
 import { PortfolioLineChart } from '@/components/investment/portfolio-line-chart';
@@ -13,6 +14,7 @@ import { MarketInsightItem } from '@/components/investment/market-insight-item';
 import { StockDetailModal } from '@/components/investment/stock-detail-modal';
 import { InvestmentLoading } from '@/components/investment/investment-loading';
 import { EmptyState } from '@/components/investment/empty-state';
+import { StockAdminPanel } from '@/components/investment/stock-admin-panel';
 import type { ChartConfig } from '@/components/ui/chart';
 import type { Stock } from '@/components/investment/types';
 import type { PortfolioSummary, StockData } from '@/types/investment';
@@ -38,6 +40,7 @@ interface InvestmentClientProps {
 
 export const InvestmentClient = ({ initialStocks, initialPortfolio }: InvestmentClientProps) => {
   const { t } = useLanguage();
+  const { isDirector, isLoading: isLoadingUser } = useAuth();
   const [activeTab, setActiveTab] = useState('investment');
   const [selectedStock, setSelectedStock] = useState<Stock | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -164,6 +167,10 @@ export const InvestmentClient = ({ initialStocks, initialPortfolio }: Investment
         >
           <StockTicker stocks={tickerStocks} onStockClick={handleStockClick} />
         </motion.div>
+
+        {isDirector && !isLoadingUser && (
+          <StockAdminPanel onStockChange={refreshData} />
+        )}
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
           <motion.div

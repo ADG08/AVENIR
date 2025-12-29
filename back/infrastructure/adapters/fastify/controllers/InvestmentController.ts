@@ -6,10 +6,14 @@ import { AccountRepository } from '@avenir/domain/repositories/AccountRepository
 import { UserRepository } from '@avenir/domain/repositories/UserRepository';
 import { OrderBookRepository } from '@avenir/domain/repositories/OrderBookRepository';
 import { OrderBook } from '@avenir/domain/entities/OrderBook';
+import { Portfolio } from '@avenir/domain/entities/Portfolio';
 import { OrderSide } from '@avenir/domain/enumerations/OrderSide';
 import { OrderBookType } from '@avenir/domain/enumerations/OrderBookType';
 import { OrderBookState } from '@avenir/domain/enumerations/OrderBookState';
 import { OrderMatchingService } from '@avenir/application/services/OrderMatchingService';
+import { Stock } from '@avenir/domain/entities/Stock';
+import { createStockApiSchema, updateStockApiSchema } from '@avenir/shared/schemas/stock.schema';
+import { ZodError } from 'zod';
 import { v4 as uuidv4 } from 'uuid';
 
 export class InvestmentController {
@@ -24,6 +28,17 @@ export class InvestmentController {
         private orderBookRepository: OrderBookRepository,
         private orderMatchingService: OrderMatchingService
     ) { }
+
+    private generateISIN(): string {
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        let isin = 'XX';
+
+        for (let i = 0; i < 10; i++) {
+            isin += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+
+        return isin;
+    }
 
     private getStartDateByPeriod(period: string | undefined, allTrades: any[]): Date {
         const now = new Date();
@@ -292,6 +307,14 @@ export class InvestmentController {
                 return reply.status(404).send({ error: 'Stock not found' });
             }
 
+            // Security: Block trading on inactive stocks
+            if (!stock.isActive) {
+                return reply.status(403).send({
+                    error: 'Forbidden',
+                    message: 'Cette action est désactivée et ne peut pas être tradée'
+                });
+            }
+
             const accounts = await this.accountRepository.findByUserId(userId);
             const currentAccount = accounts.find(account => account.type === 'CURRENT');
 
@@ -386,6 +409,14 @@ export class InvestmentController {
             const stock = await this.stockRepository.getById(stockId);
             if (!stock) {
                 return reply.status(404).send({ error: 'Stock not found' });
+            }
+
+            // Security: Block trading on inactive stocks
+            if (!stock.isActive) {
+                return reply.status(403).send({
+                    error: 'Forbidden',
+                    message: 'Cette action est désactivée et ne peut pas être tradée'
+                });
             }
 
             const user = await this.userRepository.getById(userId);
@@ -1000,6 +1031,241 @@ export class InvestmentController {
         } catch (error) {
             console.error('Error fetching profits breakdown:', error);
             return reply.status(500).send({ error: 'Failed to fetch profits breakdown' });
+        }
+    }
+
+    async getAllStocksAdmin(request: FastifyRequest, reply: FastifyReply) {
+        try {
+            const stocks = await this.stockRepository.getAll();
+
+            const stocksData = stocks.map(stock => ({
+                id: stock.id,
+                symbol: stock.symbol,
+                name: stock.name,
+                isin: stock.isin,
+                currentPrice: stock.currentPrice,
+                marketCap: stock.marketCap,
+                isActive: stock.isActive,
+                createdAt: stock.createdAt,
+                updatedAt: stock.updatedAt,
+            }));
+
+            return reply.status(200).send(stocksData);
+        } catch (error) {
+            console.error('Error fetching stocks (admin):', error);
+            return reply.status(500).send({ error: 'Échec de la récupération des actions' });
+        }
+    }
+
+    async createStock(request: FastifyRequest, reply: FastifyReply) {
+        try {
+            const validatedData = createStockApiSchema.parse(request.body);
+
+            const existingStock = await this.stockRepository.getBySymbol(validatedData.symbol);
+            if (existingStock) {
+                return reply.status(409).send({
+                    error: 'Conflict',
+                    message: `Une action avec le symbole "${validatedData.symbol}" existe déjà`,
+                });
+            }
+
+            const now = new Date();
+            const generatedISIN = this.generateISIN();
+
+            const newStock = new Stock(
+                uuidv4(),
+                validatedData.symbol,
+                validatedData.name,
+                generatedISIN,
+                validatedData.currentPrice,
+                null,
+                null,
+                validatedData.marketCap ?? null,
+                0,
+                validatedData.isActive,
+                [],
+                now,
+                now
+            );
+
+            const createdStock = await this.stockRepository.add(newStock);
+
+            const SYSTEM_USER_ID = 'SYSTEM';
+            const INITIAL_LIQUIDITY = 10000;
+
+            try {
+                const systemUser = await this.userRepository.getById(SYSTEM_USER_ID);
+                if (systemUser) {
+                    const systemPortfolio = new Portfolio(
+                        uuidv4(),
+                        systemUser,
+                        createdStock,
+                        INITIAL_LIQUIDITY,
+                        validatedData.currentPrice,
+                        INITIAL_LIQUIDITY * validatedData.currentPrice,
+                        now,
+                        now
+                    );
+                    await this.portfolioRepository.add(systemPortfolio);
+
+                    const liquidityOrder = new OrderBook(
+                        uuidv4(),
+                        createdStock,
+                        systemUser,
+                        OrderSide.ASK,
+                        OrderBookType.LIMIT,
+                        INITIAL_LIQUIDITY,
+                        INITIAL_LIQUIDITY,
+                        validatedData.currentPrice,
+                        null,
+                        OrderBookState.PENDING,
+                        now,
+                        now
+                    );
+                    await this.orderBookRepository.add(liquidityOrder);
+
+                    console.log(`✅ Liquidité initiale: ${INITIAL_LIQUIDITY} ${createdStock.symbol} @ ${validatedData.currentPrice}€`);
+                }
+            } catch (liquidityError) {
+                console.error('⚠️ Erreur création liquidité:', liquidityError);
+            }
+
+            return reply.status(201).send({
+                success: true,
+                message: 'Action créée avec succès',
+                stock: {
+                    id: createdStock.id,
+                    symbol: createdStock.symbol,
+                    name: createdStock.name,
+                    isin: createdStock.isin,
+                    currentPrice: createdStock.currentPrice,
+                    marketCap: createdStock.marketCap,
+                    isActive: createdStock.isActive,
+                },
+            });
+        } catch (error) {
+            if (error instanceof ZodError) {
+                return reply.status(400).send({
+                    error: 'Validation Error',
+                    message: 'Données invalides',
+                    details: error.errors.map(e => ({ field: e.path.join('.'), message: e.message })),
+                });
+            }
+            console.error('Error creating stock:', error);
+            return reply.status(500).send({ error: 'Échec de la création de l\'action' });
+        }
+    }
+
+    async updateStock(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
+        try {
+            const { id } = request.params;
+
+            const validatedData = updateStockApiSchema.parse({ id, ...request.body });
+
+            const existingStock = await this.stockRepository.getById(id);
+            if (!existingStock) {
+                return reply.status(404).send({
+                    error: 'Not Found',
+                    message: 'Action introuvable',
+                });
+            }
+
+            if (validatedData.symbol && validatedData.symbol !== existingStock.symbol) {
+                const stockWithSymbol = await this.stockRepository.getBySymbol(validatedData.symbol);
+                if (stockWithSymbol) {
+                    return reply.status(409).send({
+                        error: 'Conflict',
+                        message: `Une action avec le symbole "${validatedData.symbol}" existe déjà`,
+                    });
+                }
+            }
+
+            const updatedStock = new Stock(
+                existingStock.id,
+                validatedData.symbol ?? existingStock.symbol,
+                validatedData.name ?? existingStock.name,
+                validatedData.isin !== undefined ? validatedData.isin : existingStock.isin,
+                validatedData.currentPrice ?? existingStock.currentPrice,
+                existingStock.bestBid,
+                existingStock.bestAsk,
+                validatedData.marketCap !== undefined ? validatedData.marketCap : existingStock.marketCap,
+                existingStock.volume24h,
+                validatedData.isActive ?? existingStock.isActive,
+                existingStock.orders,
+                existingStock.createdAt,
+                new Date()
+            );
+
+            await this.stockRepository.update(updatedStock);
+
+            return reply.status(200).send({
+                success: true,
+                message: 'Action mise à jour avec succès',
+                stock: {
+                    id: updatedStock.id,
+                    symbol: updatedStock.symbol,
+                    name: updatedStock.name,
+                    isin: updatedStock.isin,
+                    currentPrice: updatedStock.currentPrice,
+                    marketCap: updatedStock.marketCap,
+                    isActive: updatedStock.isActive,
+                },
+            });
+        } catch (error) {
+            if (error instanceof ZodError) {
+                return reply.status(400).send({
+                    error: 'Validation Error',
+                    message: 'Données invalides',
+                    details: error.errors.map(e => ({ field: e.path.join('.'), message: e.message })),
+                });
+            }
+            console.error('Error updating stock:', error);
+            return reply.status(500).send({ error: 'Échec de la mise à jour de l\'action' });
+        }
+    }
+
+    async deleteStock(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
+        try {
+            const { id } = request.params;
+
+            const existingStock = await this.stockRepository.getById(id);
+            if (!existingStock) {
+                return reply.status(404).send({
+                    error: 'Not Found',
+                    message: 'Action introuvable',
+                });
+            }
+
+            const trades = await this.tradeRepository.getByStockId(id);
+            if (trades.length > 0) {
+                return reply.status(409).send({
+                    error: 'Conflict',
+                    message: 'Impossible de supprimer une action avec des transactions existantes. Désactivez-la à la place.',
+                });
+            }
+
+            const bidOrders = await this.orderBookRepository.getByStockIdAndSide(id, OrderSide.BID);
+            const askOrders = await this.orderBookRepository.getByStockIdAndSide(id, OrderSide.ASK);
+            const activeOrders = [...bidOrders, ...askOrders].filter(
+                order => order.state === OrderBookState.PENDING || order.state === OrderBookState.PARTIAL
+            );
+
+            if (activeOrders.length > 0) {
+                return reply.status(409).send({
+                    error: 'Conflict',
+                    message: `Impossible de supprimer une action avec ${activeOrders.length} ordre(s) actif(s). Annulez-les d'abord ou désactivez l'action.`,
+                });
+            }
+
+            await this.stockRepository.remove(id);
+
+            return reply.status(200).send({
+                success: true,
+                message: 'Action supprimée avec succès',
+            });
+        } catch (error) {
+            console.error('Error deleting stock:', error);
+            return reply.status(500).send({ error: 'Échec de la suppression de l\'action' });
         }
     }
 }

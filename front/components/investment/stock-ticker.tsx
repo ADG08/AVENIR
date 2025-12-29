@@ -13,7 +13,9 @@ interface StockTickerProps {
 
 export const StockTicker = ({ stocks, onStockClick }: StockTickerProps) => {
   const [isPaused, setIsPaused] = useState(false);
-  const duplicatedStocks = [...stocks, ...stocks, ...stocks];
+  const duplicatedStocks = stocks;
+
+  const animationDuration = 30;
 
   return (
     <div className="relative overflow-hidden">
@@ -22,7 +24,7 @@ export const StockTicker = ({ stocks, onStockClick }: StockTickerProps) => {
         onMouseEnter={() => setIsPaused(true)}
         onMouseLeave={() => setIsPaused(false)}
         style={{
-          animation: 'scroll 20s linear infinite',
+          animation: `scroll ${animationDuration}s linear infinite`,
           animationPlayState: isPaused ? 'paused' : 'running',
         }}
       >
@@ -63,7 +65,7 @@ export const StockTicker = ({ stocks, onStockClick }: StockTickerProps) => {
             transform: translateX(0);
           }
           100% {
-            transform: translateX(calc(-100% / 3));
+            transform: translateX(-100%);
           }
         }
       `}</style>
