@@ -140,6 +140,7 @@ export const InvestmentClient = ({ initialStocks, initialPortfolio }: Investment
       change: formatPercent(position.profitLossPercent),
       isPositive: position.profitLossPercent >= 0,
       quantity: position.quantity,
+      invested: formatCurrency(position.totalInvested),
       stockData: stockData ? {
         id: stockData.id,
         symbol: stockData.symbol,
@@ -254,6 +255,7 @@ export const InvestmentClient = ({ initialStocks, initialPortfolio }: Investment
                     change={asset.change}
                     isPositive={asset.isPositive}
                     quantity={asset.quantity}
+                    invested={asset.invested}
                     index={index}
                     onClick={asset.stockData ? () => handleStockClick(asset.stockData!) : undefined}
                   />
