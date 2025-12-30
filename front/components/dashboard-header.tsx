@@ -90,7 +90,7 @@ export const DashboardHeader = ({ activeTab, setActiveTab }: DashboardHeaderProp
 
     return (
         <header className="relative z-40 border-b bg-white/80 backdrop-blur-sm">
-            <div className="mx-auto flex max-w-[1800px] items-center justify-between px-6 py-4">
+            <div className="mx-auto flex max-w-450 items-center justify-between px-6 py-4">
                 <Link href="/" className="flex items-center transition-opacity hover:opacity-80">
                     <Image src="/avenir.png" alt="AVENIR" width={100} height={100} className="h-12 w-auto" priority />
                 </Link>
@@ -237,7 +237,7 @@ export const DashboardHeader = ({ activeTab, setActiveTab }: DashboardHeaderProp
                         onMouseEnter={() => setHoveredIcon('lang')}
                         onMouseLeave={() => setHoveredIcon(null)}
                         onClick={handleLanguageToggle}
-                        className="relative z-10 flex h-10 min-w-[40px] cursor-pointer items-center justify-center rounded-full px-3 text-xs font-bold transition-colors duration-200"
+                        className="relative z-10 flex h-10 min-w-10 cursor-pointer items-center justify-center rounded-full px-3 text-xs font-bold transition-colors duration-200"
                     >
                         {(hoveredIcon === 'lang' || activeIcon === 'lang') && (
                             <motion.div
@@ -266,7 +266,7 @@ export const DashboardHeader = ({ activeTab, setActiveTab }: DashboardHeaderProp
                     transition={{ duration: 0.2 }}
                     className="border-t bg-white md:hidden"
                 >
-                    <div className="mx-auto max-w-[1800px] px-6 py-4">
+                    <div className="mx-auto max-w-450 px-6 py-4">
                         <nav className="flex flex-col gap-2">
                             {navItems.map((item) => {
                                 const isActive = activeTab === item.id;
@@ -335,7 +335,7 @@ export const DashboardHeader = ({ activeTab, setActiveTab }: DashboardHeaderProp
                                         handleLanguageToggle();
                                         setMobileMenuOpen(false);
                                     }}
-                                    className="flex h-10 min-w-[40px] cursor-pointer items-center justify-center rounded-full px-3 text-xs font-bold transition-colors hover:bg-gray-100"
+                                    className="flex h-10 min-w-10 cursor-pointer items-center justify-center rounded-full px-3 text-xs font-bold transition-colors hover:bg-gray-100"
                                 >
                                     {i18n.language.toUpperCase()}
                                 </button>
