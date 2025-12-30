@@ -3,6 +3,7 @@ import { UserRepository } from '@avenir/domain/repositories/UserRepository';
 import { NotificationRepository } from '@avenir/domain/repositories/NotificationRepository';
 import { CreateNewsRequest } from '../../requests/CreateNewsRequest';
 import { NewsResponse } from '../../responses/NewsResponse';
+import { NotificationResponse } from '../../responses/NotificationResponse';
 import { News } from '@avenir/domain/entities/News';
 import { Notification } from '@avenir/domain/entities/Notification';
 import { UserRole, NotificationType } from '@avenir/shared/enums';
@@ -55,7 +56,7 @@ export class CreateNewsUseCase {
           client.id,
           'Nouvelle actualité',
           request.title,
-          NotificationType.INFO,
+          NotificationType.NEWS,
           authorName,
           false,
           now,
@@ -64,17 +65,8 @@ export class CreateNewsUseCase {
 
         const createdNotification = await this.notificationRepository.addNotification(notification);
 
-        webSocketService.notifyNotificationCreated(client.id, {
-          id: createdNotification.id,
-          userId: createdNotification.userId,
-          title: createdNotification.title,
-          message: createdNotification.message,
-          type: createdNotification.type,
-          advisorName: createdNotification.advisorName,
-          read: createdNotification.read,
-          createdAt: createdNotification.createdAt.toISOString(),
-          newsId: createdNotification.newsId
-        });
+        const notificationResponse = NotificationResponse.fromNotification(createdNotification);
+        webSocketService.notifyNotificationCreated(client.id, notificationResponse.toWebSocketPayload());
 
         return createdNotification;
       });

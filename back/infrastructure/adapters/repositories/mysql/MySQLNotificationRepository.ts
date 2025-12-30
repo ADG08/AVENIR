@@ -18,7 +18,7 @@ export class MySQLNotificationRepository implements NotificationRepository {
       notification.message,
       notification.type,
       notification.advisorName,
-      notification.read,
+      notification.isRead,
       notification.createdAt,
       notification.newsId ?? null,
     ];

@@ -18,6 +18,14 @@ export async function notificationRoutes(
     }
   );
 
+  fastify.post(
+    '/notifications',
+    { preHandler: authMiddleware },
+    async (request: FastifyRequest, reply: FastifyReply) => {
+      return notificationController.createCustomNotification(request as any, reply);
+    }
+  );
+
   fastify.put<{ Params: { notificationId: string } }>(
     '/notifications/:notificationId/read',
     { preHandler: authMiddleware },

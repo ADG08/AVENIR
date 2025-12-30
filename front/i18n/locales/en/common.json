@@ -249,7 +249,14 @@
       "send": "Send",
       "sending": "Sending...",
       "success": "Notification sent successfully",
-      "error": "Error sending notification"
+      "error": "Error sending notification",
+      "type": {
+        "label": "Notification type",
+        "selectType": "Select a type",
+        "info": "Information",
+        "warning": "Warning",
+        "success": "Success"
+      }
     },
     "loan": {
       "title": "Grant loan",

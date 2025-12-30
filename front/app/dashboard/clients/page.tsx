@@ -12,10 +12,10 @@ import { Users, Search } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
-import { chatApi } from '@/lib/api/chat.api';
-import { mapChatsFromApi } from '@/lib/mapping';
-import { Chat } from '@/types/chat';
-import { UserRole, UserState } from '@/types/enums';
+import { getAdvisorClients } from '@/lib/api/advisor.api';
+import { createNotification } from '@/lib/api/notification.api';
+import { mapAdvisorClientsToClientDetails } from '@/lib/mapping/client.mapping';
+import { CustomNotificationType } from '@avenir/shared/enums';
 
 export default function ClientsPage() {
   const { t } = useTranslation();
@@ -33,48 +33,15 @@ export default function ClientsPage() {
   const [isLoadingClients, setIsLoadingClients] = useState(true);
 
   useEffect(() => {
-    const loadClientsFromChats = async () => {
+    const loadClients = async () => {
       if (!currentUser) return;
 
       try {
         setIsLoadingClients(true);
-        const chatsResponse = await chatApi.getChats();
 
-        if (!chatsResponse) {
-          setClients([]);
-          return;
-        }
+        const advisorClients = await getAdvisorClients(currentUser.id);
+        const clientsList = mapAdvisorClientsToClientDetails(advisorClients, currentUser.id);
 
-        const allChats = mapChatsFromApi(chatsResponse);
-
-        const clientsMap = new Map<string, ClientWithDetails>();
-
-        allChats.forEach((chat: Chat) => {
-          const clientId = chat.clientId;
-
-          if (!clientsMap.has(clientId)) {
-            clientsMap.set(clientId, {
-              id: clientId,
-              firstName: chat.client?.firstName || 'Unknown',
-              lastName: chat.client?.lastName || 'User',
-              email: chat.client?.email || '',
-              identityNumber: chat.client?.identityNumber || '',
-              role: UserRole.CLIENT,
-              state: UserState.ACTIVE,
-              createdAt: chat.client?.createdAt || new Date(),
-              updatedAt: chat.client?.updatedAt || new Date(),
-              activeChats: [],
-              loans: [],
-              notifications: [],
-              clientSince: chat.client?.createdAt || new Date(),
-            });
-          }
-
-          const client = clientsMap.get(clientId)!;
-          client.activeChats.push(chat);
-        });
-
-        const clientsList = Array.from(clientsMap.values());
         setClients(clientsList);
       } catch (error) {
         console.error('Error loading clients:', error);
@@ -87,7 +54,7 @@ export default function ClientsPage() {
       }
     };
 
-    loadClientsFromChats();
+    loadClients();
   }, [currentUser, toast, t]);
 
   const handleClientClick = (client: ClientWithDetails) => {
@@ -95,14 +62,19 @@ export default function ClientsPage() {
     setIsDetailsModalOpen(true);
   };
 
-  const handleSendNotification = async (_title: string, _message: string) => {
-    if (!selectedClient) return;
+  const handleSendNotification = async (title: string, message: string, type: CustomNotificationType) => {
+    if (!selectedClient || !currentUser) return;
 
     try {
       setIsLoadingNotification(true);
 
-      // TODO: Remplacer par un vrai appel API
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      await createNotification({
+        userId: selectedClient.id,
+        title,
+        message,
+        type,
+        advisorName: `${currentUser.firstName} ${currentUser.lastName}`,
+      });
 
       toast({
         title: t('clients.notification.success'),
@@ -214,7 +186,7 @@ export default function ClientsPage() {
     <div className="min-h-screen bg-linear-to-br from-gray-50 to-gray-100">
       <DashboardHeader activeTab={activeTab} setActiveTab={setActiveTab} />
 
-      <main className="mx-auto max-w-[1800px] p-6">
+      <main className="mx-auto max-w-450 p-6">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}

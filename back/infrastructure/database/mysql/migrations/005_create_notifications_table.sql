@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS notifications (
 
     -- Check constraint for notification type
     CONSTRAINT notifications_type_check
-        CHECK (type IN ('loan', 'success', 'warning', 'info'))
+        CHECK (type IN ('loan', 'success', 'warning', 'info', 'news'))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Add index on user_id for faster lookups

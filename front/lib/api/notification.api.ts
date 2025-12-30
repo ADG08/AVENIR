@@ -1,5 +1,5 @@
 import { Notification } from '@/types/notification';
-import { NotificationType } from '@avenir/shared/enums';
+import { NotificationType, CustomNotificationType } from '@avenir/shared/enums';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
@@ -13,6 +13,14 @@ export interface NotificationResponse {
   read: boolean;
   createdAt: string;
   newsId?: string | null;
+}
+
+export interface CreateCustomNotificationRequest {
+  userId: string;
+  title: string;
+  message: string;
+  type: CustomNotificationType;
+  advisorName?: string;
 }
 
 export const getNotifications = async (): Promise<Notification[]> => {
@@ -74,4 +82,33 @@ export const deleteNotification = async (notificationId: string): Promise<void> 
     const error = await response.json();
     throw new Error(error.error || error.message || 'Failed to delete notification');
   }
+};
+
+export const createNotification = async (data: CreateCustomNotificationRequest): Promise<Notification> => {
+  const response = await fetch(`${API_URL}/api/notifications`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    credentials: 'include',
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || error.error || 'Failed to create notification');
+  }
+
+  const notificationData: NotificationResponse = await response.json();
+
+  return {
+    id: notificationData.id,
+    title: notificationData.title,
+    message: notificationData.message,
+    type: notificationData.type,
+    advisorName: notificationData.advisorName ?? undefined,
+    read: notificationData.read,
+    createdAt: new Date(notificationData.createdAt),
+    newsId: notificationData.newsId ?? undefined,
+  };
 };

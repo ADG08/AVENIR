@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Bell, X, TrendingUp, Info, CheckCircle, AlertTriangle } from 'lucide-react';
+import { Bell, X, TrendingUp, Info, CheckCircle, AlertTriangle, Newspaper } from 'lucide-react';
 import { Notification } from '@/types/notification';
 import { NotificationType } from '@avenir/shared/enums';
 import { useAuth } from '@/contexts/AuthContext';
@@ -164,10 +164,12 @@ export const NotificationButton = () => {
       case NotificationType.SUCCESS:
         return <CheckCircle className="h-5 w-5 text-green-600" />;
       case NotificationType.WARNING:
-        return <AlertTriangle className="h-5 w-5 text-indigo-600" />;
+        return <AlertTriangle className="h-5 w-5 text-orange-600" />;
+      case NotificationType.NEWS:
+        return <Newspaper className="h-5 w-5 text-purple-600" />;
       case NotificationType.INFO:
       default:
-        return <Info className="h-5 w-5 text-gray-600" />;
+        return <Info className="h-5 w-5 text-blue-600" />;
     }
   };
 
@@ -277,7 +279,7 @@ export const NotificationButton = () => {
 
                           <div className="min-w-0 flex-1">
                             <div className="flex items-start justify-between gap-2">
-                              <h4 className="text-sm font-semibold text-gray-900">
+                              <h4 className="line-clamp-1 text-sm font-semibold text-gray-900">
                                 {notification.title}
                               </h4>
                               <button
@@ -290,7 +292,7 @@ export const NotificationButton = () => {
                                 <X className="h-4 w-4 text-gray-400 hover:text-gray-600" />
                               </button>
                             </div>
-                            <p className="mt-1 text-sm text-gray-600">
+                            <p className="mt-1 line-clamp-2 text-sm text-gray-600">
                               {notification.message}
                             </p>
                             {notification.advisorName && (

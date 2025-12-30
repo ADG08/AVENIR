@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, TrendingUp, Info, CheckCircle, AlertTriangle } from 'lucide-react';
+import { X, TrendingUp, Info, CheckCircle, AlertTriangle, Newspaper } from 'lucide-react';
 import { Notification } from '@/types/notification';
 import { News } from '@/types/news';
 import { NotificationType } from '@avenir/shared/enums';
@@ -72,10 +72,12 @@ export const NotificationDetailModal = ({
       case NotificationType.SUCCESS:
         return <CheckCircle className="h-8 w-8 text-green-600" />;
       case NotificationType.WARNING:
-        return <AlertTriangle className="h-8 w-8 text-indigo-600" />;
+        return <AlertTriangle className="h-8 w-8 text-orange-600" />;
+      case NotificationType.NEWS:
+        return <Newspaper className="h-8 w-8 text-purple-600" />;
       case NotificationType.INFO:
       default:
-        return <Info className="h-8 w-8 text-gray-600" />;
+        return <Info className="h-8 w-8 text-blue-600" />;
     }
   };
 
@@ -116,7 +118,7 @@ export const NotificationDetailModal = ({
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               transition={{ duration: 0.2 }}
-              className="relative w-full max-w-lg rounded-2xl bg-white shadow-2xl"
+              className="relative w-full max-w-2xl max-h-[90vh] overflow-hidden rounded-2xl bg-white shadow-2xl flex flex-col"
               style={{ pointerEvents: 'auto' }}
               onClick={(e) => e.stopPropagation()}
             >
@@ -150,7 +152,7 @@ export const NotificationDetailModal = ({
               </div>
 
               {/* Content */}
-              <div className="p-6">
+              <div className="overflow-y-auto p-6 flex-1">
                 {isLoadingNews ? (
                   <div className="flex items-center justify-center py-8">
                     <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent"></div>
@@ -173,7 +175,7 @@ export const NotificationDetailModal = ({
               </div>
 
               {/* Footer */}
-              <div className="border-t border-gray-200 p-6">
+              <div className="shrink-0 border-t border-gray-200 p-6">
                 <button
                   onClick={onClose}
                   className="w-full rounded-xl bg-blue-600 px-4 py-3 font-semibold text-white transition-colors hover:bg-blue-700"

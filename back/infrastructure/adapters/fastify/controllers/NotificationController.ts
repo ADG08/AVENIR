@@ -4,6 +4,8 @@ import { GetNotificationsUseCase } from '@avenir/application/usecases/notificati
 import { MarkNotificationAsReadUseCase } from '@avenir/application/usecases/notification/MarkNotificationAsReadUseCase';
 import { MarkAllNotificationsAsReadUseCase } from '@avenir/application/usecases/notification/MarkAllNotificationsAsReadUseCase';
 import { DeleteNotificationUseCase } from '@avenir/application/usecases/notification/DeleteNotificationUseCase';
+import { NotificationResponse } from '@avenir/application/responses/NotificationResponse';
+import { webSocketService } from '../../services/WebSocketService';
 
 export class NotificationController {
   constructor(
@@ -27,9 +29,10 @@ export class NotificationController {
         request.user.userId
       );
 
-      return reply.code(200).send(notifications);
+      const notificationsResponse = NotificationResponse.fromNotifications(notifications);
+
+      return reply.code(200).send(notificationsResponse);
     } catch (error) {
-      console.error('Error getting notifications:', error);
       return reply.code(500).send({
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
@@ -55,7 +58,6 @@ export class NotificationController {
 
       return reply.code(200).send({ success: true });
     } catch (error) {
-      console.error('Error marking notification as read:', error);
       return reply.code(500).send({
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
@@ -76,7 +78,6 @@ export class NotificationController {
 
       return reply.code(200).send({ success: true });
     } catch (error) {
-      console.error('Error marking all notifications as read:', error);
       return reply.code(500).send({
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
@@ -100,7 +101,49 @@ export class NotificationController {
 
       return reply.code(204).send();
     } catch (error) {
-      console.error('Error deleting notification:', error);
+      return reply.code(500).send({
+        error: 'Internal server error',
+        message: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
+  }
+
+  async createCustomNotification(
+    request: FastifyRequest<{
+      Body: {
+        userId: string;
+        title: string;
+        message: string;
+        type: string;
+        advisorName?: string;
+      };
+    }>,
+    reply: FastifyReply
+  ) {
+    try {
+      if (!request.user) {
+        return reply.code(401).send({
+          error: 'Unauthorized',
+          message: 'Authentication required',
+        });
+      }
+
+      const { userId, title, message, type, advisorName } = request.body;
+
+      const notification = await this.createNotificationUseCase.execute(
+        userId,
+        title,
+        message,
+        type as any,
+        advisorName || null,
+        null
+      );
+
+      const notificationResponse = NotificationResponse.fromNotification(notification);
+      webSocketService.notifyNotificationCreated(userId, notificationResponse.toWebSocketPayload());
+
+      return reply.code(201).send(notificationResponse);
+    } catch (error) {
       return reply.code(500).send({
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
