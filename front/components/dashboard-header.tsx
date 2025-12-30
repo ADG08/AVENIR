@@ -137,40 +137,15 @@ export const DashboardHeader = ({ activeTab, setActiveTab }: DashboardHeaderProp
                 </button>
 
                 <div className="relative z-50 hidden items-center gap-2 rounded-full bg-white p-1 shadow-sm md:flex">
-                    <button
-                        onMouseEnter={() => setHoveredIcon('search')}
-                        onMouseLeave={() => setHoveredIcon(null)}
-                        onClick={() => setActiveIcon('search')}
-                        className="relative z-10 flex h-10 w-10 cursor-pointer items-center justify-center rounded-full transition-colors duration-200"
-                    >
-                        {(hoveredIcon === 'search' || activeIcon === 'search') && (
-                            <motion.div
-                                layoutId="iconBackground"
-                                className="absolute inset-0 rounded-full bg-gray-900"
-                                style={{ zIndex: -1 }}
-                                transition={{
-                                    type: 'spring',
-                                    stiffness: 380,
-                                    damping: 30,
-                                }}
-                            />
-                        )}
-                        <Search
-                            className={`h-5 w-5 ${hoveredIcon === 'search' || activeIcon === 'search' ? 'text-white' : 'text-gray-600'}`}
-                        />
-                    </button>
-
-                    {/* Notifications pour les clients uniquement */}
-                    {currentUser?.role === UserRole.CLIENT ? (
-                        <NotificationButton />
-                    ) : (
+                    {/* Search */}
+                    {currentUser?.role === UserRole.CLIENT && (
                         <button
-                            onMouseEnter={() => setHoveredIcon('bell')}
+                            onMouseEnter={() => setHoveredIcon('search')}
                             onMouseLeave={() => setHoveredIcon(null)}
-                            onClick={() => setActiveIcon('bell')}
+                            onClick={() => setActiveIcon('search')}
                             className="relative z-10 flex h-10 w-10 cursor-pointer items-center justify-center rounded-full transition-colors duration-200"
                         >
-                            {(hoveredIcon === 'bell' || activeIcon === 'bell') && (
+                            {(hoveredIcon === 'search' || activeIcon === 'search') && (
                                 <motion.div
                                     layoutId="iconBackground"
                                     className="absolute inset-0 rounded-full bg-gray-900"
@@ -182,23 +157,30 @@ export const DashboardHeader = ({ activeTab, setActiveTab }: DashboardHeaderProp
                                     }}
                                 />
                             )}
-                            <Bell
-                                className={`h-5 w-5 ${hoveredIcon === 'bell' || activeIcon === 'bell' ? 'text-white' : 'text-gray-600'}`}
+                            <Search
+                                className={`h-5 w-5 ${hoveredIcon === 'search' || activeIcon === 'search' ? 'text-white' : 'text-gray-600'}`}
                             />
-                            <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-red-500"></span>
                         </button>
                     )}
-                    <div ref={userMenuRef} className="relative">
-                        <button
-                            onMouseEnter={() => setHoveredIcon('user')}
-                            onMouseLeave={() => setHoveredIcon(null)}
-                            onClick={() => {
-                                setUserMenuOpen(!userMenuOpen);
-                                setActiveIcon(userMenuOpen ? null : 'user');
-                            }}
-                            className="relative z-10 flex h-10 w-10 cursor-pointer items-center justify-center rounded-full transition-colors duration-200"
-                        >
-                            {(hoveredIcon === 'user' || activeIcon === 'user' || userMenuOpen) && (
+
+                    {/* Notifications */}
+                    {currentUser?.role === UserRole.CLIENT && (
+                        <NotificationButton />
+                    )}
+
+                    {/* Profile */}
+                    {currentUser?.role === UserRole.CLIENT && (
+                        <div ref={userMenuRef} className="relative">
+                            <button
+                                onMouseEnter={() => setHoveredIcon('user')}
+                                onMouseLeave={() => setHoveredIcon(null)}
+                                onClick={() => {
+                                    setUserMenuOpen(!userMenuOpen);
+                                    setActiveIcon(userMenuOpen ? null : 'user');
+                                }}
+                                className="relative z-10 flex h-10 w-10 cursor-pointer items-center justify-center rounded-full transition-colors duration-200"
+                            >
+                                {(hoveredIcon === 'user' || activeIcon === 'user' || userMenuOpen) && (
                                 <motion.div
                                     layoutId="iconBackground"
                                     className="absolute inset-0 rounded-full bg-gray-900"
@@ -248,7 +230,10 @@ export const DashboardHeader = ({ activeTab, setActiveTab }: DashboardHeaderProp
                                 </motion.div>
                             )}
                         </AnimatePresence>
-                    </div>
+                        </div>
+                    )}
+
+                    {/* Bouton langue */}
                     <button
                         onMouseEnter={() => setHoveredIcon('lang')}
                         onMouseLeave={() => setHoveredIcon(null)}
