@@ -389,7 +389,14 @@
       "send": "Envoyer",
       "sending": "Envoi...",
       "success": "Notification envoyée avec succès",
-      "error": "Erreur lors de l'envoi de la notification"
+      "error": "Erreur lors de l'envoi de la notification",
+      "type": {
+        "label": "Type de notification",
+        "selectType": "Sélectionnez un type",
+        "info": "Information",
+        "warning": "Avertissement",
+        "success": "Succès"
+      }
     },
     "loan": {
       "title": "Octroyer un crédit",

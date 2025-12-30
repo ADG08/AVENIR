@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS notifications (
 
     -- Check constraint for notification type
     CONSTRAINT notifications_type_check
-        CHECK (type IN ('loan', 'success', 'warning', 'info'))
+        CHECK (type IN ('loan', 'success', 'warning', 'info', 'news'))
 );
 
 -- Add indexes for better query performance

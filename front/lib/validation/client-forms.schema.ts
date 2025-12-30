@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { CustomNotificationType } from '@avenir/shared';
 
 export const createNewsSchema = z.object({
   title: z
@@ -26,6 +27,7 @@ export const sendNotificationSchema = z.object({
     .min(1, 'Le message est requis')
     .min(10, 'Le message doit contenir au moins 10 caractères')
     .max(1000, 'Le message ne peut pas dépasser 1000 caractères'),
+  type: z.nativeEnum(CustomNotificationType),
 });
 
 export type SendNotificationFormData = z.infer<typeof sendNotificationSchema>;
