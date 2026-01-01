@@ -95,7 +95,7 @@ VALUES (
 INSERT INTO users (id, first_name, last_name, email, identity_number, passcode, role, state, advisor_id, created_at, updated_at)
 VALUES
 (
-    'f7f35a80-0a07-4f07-a429-70be5f5c4d86',
+    'f6a7b8c9-0d1e-42f3-8f5b-6d7e8f9a0b1c',
     'Jean',
     'Dupont',
     'jean.dupont@gmail.com',

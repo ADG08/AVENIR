@@ -186,8 +186,8 @@ OFFSET 1 LIMIT 1;
 INSERT INTO chats (id, client_id, advisor_id, status, created_at, updated_at)
 VALUES (
     'chat-closed-1',
-    'b2c3d4e5-6f7a-8b9c-0d1e-2f3a4b5c6d7e', -- Clement Tine
-    'a1b2c3d4-5e6f-7a8b-9c0d-1e2f3a4b5c6d', -- Sophie Dubois
+    'e5f6a7b8-9c0d-41e2-bf4a-5c6d7e8f9a0b', -- Clement Tine (nouveau UUID)
+    'd4e5f6a7-8b9c-4d0e-af3a-4b5c6d7e8f9a', -- Sophie Dubois (nouveau UUID)
     'CLOSED',
     NOW() - INTERVAL '7 days',
     NOW() - INTERVAL '5 days'
@@ -199,7 +199,7 @@ VALUES
 (
     'msg-closed-1-1',
     'chat-closed-1',
-    'b2c3d4e5-6f7a-8b9c-0d1e-2f3a4b5c6d7e', -- Clement Tine
+    'e5f6a7b8-9c0d-41e2-bf4a-5c6d7e8f9a0b', -- Clement Tine (nouveau UUID)
     'Bonjour, j''ai une question sur ma carte bancaire. Comment augmenter mon plafond ?',
     TRUE,
     NOW() - INTERVAL '7 days'
@@ -207,7 +207,7 @@ VALUES
 (
     'msg-closed-1-2',
     'chat-closed-1',
-    'a1b2c3d4-5e6f-7a8b-9c0d-1e2f3a4b5c6d', -- Sophie Dubois
+    'd4e5f6a7-8b9c-4d0e-af3a-4b5c6d7e8f9a', -- Sophie Dubois (nouveau UUID)
     'Bonjour ! Pour augmenter votre plafond, vous pouvez faire la demande directement depuis votre espace client, section "Paramètres de carte". La modification sera effective sous 24h.',
     TRUE,
     NOW() - INTERVAL '6 days 23 hours'
@@ -215,7 +215,7 @@ VALUES
 (
     'msg-closed-1-3',
     'chat-closed-1',
-    'b2c3d4e5-6f7a-8b9c-0d1e-2f3a4b5c6d7e', -- Clement Tine
+    'e5f6a7b8-9c0d-41e2-bf4a-5c6d7e8f9a0b', -- Clement Tine (nouveau UUID)
     'Parfait, merci beaucoup pour votre aide !',
     TRUE,
     NOW() - INTERVAL '5 days'
