@@ -15,12 +15,13 @@ export const userApi = {
     }
 
     const response = await fetch(
-      `${API_BASE_URL}/users${queryParams.toString() ? `?${queryParams.toString()}` : ''}`,
+      `${API_BASE_URL}/api/users${queryParams.toString() ? `?${queryParams.toString()}` : ''}`,
       {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
       }
     );
 
@@ -33,11 +34,12 @@ export const userApi = {
   },
 
   async getUserById(userId: string): Promise<User> {
-    const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
+    const response = await fetch(`${API_BASE_URL}/api/users/${userId}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
       },
+      credentials: 'include',
     });
 
     if (!response.ok) {
