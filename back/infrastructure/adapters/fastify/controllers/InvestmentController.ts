@@ -12,8 +12,6 @@ import { OrderBookType } from '@avenir/domain/enumerations/OrderBookType';
 import { OrderBookState } from '@avenir/domain/enumerations/OrderBookState';
 import { OrderMatchingService } from '@avenir/application/services/OrderMatchingService';
 import { Stock } from '@avenir/domain/entities/Stock';
-import { createStockApiSchema, updateStockApiSchema } from '@avenir/shared/schemas/stock.schema';
-import { ZodError } from 'zod';
 import { v4 as uuidv4 } from 'uuid';
 
 export class InvestmentController {
@@ -298,10 +296,6 @@ export class InvestmentController {
             const userId = request.user.userId;
             const { stockId, quantity } = request.body;
 
-            if (!stockId || !quantity || quantity <= 0) {
-                return reply.status(400).send({ error: 'Invalid stock ID or quantity' });
-            }
-
             const stock = await this.stockRepository.getById(stockId);
             if (!stock) {
                 return reply.status(404).send({ error: 'Stock not found' });
@@ -385,7 +379,7 @@ export class InvestmentController {
         Body: {
             stockId: string;
             side: 'BID' | 'ASK';
-            type: 'MARKET' | 'LIMIT';
+            type: 'MARKET' | 'LIMIT' | 'STOP';
             quantity: number;
             limitPrice?: number;
         }
@@ -397,14 +391,6 @@ export class InvestmentController {
 
             const userId = request.user.userId;
             const { stockId, side, type, quantity, limitPrice } = request.body;
-
-            if (!stockId || !side || !type || !quantity || quantity <= 0) {
-                return reply.status(400).send({ error: 'Invalid order parameters' });
-            }
-
-            if (type === 'LIMIT' && (!limitPrice || limitPrice <= 0)) {
-                return reply.status(400).send({ error: 'Limit price required for LIMIT orders' });
-            }
 
             const stock = await this.stockRepository.getById(stockId);
             if (!stock) {
@@ -518,10 +504,6 @@ export class InvestmentController {
             }
 
             const { stockId } = request.params;
-
-            if (!stockId) {
-                return reply.status(400).send({ error: 'Stock ID is required' });
-            }
 
             const stock = await this.stockRepository.getById(stockId);
             if (!stock) {
@@ -1059,13 +1041,13 @@ export class InvestmentController {
 
     async createStock(request: FastifyRequest, reply: FastifyReply) {
         try {
-            const validatedData = createStockApiSchema.parse(request.body);
+            const { symbol, name, currentPrice, marketCap, isActive } = request.body as any;
 
-            const existingStock = await this.stockRepository.getBySymbol(validatedData.symbol);
+            const existingStock = await this.stockRepository.getBySymbol(symbol);
             if (existingStock) {
                 return reply.status(409).send({
                     error: 'Conflict',
-                    message: `Une action avec le symbole "${validatedData.symbol}" existe déjà`,
+                    message: `Une action avec le symbole "${symbol}" existe déjà`,
                 });
             }
 
@@ -1074,15 +1056,15 @@ export class InvestmentController {
 
             const newStock = new Stock(
                 uuidv4(),
-                validatedData.symbol,
-                validatedData.name,
+                symbol,
+                name,
                 generatedISIN,
-                validatedData.currentPrice,
+                currentPrice,
                 null,
                 null,
-                validatedData.marketCap ?? null,
+                marketCap ?? null,
                 0,
-                validatedData.isActive,
+                isActive,
                 [],
                 now,
                 now
@@ -1092,6 +1074,7 @@ export class InvestmentController {
 
             const SYSTEM_USER_ID = 'SYSTEM';
             const INITIAL_LIQUIDITY = 10000;
+            const SPREAD_PERCENT = 0.01; // 1% spread
 
             try {
                 const systemUser = await this.userRepository.getById(SYSTEM_USER_ID);
@@ -1101,14 +1084,15 @@ export class InvestmentController {
                         systemUser,
                         createdStock,
                         INITIAL_LIQUIDITY,
-                        validatedData.currentPrice,
-                        INITIAL_LIQUIDITY * validatedData.currentPrice,
+                        currentPrice,
+                        INITIAL_LIQUIDITY * currentPrice,
                         now,
                         now
                     );
                     await this.portfolioRepository.add(systemPortfolio);
 
-                    const liquidityOrder = new OrderBook(
+                    const askPrice = parseFloat((currentPrice * (1 + SPREAD_PERCENT)).toFixed(2));
+                    const liquidityAskOrder = new OrderBook(
                         uuidv4(),
                         createdStock,
                         systemUser,
@@ -1116,18 +1100,35 @@ export class InvestmentController {
                         OrderBookType.LIMIT,
                         INITIAL_LIQUIDITY,
                         INITIAL_LIQUIDITY,
-                        validatedData.currentPrice,
+                        askPrice,
                         null,
                         OrderBookState.PENDING,
                         now,
                         now
                     );
-                    await this.orderBookRepository.add(liquidityOrder);
 
-                    console.log(`✅ Liquidité initiale: ${INITIAL_LIQUIDITY} ${createdStock.symbol} @ ${validatedData.currentPrice}€`);
+                    await this.orderBookRepository.add(liquidityAskOrder);
+
+                    const bidPrice = parseFloat((currentPrice * (1 - SPREAD_PERCENT)).toFixed(2));
+                    const liquidityBidOrder = new OrderBook(
+                        uuidv4(),
+                        createdStock,
+                        systemUser,
+                        OrderSide.BID,
+                        OrderBookType.LIMIT,
+                        INITIAL_LIQUIDITY,
+                        INITIAL_LIQUIDITY,
+                        bidPrice,
+                        null,
+                        OrderBookState.PENDING,
+                        now,
+                        now
+                    );
+
+                    await this.orderBookRepository.add(liquidityBidOrder);
                 }
             } catch (liquidityError) {
-                console.error('⚠️ Erreur création liquidité:', liquidityError);
+                console.error('Erreur création liquidité:', liquidityError);
             }
 
             return reply.status(201).send({
@@ -1144,13 +1145,6 @@ export class InvestmentController {
                 },
             });
         } catch (error) {
-            if (error instanceof ZodError) {
-                return reply.status(400).send({
-                    error: 'Validation Error',
-                    message: 'Données invalides',
-                    details: error.errors.map(e => ({ field: e.path.join('.'), message: e.message })),
-                });
-            }
             console.error('Error creating stock:', error);
             return reply.status(500).send({ error: 'Échec de la création de l\'action' });
         }
@@ -1159,8 +1153,7 @@ export class InvestmentController {
     async updateStock(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
         try {
             const { id } = request.params;
-
-            const validatedData = updateStockApiSchema.parse({ id, ...request.body });
+            const { symbol, name, isin, currentPrice, marketCap, isActive } = request.body as any;
 
             const existingStock = await this.stockRepository.getById(id);
             if (!existingStock) {
@@ -1170,27 +1163,27 @@ export class InvestmentController {
                 });
             }
 
-            if (validatedData.symbol && validatedData.symbol !== existingStock.symbol) {
-                const stockWithSymbol = await this.stockRepository.getBySymbol(validatedData.symbol);
+            if (symbol && symbol !== existingStock.symbol) {
+                const stockWithSymbol = await this.stockRepository.getBySymbol(symbol);
                 if (stockWithSymbol) {
                     return reply.status(409).send({
                         error: 'Conflict',
-                        message: `Une action avec le symbole "${validatedData.symbol}" existe déjà`,
+                        message: `Une action avec le symbole "${symbol}" existe déjà`,
                     });
                 }
             }
 
             const updatedStock = new Stock(
                 existingStock.id,
-                validatedData.symbol ?? existingStock.symbol,
-                validatedData.name ?? existingStock.name,
-                validatedData.isin !== undefined ? validatedData.isin : existingStock.isin,
-                validatedData.currentPrice ?? existingStock.currentPrice,
+                symbol ?? existingStock.symbol,
+                name ?? existingStock.name,
+                isin !== undefined ? isin : existingStock.isin,
+                currentPrice ?? existingStock.currentPrice,
                 existingStock.bestBid,
                 existingStock.bestAsk,
-                validatedData.marketCap !== undefined ? validatedData.marketCap : existingStock.marketCap,
+                marketCap !== undefined ? marketCap : existingStock.marketCap,
                 existingStock.volume24h,
-                validatedData.isActive ?? existingStock.isActive,
+                isActive ?? existingStock.isActive,
                 existingStock.orders,
                 existingStock.createdAt,
                 new Date()
@@ -1212,13 +1205,6 @@ export class InvestmentController {
                 },
             });
         } catch (error) {
-            if (error instanceof ZodError) {
-                return reply.status(400).send({
-                    error: 'Validation Error',
-                    message: 'Données invalides',
-                    details: error.errors.map(e => ({ field: e.path.join('.'), message: e.message })),
-                });
-            }
             console.error('Error updating stock:', error);
             return reply.status(500).send({ error: 'Échec de la mise à jour de l\'action' });
         }

@@ -13,6 +13,9 @@ import type { Stock } from './types';
 import { StockAdminModal } from './stock-admin-modal';
 import { DeleteStockModal } from './delete-stock-modal';
 import type { CreateStockFormInput, UpdateStockFormInput } from '@avenir/shared/schemas/stock.schema';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { placeOrderSchema, type PlaceOrderInput } from '@avenir/shared/schemas/investment.schema';
 
 const API_BASE_URL = 'http://localhost:3001/api';
 
@@ -211,6 +214,17 @@ export const StockDetailModal = ({ isOpen, onClose, stock, onPurchaseSuccess }: 
   const [limitPrice, setLimitPrice] = React.useState('');
   const [orderSide, setOrderSide] = React.useState<'BUY' | 'SELL'>('BUY');
   const [availableShares, setAvailableShares] = React.useState(0);
+
+  const form = useForm<PlaceOrderInput>({
+    resolver: zodResolver(placeOrderSchema),
+    mode: 'onChange',
+    defaultValues: {
+      stockId: stock?.id || '',
+      side: 'BID',
+      type: 'MARKET',
+      quantity: 0,
+    },
+  });
   const [pendingOrders, setPendingOrders] = React.useState<any[]>([]);
   const [orderBook, setOrderBook] = React.useState<{
     bids: Array<{ price: number; quantity: number }>;
@@ -482,9 +496,16 @@ export const StockDetailModal = ({ isOpen, onClose, stock, onPurchaseSuccess }: 
   const numberOfShares = stock && numericAmount > 0 ? numericAmount / effectivePrice : 0;
   const totalRevenue = numericAmount - TRANSACTION_FEE;
 
-  const canBuy = orderSide === 'BUY'
-    ? numericAmount > 0 && totalCost <= availableBalance && (orderType === 'MARKET' || (orderType === 'LIMIT' && numericLimitPrice > 0))
-    : numericShares > 0 && numericShares <= availableShares && (orderType === 'MARKET' || (orderType === 'LIMIT' && numericLimitPrice > 0));
+  const canBuy = React.useMemo(() => {
+    const hasValidQuantity = numericShares > 0;
+    const hasValidLimitPrice = orderType === 'MARKET' || (orderType === 'LIMIT' && numericLimitPrice > 0);
+
+    if (orderSide === 'BUY') {
+      return hasValidQuantity && totalCost <= availableBalance && hasValidLimitPrice;
+    } else {
+      return hasValidQuantity && numericShares <= availableShares && hasValidLimitPrice;
+    }
+  }, [orderSide, numericShares, numericAmount, totalCost, availableBalance, numericLimitPrice, orderType, availableShares]);
 
   if (!stock) return null;
 
@@ -515,48 +536,47 @@ export const StockDetailModal = ({ isOpen, onClose, stock, onPurchaseSuccess }: 
   };
 
   const handleBuy = async () => {
-    if (!canBuy || !stock) return;
+    if (!stock) return;
 
+    // Update form values before submission
+    form.setValue('stockId', stock.id);
+    form.setValue('side', orderSide === 'BUY' ? 'BID' : 'ASK');
+    form.setValue('type', orderType);
+    form.setValue('quantity', parseFloat(shares) || 0);
+
+    if (orderType === 'LIMIT') {
+      form.setValue('limitPrice', numericLimitPrice);
+    }
+
+    // Trigger form submission which will validate with Zod
+    await form.handleSubmit(onSubmitOrder)();
+  };
+
+  const onSubmitOrder = async (data: PlaceOrderInput) => {
     setIsPurchasing(true);
     setError('');
 
     try {
-      const orderData: {
-        stockId: string;
-        side: 'BID' | 'ASK';
-        type: 'MARKET' | 'LIMIT';
-        quantity: number;
-        limitPrice?: number;
-      } = {
-        stockId: stock.id,
-        side: orderSide === 'BUY' ? 'BID' : 'ASK',
-        type: orderType,
-        quantity: parseFloat(shares),
-      };
-
-      if (orderType === 'LIMIT') {
-        orderData.limitPrice = numericLimitPrice;
-      }
-
       const response = await fetch(`${API_BASE_URL}/investment/order`, {
         method: 'POST',
         credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(orderData),
+        body: JSON.stringify(data),
       });
 
       if (response.ok) {
-        const data = await response.json();
+        const responseData = await response.json();
 
         setAmount('');
         setShares('');
         setLimitPrice('');
         setOrderType('MARKET');
+        form.reset();
 
-        if (data.warning && data.message) {
-          setError(data.message);
+        if (responseData.warning && responseData.message) {
+          setError(responseData.message);
           setIsWarning(true);
         } else {
           setError('');
@@ -568,7 +588,7 @@ export const StockDetailModal = ({ isOpen, onClose, stock, onPurchaseSuccess }: 
         await fetchPendingOrders();
         await fetchOrderBook();
 
-        if (!data.warning) {
+        if (!responseData.warning) {
           onClose();
         }
 
@@ -1068,6 +1088,20 @@ export const StockDetailModal = ({ isOpen, onClose, stock, onPurchaseSuccess }: 
                           {isWarning && '⚠️ '}
                           {error}
                         </p>
+                      )}
+
+                      {Object.keys(form.formState.errors).length > 0 && (
+                        <div className="space-y-1">
+                          {form.formState.errors.quantity && (
+                            <p className="text-sm text-red-600">{form.formState.errors.quantity.message}</p>
+                          )}
+                          {form.formState.errors.limitPrice && (
+                            <p className="text-sm text-red-600">{form.formState.errors.limitPrice.message}</p>
+                          )}
+                          {form.formState.errors.stockId && (
+                            <p className="text-sm text-red-600">{form.formState.errors.stockId.message}</p>
+                          )}
+                        </div>
                       )}
 
                       <button
