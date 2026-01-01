@@ -98,7 +98,8 @@ const chatController = new ChatController(
     transferChatUseCase,
     closeChatUseCase,
     chatRepository,
-    messageRepository
+    messageRepository,
+    userRepository
 );
 
 const messageController = new MessageController(sendMessageUseCase, markMessageAsReadUseCase, chatRepository);

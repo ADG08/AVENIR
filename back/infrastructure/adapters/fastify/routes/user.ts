@@ -1,6 +1,6 @@
 import { FastifyInstance, FastifyPluginOptions, FastifyRequest, FastifyReply } from 'fastify';
 import { UserController } from '../controllers/UserController';
-import { AddUserRequest, RegisterUserRequest, LoginUserRequest } from '../../../../application/requests';
+import { RegisterUserRequest, LoginUserRequest } from '../../../../application/requests';
 import { registrationSchema, loginSchema } from '@avenir/shared';
 import { ZodError } from 'zod';
 import {authMiddleware} from "../middleware/authMiddleware";
@@ -11,17 +11,29 @@ export async function userRoutes(
 ) {
     const { userController } = options;
 
-    fastify.get('/users', async (request: FastifyRequest<{ Querystring: { role?: string } }>, reply: FastifyReply) => {
-        return userController.getUsers(request, reply);
-    });
+    fastify.get(
+        '/users',
+        { preHandler: authMiddleware },
+        async (request, reply) => {
+            return userController.getUsers(request as any, reply);
+        }
+    );
 
-    fastify.get('/users/:id', async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
-        return userController.getUser(request, reply);
-    });
+    fastify.get(
+        '/users/:id',
+        { preHandler: authMiddleware },
+        async (request, reply) => {
+            return userController.getUser(request as any, reply);
+        }
+    );
 
-    fastify.post('/users', async (request: FastifyRequest<{ Body: AddUserRequest }>, reply: FastifyReply) => {
-        return userController.addUser(request, reply);
-    });
+    fastify.post(
+        '/users',
+        { preHandler: authMiddleware },
+        async (request, reply) => {
+            return userController.addUser(request as any, reply);
+        }
+    );
 
     fastify.post('/register', async (request: FastifyRequest<{ Body: RegisterUserRequest }>, reply: FastifyReply) => {
         try {
