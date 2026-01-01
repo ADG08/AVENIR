@@ -299,10 +299,15 @@
       "success": "Loan granted successfully",
       "error": "Error granting loan",
       "calculate": "Calculate",
-      "summary": "Loan summary"
+      "summary": "Loan summary",
+      "newLoanCreated": "New loan granted"
     },
     "errors": {
-      "loadingClients": "Unable to load clients list"
+      "loadingClients": "Error loading clients",
+      "notYourClient": "Client not managed",
+      "clientManagedBy": "This client is managed by {{advisorName}}",
+      "clientNotManaged": "This client is not under your management",
+      "checkingClient": "Error checking client"
     }
   },
   "news": {
@@ -353,6 +358,7 @@
     "alreadyAssigned": "Already assigned",
     "showClosedConversations": "Show closed conversations",
     "searchPlaceholder": "Search by name...",
+    "viewClientDetails": "View client details",
     "message": {
       "yourMessage": "Your message",
       "typeYourMessage": "Describe your request...",

@@ -155,6 +155,19 @@ export class MySQLUserRepository implements UserRepository {
         }
     }
 
+    async isClientManagedByAdvisor(clientId: string, advisorId: string): Promise<boolean> {
+        try {
+            const [rows] = await this.pool.execute(
+                'SELECT EXISTS(SELECT 1 FROM users WHERE id = ? AND advisor_id = ? AND role = ?) as is_managed',
+                [clientId, advisorId, UserRole.CLIENT]
+            );
+            const results = rows as RowDataPacket[];
+            return results[0].is_managed === 1;
+        } catch (error) {
+            throw error;
+        }
+    }
+
     private mapRowToUser(row: RowDataPacket): User {
         return new User(
             row.id,
@@ -175,4 +188,3 @@ export class MySQLUserRepository implements UserRepository {
         );
     }
 }
-

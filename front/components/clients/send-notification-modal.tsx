@@ -6,7 +6,7 @@ import { X, Send, Info, AlertTriangle, CheckCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { sendNotificationSchema, type SendNotificationFormData } from '@/lib/validation/client-forms.schema';
+import { sendNotificationSchema, type SendNotificationData as SendNotificationFormData } from '@avenir/shared/schemas/notification.schema';
 import { CustomNotificationType } from '@avenir/shared';
 
 interface SendNotificationModalProps {

@@ -32,3 +32,6 @@ export type LoginInput = z.infer<typeof loginSchema>;
 
 export * from './schemas/user.schema';
 export * from './schemas/chat.schema';
+export * from './schemas/loan.schema';
+export * from './schemas/news.schema';
+export * from './schemas/notification.schema';

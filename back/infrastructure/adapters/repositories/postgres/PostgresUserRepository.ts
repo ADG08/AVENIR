@@ -151,6 +151,19 @@ export class PostgresUserRepository implements UserRepository {
         }
     }
 
+    async isClientManagedByAdvisor(clientId: string, advisorId: string): Promise<boolean> {
+        try {
+            const result = await this.pool.query(
+                'SELECT EXISTS(SELECT 1 FROM users WHERE id = $1 AND advisor_id = $2 AND role = $3) as is_managed',
+                [clientId, advisorId, UserRole.CLIENT]
+            );
+            return result.rows[0].is_managed;
+        } catch (error) {
+            console.error('PostgreSQL error:', error);
+            throw error;
+        }
+    }
+
     private mapRowToUser(row: RowDataPacket): User {
         return new User(
             row.id,

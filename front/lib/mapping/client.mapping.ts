@@ -1,6 +1,6 @@
 import { Client } from '@/lib/api/advisor.api';
 import { ClientWithDetails } from '@/types/client';
-import { UserRole, UserState, ChatStatus } from '@/types/enums';
+import { UserRole, UserState, ChatStatus, LoanStatus } from '@/types/enums';
 
 /**
  * Mappe les clients récupérés de l'API advisor vers le format ClientWithDetails utilisé dans l'application frontend.
@@ -43,7 +43,31 @@ export const mapAdvisorClientsToClientDetails = (
       updatedAt: chat.updatedAt,
       messages: [],
     })),
-    loans: client.loans,
+    loans: client.loans.map(loan => {
+      const endDate = new Date(loan.createdAt);
+      endDate.setMonth(endDate.getMonth() + loan.duration);
+
+      return {
+        id: loan.id,
+        clientId: client.id,
+        name: loan.name,
+        amount: loan.amount,
+        duration: loan.duration,
+        interestRate: loan.annualInterestRate,
+        insuranceRate: loan.insuranceRate,
+        monthlyPayment: loan.monthlyPayment,
+        totalCost: loan.totalCost,
+        totalInterest: loan.totalInterest,
+        insuranceCost: loan.insuranceCost,
+        remainingPayment: loan.remainingPayment,
+        progressPercentage: loan.progressPercentage,
+        monthsPaid: loan.monthsPaid,
+        status: loan.status as LoanStatus,
+        startDate: loan.createdAt,
+        endDate: endDate,
+        createdAt: loan.createdAt,
+      };
+    }),
     notifications: [],
     clientSince: client.createdAt,
   }));

@@ -15,6 +15,8 @@ import {DashboardHeader} from '@/components/dashboard-header';
 import {chatApi} from '@/lib/api/chat.api';
 import {useToast} from '@/hooks/use-toast';
 import {useWebSocket, WebSocketMessage} from '@/contexts/WebSocketContext';
+import { checkClientAdvisor } from '@/lib/api/client-check.api';
+import { useRouter } from 'next/navigation';
 import {
   ChatApiDto,
   mapChatFromApi,
@@ -31,6 +33,7 @@ export default function ContactPage() {
   const { user: currentUser } = useAuth();
   const { toast } = useToast();
   const { subscribe } = useWebSocket();
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState('contact');
   const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -45,6 +48,34 @@ export default function ContactPage() {
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
   const [isTransferring, setIsTransferring] = useState(false);
   const [isAssigning, setIsAssigning] = useState(false);
+
+  // Gestion de la redirection vers les détails du client
+  const handleClientClick = useCallback(async (clientId: string) => {
+    if (!currentUser || currentUser.role !== UserRole.ADVISOR) return;
+
+    try {
+      const result = await checkClientAdvisor(clientId, currentUser.id);
+
+      if (result.isManaged) {
+        sessionStorage.setItem('openClientId', clientId);
+        router.push('/dashboard/clients');
+      } else {
+        toast({
+          title: 'Client non géré',
+          description: result.advisorName
+            ? `Ce client est géré par ${result.advisorName}`
+            : 'Ce client n\'est pas sous votre gestion',
+          variant: 'destructive',
+        });
+      }
+    } catch {
+      toast({
+        title: t('common.error'),
+        description: 'Erreur lors de la vérification du client',
+        variant: 'destructive',
+      });
+    }
+  }, [currentUser, router, toast, t]);
 
   const loadChats = useCallback(async () => {
     if (!currentUser) return;
@@ -534,7 +565,7 @@ export default function ContactPage() {
     <div className="min-h-screen bg-linear-to-br from-gray-50 to-gray-100">
       <DashboardHeader activeTab={activeTab} setActiveTab={setActiveTab} />
 
-      <main className="mx-auto max-w-[1800px] p-6">
+      <main className="mx-auto max-w-450 p-6">
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
           <div className="space-y-4 lg:col-span-4">
             <motion.div
@@ -658,6 +689,7 @@ export default function ContactPage() {
                       isActive={selectedChat?.id === chat.id}
                       onClick={() => setSelectedChat(chat)}
                       currentUserRole={currentUser.role as UserRole}
+                      onClientClick={handleClientClick}
                     />
                   ))
                 )}
@@ -682,6 +714,7 @@ export default function ContactPage() {
                   onClose={currentUser.role === UserRole.ADVISOR ? handleCloseChat : undefined}
                   onTransfer={currentUser.role === UserRole.ADVISOR ? () => setIsTransferModalOpen(true) : undefined}
                   onAssign={currentUser.role === UserRole.DIRECTOR ? () => setIsAssignModalOpen(true) : undefined}
+                  onClientClick={handleClientClick}
                   isLoading={isLoadingMessages}
                 />
               </motion.div>

@@ -299,10 +299,15 @@
       "success": "Crédit octroyé avec succès",
       "error": "Erreur lors de l'octroi du crédit",
       "calculate": "Calculer",
-      "summary": "Récapitulatif du crédit"
+      "summary": "Récapitulatif du crédit",
+      "newLoanCreated": "Nouveau crédit octroyé"
     },
     "errors": {
-      "loadingClients": "Impossible de charger la liste des clients"
+      "loadingClients": "Erreur lors du chargement des clients",
+      "notYourClient": "Client non géré",
+      "clientManagedBy": "Ce client est géré par {{advisorName}}",
+      "clientNotManaged": "Ce client n'est pas sous votre gestion",
+      "checkingClient": "Erreur lors de la vérification du client"
     }
   },
   "news": {
@@ -338,6 +343,7 @@
     }
   },
   "chat": {
+    "title": "Contact",
     "conversations": "Conversations",
     "newConversation": "Nouvelle conversation",
     "noConversations": "Aucune conversation",
@@ -353,6 +359,7 @@
     "alreadyAssigned": "Déjà assigné",
     "showClosedConversations": "Afficher les conversations fermées",
     "searchPlaceholder": "Rechercher par nom...",
+    "viewClientDetails": "Voir les détails du client",
     "message": {
       "yourMessage": "Votre message",
       "typeYourMessage": "Décrivez votre demande...",

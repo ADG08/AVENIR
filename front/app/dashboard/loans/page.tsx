@@ -8,30 +8,65 @@ import { TrendingUp, Calendar, Euro, Percent, FileText } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { LoanStatus } from "@avenir/shared/enums";
 import { useAuth } from '@/contexts/AuthContext';
+import { getClientLoans } from '@/lib/api/loan.api';
+import { useToast } from '@/hooks/use-toast';
+import { mapLoansApiResponseToClientLoans } from '@/lib/mapping/loan.mapping';
+import { useWebSocket } from '@/contexts/WebSocketContext';
+import type { LoanApiResponse } from '@/lib/api/loan.api';
 
 export default function LoansPage() {
   const { t } = useTranslation();
   const { user: currentUser } = useAuth();
+  const { toast } = useToast();
+  const { subscribe } = useWebSocket();
   const [activeTab, setActiveTab] = useState('loans');
   const [loans, setLoans] = useState<ClientLoan[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // TODO : Implémenter l'appel API pour récupérer les crédits depuis le back
     const loadLoans = async () => {
       if (!currentUser) return;
 
       setIsLoading(true);
-      await new Promise((resolve) => setTimeout(resolve, 500));
-
-      // Pour l'instant, liste vide en attendant l'implémentation de l'API
-
-      setLoans([]);
-      setIsLoading(false);
+      try {
+        const clientLoans = await getClientLoans(currentUser.id);
+        const mappedLoans = mapLoansApiResponseToClientLoans(clientLoans, currentUser.id);
+        setLoans(mappedLoans);
+      } catch {
+        toast({
+          title: t('clients.loan.error'),
+          description: 'Impossible de charger vos crédits',
+          variant: 'destructive',
+        });
+      } finally {
+        setIsLoading(false);
+      }
     };
 
     loadLoans();
-  }, [currentUser]);
+
+    // Écouter les événements WebSocket pour les nouveaux crédits
+    const unsubscribe = subscribe((message) => {
+      if (message.type === 'loan_created' && currentUser) {
+        try {
+          const loanPayload = message.payload as LoanApiResponse;
+          const newLoan = mapLoansApiResponseToClientLoans([loanPayload], currentUser.id)[0];
+          setLoans(prevLoans => [newLoan, ...prevLoans]);
+          toast({
+            title: t('clients.loan.newLoanCreated'),
+            description: `Le crédit "${loanPayload.name}" a été ajouté à votre compte`,
+            variant: 'default',
+          });
+        } catch (error) {
+          console.error('Erreur lors du traitement du nouveau crédit:', error);
+        }
+      }
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, [currentUser, t, toast, subscribe]);
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('fr-FR', {
@@ -45,6 +80,13 @@ export default function LoansPage() {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
+    });
+  };
+
+  const formatMonthYear = (date: Date) => {
+    return new Date(date).toLocaleDateString('fr-FR', {
+      year: 'numeric',
+      month: 'long',
     });
   };
 
@@ -77,7 +119,7 @@ export default function LoansPage() {
     <div className="min-h-screen bg-linear-to-br from-gray-50 to-gray-100">
       <DashboardHeader activeTab={activeTab} setActiveTab={setActiveTab} />
 
-      <main className="mx-auto max-w-[1800px] p-6">
+      <main className="mx-auto max-w-450 p-6">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -126,12 +168,8 @@ export default function LoansPage() {
         ) : (
           <div className="space-y-6">
             {loans.map((loan, index) => {
-              const progress =
-                ((loan.amount - loan.remainingBalance) / loan.amount) * 100;
-              const monthsPaid = Math.floor(
-                ((loan.amount - loan.remainingBalance) / loan.amount) *
-                  loan.duration
-              );
+              const progress = loan.progressPercentage || 0;
+              const monthsPaid = loan.monthsPaid || 0;
 
               return (
                 <motion.div
@@ -185,7 +223,7 @@ export default function LoansPage() {
                           <p className="text-sm font-medium">{t('clients.loan.remainingBalance')}</p>
                         </div>
                         <p className="financial-amount mt-2 text-2xl font-bold text-red-700">
-                          {formatCurrency(loan.remainingBalance)}
+                          {formatCurrency(loan.remainingPayment)}
                         </p>
                       </div>
 
@@ -238,7 +276,7 @@ export default function LoansPage() {
                         <span>
                           {monthsPaid} / {loan.duration} {t('clients.loan.monthsPaid')}
                         </span>
-                        <span>{t('clients.loan.end')}: {formatDate(loan.endDate)}</span>
+                        <span>{t('clients.loan.end')}: {formatMonthYear(loan.endDate)}</span>
                       </div>
                     </div>
 

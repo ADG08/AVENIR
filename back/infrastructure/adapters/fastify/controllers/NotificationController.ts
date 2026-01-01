@@ -5,7 +5,9 @@ import { MarkNotificationAsReadUseCase } from '@avenir/application/usecases/noti
 import { MarkAllNotificationsAsReadUseCase } from '@avenir/application/usecases/notification/MarkAllNotificationsAsReadUseCase';
 import { DeleteNotificationUseCase } from '@avenir/application/usecases/notification/DeleteNotificationUseCase';
 import { NotificationResponse } from '@avenir/application/responses/NotificationResponse';
+import { sendNotificationSchema } from '@avenir/shared/schemas/notification.schema';
 import { webSocketService } from '../../services/WebSocketService';
+import { z } from 'zod';
 
 export class NotificationController {
   constructor(
@@ -128,7 +130,8 @@ export class NotificationController {
         });
       }
 
-      const { userId, title, message, type, advisorName } = request.body;
+      const { title, message, type } = sendNotificationSchema.parse(request.body);
+      const { userId, advisorName } = request.body;
 
       const notification = await this.createNotificationUseCase.execute(
         userId,
@@ -144,6 +147,13 @@ export class NotificationController {
 
       return reply.code(201).send(notificationResponse);
     } catch (error) {
+      if (error instanceof z.ZodError) {
+        return reply.code(400).send({
+          error: 'Validation error',
+          message: error.issues.map(e => `${e.path.join('.')}: ${e.message}`).join(', '),
+        });
+      }
+
       return reply.code(500).send({
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
