@@ -41,8 +41,7 @@ export async function userRoutes(
 
     fastify.post('/login', async (request: FastifyRequest<{ Body: LoginUserRequest }>, reply: FastifyReply) => {
         try {
-            const validatedData = loginSchema.parse(request.body);
-            request.body = validatedData;
+            request.body = loginSchema.parse(request.body);
             return userController.loginUser(request, reply);
         } catch (error) {
             if (error instanceof ZodError) {
@@ -71,6 +70,14 @@ export async function userRoutes(
         { preHandler: authMiddleware },
         async (request, reply) => {
             return userController.getAdvisorClients(request as any, reply);
+        }
+    );
+
+    fastify.get(
+        '/advisors/:advisorId/clients/:clientId/check',
+        { preHandler: authMiddleware },
+        async (request, reply) => {
+            return userController.checkClientAdvisor(request as any, reply);
         }
     );
 }

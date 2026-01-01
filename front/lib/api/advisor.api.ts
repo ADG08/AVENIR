@@ -7,6 +7,26 @@ export interface ClientChat {
   updatedAt: Date;
 }
 
+export interface ClientLoanApi {
+  id: string;
+  name: string;
+  amount: number;
+  duration: number;
+  annualInterestRate: number;
+  insuranceRate: number;
+  monthlyPayment: number;
+  totalCost: number;
+  totalInterest: number;
+  insuranceCost: number;
+  remainingPayment: number;
+  paidAmount: number;
+  progressPercentage: number;
+  monthsPaid: number;
+  status: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export interface Client {
   id: string;
   firstName: string;
@@ -16,7 +36,7 @@ export interface Client {
   state: string;
   createdAt: Date;
   chats: ClientChat[];
-  loans: never[]; // TODO : Utiliser le type loans
+  loans: ClientLoanApi[];
 }
 
 export interface GetAdvisorClientsResponse {
@@ -43,6 +63,11 @@ export const getAdvisorClients = async (advisorId: string): Promise<Client[]> =>
       ...chat,
       createdAt: new Date(chat.createdAt),
       updatedAt: new Date(chat.updatedAt),
+    })),
+    loans: client.loans.map((loan) => ({
+      ...loan,
+      createdAt: new Date(loan.createdAt),
+      updatedAt: new Date(loan.updatedAt),
     })),
   }));
 };

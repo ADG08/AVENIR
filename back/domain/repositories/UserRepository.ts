@@ -11,4 +11,5 @@ export interface UserRepository {
     getAll(): Promise<User[]>;
     getClientsByAdvisorId(advisorId: string): Promise<User[]>;
     getRandomAdvisor(): Promise<User | null>;
+    isClientManagedByAdvisor(clientId: string, advisorId: string): Promise<boolean>;
 }

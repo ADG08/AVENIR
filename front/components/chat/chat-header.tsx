@@ -13,9 +13,10 @@ interface ChatHeaderProps {
   onClose?: () => void;
   onTransfer?: () => void;
   onAssign?: () => void;
+  onClientClick?: (clientId: string) => void;
 }
 
-export const ChatHeader = ({ chat, currentUserRole, onBack, onClose, onTransfer, onAssign }: ChatHeaderProps) => {
+export const ChatHeader = ({ chat, currentUserRole, onBack, onClose, onTransfer, onAssign, onClientClick }: ChatHeaderProps) => {
   const { t } = useTranslation();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -68,7 +69,19 @@ export const ChatHeader = ({ chat, currentUserRole, onBack, onClose, onTransfer,
               {otherUser?.lastName?.[0]}
             </div>
             <div>
-              <h3 className="font-semibold text-gray-900">
+              <h3
+                className={`font-semibold text-gray-900 ${
+                  currentUserRole === UserRole.ADVISOR && otherUser 
+                    ? 'cursor-pointer hover:text-blue-600 hover:underline transition-colors' 
+                    : ''
+                }`}
+                onClick={() => {
+                  if (currentUserRole === UserRole.ADVISOR && onClientClick && otherUser) {
+                    onClientClick(otherUser.id);
+                  }
+                }}
+                title={currentUserRole === UserRole.ADVISOR && otherUser ? t('chat.viewClientDetails') : undefined}
+              >
                 {otherUser
                     ? `${otherUser.firstName} ${otherUser.lastName}`
                     : t('chat.noAdvisorAvailable')

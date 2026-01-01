@@ -13,7 +13,9 @@ export interface ClientLoan {
   totalCost: number;
   totalInterest: number;
   insuranceCost: number;
-  remainingBalance: number;
+  remainingPayment: number;
+  progressPercentage?: number;
+  monthsPaid?: number;
   startDate: Date;
   endDate: Date;
   status: LoanStatus;

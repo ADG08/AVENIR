@@ -22,6 +22,7 @@ import { RegisterUserUseCase } from '@avenir/application/usecases/user/RegisterU
 import { VerifyEmailUseCase } from '@avenir/application/usecases/user/VerifyEmailUseCase';
 import { LoginUserUseCase } from '@avenir/application/usecases/user/LoginUserUseCase';
 import { GetAdvisorClientsWithChatsAndLoansUseCase } from '@avenir/application/usecases/user/GetAdvisorClientsWithChatsAndLoansUseCase';
+import { CheckClientAdvisorUseCase } from '@avenir/application/usecases/user/CheckClientAdvisorUseCase';
 import { NodemailerEmailService } from '../email/NodemailerEmailService';
 import { CreateChatUseCase } from '@avenir/application/usecases/chat/CreateChatUseCase';
 import { GetChatsUseCase } from '@avenir/application/usecases/chat/GetChatsUseCase';
@@ -38,8 +39,12 @@ import { GetNotificationsUseCase } from '@avenir/application/usecases/notificati
 import { MarkNotificationAsReadUseCase } from '@avenir/application/usecases/notification/MarkNotificationAsReadUseCase';
 import { MarkAllNotificationsAsReadUseCase } from '@avenir/application/usecases/notification/MarkAllNotificationsAsReadUseCase';
 import { DeleteNotificationUseCase } from '@avenir/application/usecases/notification/DeleteNotificationUseCase';
+import { CreateLoanUseCase } from '@avenir/application/usecases/loan/CreateLoanUseCase';
+import { GetClientLoansUseCase } from '@avenir/application/usecases/loan/GetClientLoansUseCase';
 import { NotificationController } from './controllers/NotificationController';
+import { LoanController } from './controllers/LoanController';
 import { notificationRoutes } from './routes/notification';
+import { loanRoutes } from './routes/loan';
 import { RepositoryFactory } from '../../factories/RepositoryFactory';
 import { GetChatByIdUseCase } from "@avenir/application/usecases/chat/GetChatByIdUseCase";
 import { MarkMessageAsReadUseCase } from "@avenir/application/usecases/chat/MarkMessageAsReadUseCase";
@@ -59,6 +64,7 @@ const chatRepository = dbContext.chatRepository;
 const messageRepository = dbContext.messageRepository;
 const newsRepository = dbContext.newsRepository;
 const notificationRepository = dbContext.notificationRepository;
+const loanRepository = dbContext.loanRepository;
 
 // User
 const emailService = new NodemailerEmailService();
@@ -68,8 +74,9 @@ const addUserUseCase = new AddUserUseCase(userRepository);
 const registerUserUseCase = new RegisterUserUseCase(userRepository, accountRepository, emailService);
 const verifyEmailUseCase = new VerifyEmailUseCase(userRepository, emailService);
 const loginUserUseCase = new LoginUserUseCase(userRepository);
-const getAdvisorClientsWithChatsAndLoansUseCase = new GetAdvisorClientsWithChatsAndLoansUseCase(userRepository, chatRepository);
-const userController = new UserController(getUserUseCase, getUsersUseCase, addUserUseCase, registerUserUseCase, verifyEmailUseCase, loginUserUseCase, getAdvisorClientsWithChatsAndLoansUseCase);
+const getAdvisorClientsWithChatsAndLoansUseCase = new GetAdvisorClientsWithChatsAndLoansUseCase(userRepository, chatRepository, loanRepository);
+const checkClientAdvisorUseCase = new CheckClientAdvisorUseCase(userRepository);
+const userController = new UserController(getUserUseCase, getUsersUseCase, addUserUseCase, registerUserUseCase, verifyEmailUseCase, loginUserUseCase, getAdvisorClientsWithChatsAndLoansUseCase, checkClientAdvisorUseCase);
 
 // Chat
 const createChatUseCase = new CreateChatUseCase(chatRepository, messageRepository, userRepository);
@@ -125,6 +132,11 @@ const notificationController = new NotificationController(
     deleteNotificationUseCase
 );
 
+// Loans
+const createLoanUseCase = new CreateLoanUseCase(loanRepository, userRepository, notificationRepository);
+const getClientLoansUseCase = new GetClientLoansUseCase(loanRepository);
+const loanController = new LoanController(createLoanUseCase, getClientLoansUseCase);
+
 async function setupRoutes() {
     await fastify.register(cors, {
         origin: process.env.FRONTEND_URL || 'http://localhost:3000',
@@ -143,6 +155,7 @@ async function setupRoutes() {
     await fastify.register(messageRoutes, { prefix: '/api', messageController });
     await fastify.register(newsRoutes, { prefix: '/api', newsController });
     await fastify.register(notificationRoutes, { prefix: '/api', notificationController });
+    await fastify.register(loanRoutes, { prefix: '/api', loanController });
     await fastify.register(websocketRoutes, { prefix: '/api' });
     await fastify.register(investmentRoutes, { prefix: '/api/investment', investmentController, userRepository });
 }

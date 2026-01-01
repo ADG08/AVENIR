@@ -184,6 +184,14 @@ export class WebSocketService {
         });
     }
 
+    notifyLoanCreated(userId: string, loanData: any): void {
+        this.sendMessageToUser(userId, {
+            type: WebSocketMessageType.LOAN_CREATED,
+            chatId: '',
+            payload: loanData,
+        });
+    }
+
     getConnectedClientsCount(): number {
         let count = 0;
         this.clients.forEach(clients => {
