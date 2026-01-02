@@ -8,11 +8,17 @@ import { useState } from 'react';
 import { useLanguage } from '@/hooks/use-language';
 import { useAuth } from '@/contexts/AuthContext';
 
-export const LandingHeader = () => {
+interface LandingHeaderProps {
+    initialAuth: { isAuthenticated: boolean };
+}
+
+export const LandingHeader = ({ initialAuth }: LandingHeaderProps) => {
     const { t } = useLanguage();
-    const { isAuthenticated, isLoading } = useAuth();
+    const { isAuthenticated: contextAuth, isLoading } = useAuth();
     const [hoveredItem, setHoveredItem] = useState<string | null>(null);
     const [activeItem, setActiveItem] = useState<string>('product');
+
+    const isAuthenticated = isLoading ? initialAuth.isAuthenticated : contextAuth;
 
     const navItems = [
         { id: 'product', label: t('landing.product'), href: '#', icon: Package },
@@ -68,13 +74,8 @@ export const LandingHeader = () => {
                 </nav>
 
                 <div className="flex items-center gap-4">
-                    {!isLoading && (
-                        <>
-                            {isAuthenticated ? (
+                    {isAuthenticated ? (
                                 <motion.div
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    transition={{ duration: 0.3 }}
                                     whileHover={{ scale: 1.02 }}
                                     whileTap={{ scale: 0.98 }}
                                 >
@@ -87,11 +88,7 @@ export const LandingHeader = () => {
                                 </motion.div>
                             ) : (
                                 <>
-                                    <motion.div
-                                        initial={{ opacity: 0 }}
-                                        animate={{ opacity: 1 }}
-                                        transition={{ duration: 0.3 }}
-                                    >
+                                    <motion.div>
                                         <Link
                                             href="/login"
                                             className="hidden text-sm font-light text-gray-700 transition-colors hover:text-gray-900 md:block"
@@ -100,9 +97,6 @@ export const LandingHeader = () => {
                                         </Link>
                                     </motion.div>
                                     <motion.div
-                                        initial={{ opacity: 0 }}
-                                        animate={{ opacity: 1 }}
-                                        transition={{ duration: 0.3 }}
                                         whileHover={{ scale: 1.02 }}
                                         whileTap={{ scale: 0.98 }}
                                     >
@@ -115,8 +109,6 @@ export const LandingHeader = () => {
                                     </motion.div>
                                 </>
                             )}
-                        </>
-                    )}
                 </div>
             </div>
         </header>
