@@ -5,7 +5,16 @@ import { AddUserUseCase } from '../../../../application/usecases/user/AddUserUse
 import { RegisterUserUseCase } from '../../../../application/usecases/user/RegisterUserUseCase';
 import { VerifyEmailUseCase } from '../../../../application/usecases/user/VerifyEmailUseCase';
 import { LoginUserUseCase } from '../../../../application/usecases/user/LoginUserUseCase';
-import { AddUserRequest, RegisterUserRequest, VerifyEmailRequest, LoginUserRequest } from '../../../../application/requests';
+import { GetAdvisorClientsWithChatsAndLoansUseCase } from '../../../../application/usecases/user/GetAdvisorClientsWithChatsAndLoansUseCase';
+import { CheckClientAdvisorUseCase } from '../../../../application/usecases/user/CheckClientAdvisorUseCase';
+import {
+    AddUserRequest,
+    RegisterUserRequest,
+    VerifyEmailRequest,
+    LoginUserRequest,
+    GetAdvisorClientsWithChatsAndLoansRequest,
+    CheckClientAdvisorRequest
+} from '../../../../application/requests';
 import { GetUserRequest } from '../../../../application/requests';
 import { GetUsersRequest } from '../../../../application/requests';
 import { UserNotFoundError } from '../../../../domain/errors';
@@ -32,6 +41,8 @@ export class UserController {
         private readonly registerUserUseCase?: RegisterUserUseCase,
         private readonly verifyEmailUseCase?: VerifyEmailUseCase,
         private readonly loginUserUseCase?: LoginUserUseCase,
+        private readonly getAdvisorClientsWithChatsAndLoansUseCase?: GetAdvisorClientsWithChatsAndLoansUseCase,
+        private readonly checkClientAdvisorUseCase?: CheckClientAdvisorUseCase,
     ) {
         this.jwtService = new JwtService();
     }
@@ -242,6 +253,7 @@ export class UserController {
             // Return only specific fields for /me endpoint
             return reply.code(200).send({
                 user: {
+                    id: response.id,
                     firstName: response.firstName,
                     lastName: response.lastName,
                     email: response.email,
@@ -331,6 +343,77 @@ export class UserController {
         }
     }
 
+    async getAdvisorClients(request: FastifyRequest<{ Params: { advisorId: string } }>, reply: FastifyReply) {
+        if (!this.getAdvisorClientsWithChatsAndLoansUseCase) {
+            return reply.code(500).send({
+                error: 'Internal server error',
+                message: 'GetAdvisorClientsWithChatsAndLoansUseCase not configured',
+            });
+        }
+
+        try {
+            const getAdvisorClientsRequest = new GetAdvisorClientsWithChatsAndLoansRequest(
+                request.params.advisorId
+            );
+
+            const response = await this.getAdvisorClientsWithChatsAndLoansUseCase.execute(getAdvisorClientsRequest);
+            return reply.code(200).send(response);
+        } catch (error) {
+            if (error instanceof UserNotFoundError) {
+                return reply.code(404).send({
+                    error: 'User not found',
+                    message: error.message,
+                });
+            }
+
+            if (error instanceof Error && error.message === 'User is not an advisor') {
+                return reply.code(403).send({
+                    error: 'Forbidden',
+                    message: error.message,
+                });
+            }
+
+            return reply.code(500).send({
+                error: 'Internal server error',
+                message: error instanceof Error ? error.message : 'Unknown error',
+            });
+        }
+    }
+
+    async checkClientAdvisor(
+        request: FastifyRequest<{ Params: { clientId: string; advisorId: string } }>,
+        reply: FastifyReply
+    ) {
+        if (!this.checkClientAdvisorUseCase) {
+            return reply.code(500).send({
+                error: 'Internal server error',
+                message: 'CheckClientAdvisorUseCase not configured',
+            });
+        }
+
+        try {
+            const checkClientAdvisorRequest = new CheckClientAdvisorRequest(
+                request.params.clientId,
+                request.params.advisorId
+            );
+
+            const response = await this.checkClientAdvisorUseCase.execute(checkClientAdvisorRequest);
+            return reply.code(200).send(response);
+        } catch (error) {
+            if (error instanceof UserNotFoundError) {
+                return reply.code(404).send({
+                    error: 'User not found',
+                    message: error.message,
+                });
+            }
+
+            return reply.code(500).send({
+                error: 'Internal server error',
+                message: error instanceof Error ? error.message : 'Unknown error',
+            });
+        }
+    }
+
     private setAuthCookies(reply: FastifyReply, userId: string, email: string) {
         const tokens = this.jwtService.generateTokens({ userId, email });
 
@@ -345,4 +428,3 @@ export class UserController {
             });
     }
 }
-

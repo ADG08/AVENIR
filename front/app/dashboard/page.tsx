@@ -17,14 +17,19 @@ import { AddSavingsModal } from '@/components/modals/AddSavingsModal';
 import { DeleteAccountModal } from '@/components/modals/DeleteAccountModal';
 import { EditAccountNameModal } from '@/components/modals/EditAccountNameModal';
 import { SendMoneyModal } from '@/components/modals/SendMoneyModal';
-import { MOCK_NEWS } from '@/types/news';
+import { News } from '@/types/news';
+import { getAllNews } from '@/lib/api/news.api';
 import { Search, ArrowUp, ArrowDown, Plus, ChevronLeft, ChevronRight, Trash2, List } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useState, useRef, useEffect } from 'react';
 import { useLanguage } from '@/hooks/use-language';
+import { useAuth } from '@/contexts/AuthContext';
+import { useWebSocket, WebSocketMessageType } from '@/contexts/WebSocketContext';
 
 export default function Home() {
     const { t } = useLanguage();
+    const { user: currentUser } = useAuth();
+    const { subscribe } = useWebSocket();
     const [period, setPeriod] = useState('yearly');
     const [activeTab, setActiveTab] = useState('overview');
     const [filterOpen, setFilterOpen] = useState(false);
@@ -35,6 +40,8 @@ export default function Home() {
     const [deleteAccountModalOpen, setDeleteAccountModalOpen] = useState(false);
     const [editAccountNameModalOpen, setEditAccountNameModalOpen] = useState(false);
     const [sendMoneyModalOpen, setSendMoneyModalOpen] = useState(false);
+    const [news, setNews] = useState<News[]>([]);
+    const [isLoadingNews, setIsLoadingNews] = useState(false);
     const [activeFilters, setActiveFilters] = useState<{
         card: string | null;
         category: string | null;
@@ -46,6 +53,55 @@ export default function Home() {
     });
     const filterRef = useRef<HTMLDivElement>(null);
     const transactionsRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const loadNews = async () => {
+            if (!currentUser) return;
+
+            try {
+                setIsLoadingNews(true);
+                const newsData = await getAllNews();
+                setNews(newsData);
+            } catch (error) {
+                console.error('Error loading news:', error);
+            } finally {
+                setIsLoadingNews(false);
+            }
+        };
+
+        loadNews();
+    }, [currentUser]);
+
+    useEffect(() => {
+        const unsubscribe = subscribe((message) => {
+            if (message.type === WebSocketMessageType.NEWS_CREATED && message.payload) {
+                const newsPayload = message.payload as {
+                    id: string;
+                    title: string;
+                    description: string;
+                    authorId: string;
+                    authorName: string;
+                    createdAt: string;
+                };
+
+                const newNews: News = {
+                    id: newsPayload.id,
+                    title: newsPayload.title,
+                    description: newsPayload.description,
+                    authorId: newsPayload.authorId,
+                    authorName: newsPayload.authorName,
+                    createdAt: new Date(newsPayload.createdAt),
+                };
+
+                setNews((prev) => [newNews, ...prev]);
+            } else if (message.type === WebSocketMessageType.NEWS_DELETED && message.payload) {
+                const { newsId } = message.payload as { newsId: string };
+                setNews((prev) => prev.filter((n) => n.id !== newsId));
+            }
+        });
+
+        return () => unsubscribe();
+    }, [subscribe]);
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -146,8 +202,7 @@ export default function Home() {
     const filteredTransactions = allTransactions.filter((transaction) => {
         if (activeFilters.card && transaction.cardType !== activeFilters.card) return false;
         if (activeFilters.category && transaction.category !== activeFilters.category) return false;
-        if (activeFilters.status && transaction.status !== activeFilters.status) return false;
-        return true;
+        return !(activeFilters.status && transaction.status !== activeFilters.status);
     });
 
     const groupedTransactions = filteredTransactions.reduce((acc, transaction) => {
@@ -168,10 +223,10 @@ export default function Home() {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+        <div className="min-h-screen bg-linear-to-br from-gray-50 to-gray-100">
             <DashboardHeader activeTab={activeTab} setActiveTab={setActiveTab} />
 
-            <main className="mx-auto max-w-[1800px] p-6">
+            <main className="mx-auto max-w-450 p-6">
                 <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
                     <div className="space-y-6 lg:col-span-8">
                         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
@@ -191,7 +246,7 @@ export default function Home() {
                                     <h2 className="mt-1 text-2xl font-bold tracking-tight financial-amount text-gray-900 sm:text-3xl md:text-4xl">$102,489.00</h2>
                                 </div>
                                 <Select value={period} onValueChange={setPeriod}>
-                                    <SelectTrigger className="h-9 w-[115px] text-xs sm:h-10 sm:w-[140px] sm:text-sm">
+                                    <SelectTrigger className="h-9 w-28.75 text-xs sm:h-10 sm:w-35 sm:text-sm">
                                         <SelectValue placeholder="Select period" />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -205,7 +260,7 @@ export default function Home() {
                             <div className="mb-2">
                                 <h3 className="mb-4 text-lg font-semibold text-gray-900">{t('dashboard.spending')}</h3>
                                 <div className={period === 'yearly' ? 'overflow-x-auto md:overflow-x-visible' : ''}>
-                                    <div className={period === 'yearly' ? 'min-w-[600px] md:min-w-0' : ''}>
+                                    <div className={period === 'yearly' ? 'min-w-150 md:min-w-0' : ''}>
                                         <BarChart
                                             key={period}
                                             data={chartData}
@@ -503,7 +558,17 @@ export default function Home() {
                             </div>
                         </motion.div>
 
-                        <NewsCard news={MOCK_NEWS} />
+                        {isLoadingNews ? (
+                            <div className="rounded-3xl border border-gray-200 bg-white p-6">
+                                <p className="text-center text-sm text-gray-500">Chargement des actualités...</p>
+                            </div>
+                        ) : news.length > 0 ? (
+                            <NewsCard news={news} />
+                        ) : (
+                            <div className="rounded-3xl border border-gray-200 bg-white p-6">
+                                <p className="text-center text-sm text-gray-500">Aucune actualité disponible</p>
+                            </div>
+                        )}
                     </div>
                 </div>
             </main>

@@ -6,7 +6,7 @@ import { X, Newspaper } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { createNewsSchema, type CreateNewsFormData } from '@/lib/validation/client-forms.schema';
+import { createNewsSchema, type CreateNewsData as CreateNewsFormData } from '@avenir/shared/schemas/news.schema';
 
 interface CreateNewsModalProps {
   isOpen: boolean;

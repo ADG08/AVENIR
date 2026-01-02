@@ -135,7 +135,9 @@ FIXTURES=(
     "trades_fixtures.sql"
     "hugo_laurent_trades_fixtures.sql"
     "user_actions_fixtures.sql"
+    "news_fixtures.sql"
     "chat_fixtures.sql"
+    "loans_fixtures.sql"
 )
 
 # Apply fixtures in the specified order

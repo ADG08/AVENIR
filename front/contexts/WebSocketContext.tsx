@@ -1,7 +1,7 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useRef, useState, useCallback } from 'react';
-import { useCurrentMockUser } from '@/components/dev-user-switcher';
+import React, { createContext, useContext, useEffect, useRef, useState, useCallback, useMemo } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
 import { MessageApiDto } from '@/lib/mapping/chat.mapper';
 import { WebSocketMessageType } from '@avenir/shared/enums';
 
@@ -38,6 +38,30 @@ export interface PongPayload {
     timestamp: string;
 }
 
+export interface NewsCreatedPayload {
+    id: string;
+    title: string;
+    description: string;
+    authorId: string;
+    authorName: string;
+    createdAt: string;
+}
+
+export interface NewsDeletedPayload {
+    newsId: string;
+}
+
+export interface NotificationCreatedPayload {
+    id: string;
+    userId: string;
+    title: string;
+    message: string;
+    type: string;
+    advisorName: string | null;
+    read: boolean;
+    createdAt: string;
+}
+
 export type WebSocketMessage =
     | { type: WebSocketMessageType.CONNECTED; chatId?: string; payload?: ConnectedPayload }
     | { type: WebSocketMessageType.NEW_MESSAGE; chatId: string; payload: MessageApiDto }
@@ -45,6 +69,9 @@ export type WebSocketMessage =
     | { type: WebSocketMessageType.CHAT_ASSIGNED; chatId: string; payload?: ChatAssignedPayload }
     | { type: WebSocketMessageType.CHAT_TRANSFERRED; chatId: string; payload?: ChatTransferredPayload }
     | { type: WebSocketMessageType.CHAT_CLOSED; chatId: string; payload?: ChatClosedPayload }
+    | { type: WebSocketMessageType.NEWS_CREATED; chatId?: string; payload: NewsCreatedPayload }
+    | { type: WebSocketMessageType.NEWS_DELETED; chatId?: string; payload: NewsDeletedPayload }
+    | { type: WebSocketMessageType.NOTIFICATION_CREATED; chatId?: string; payload: NotificationCreatedPayload }
     | { type: WebSocketMessageType.PONG; chatId?: string; payload?: PongPayload }
     | { type: string; chatId?: string; payload?: unknown };
 
@@ -59,7 +86,11 @@ const WebSocketContext = createContext<WebSocketContextType | undefined>(undefin
 const WS_URL = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:3001/api/ws';
 
 export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const currentUser = useCurrentMockUser();
+    const { user: authUser } = useAuth();
+    const currentUser = useMemo(() =>
+        authUser ? { id: authUser.id, role: authUser.role } : null,
+        [authUser]
+    );
     const [isConnected, setIsConnected] = useState(false);
     const wsRef = useRef<WebSocket | null>(null);
     const subscribersRef = useRef<Set<(message: WebSocketMessage) => void>>(new Set());
@@ -165,7 +196,13 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     useEffect(() => {
         const userId = currentUser?.id || null;
 
+        console.log('[WebSocket] 🔍 === useEffect TRIGGERED ===');
+        console.log('[WebSocket] 🔍 currentUser:', currentUser);
+        console.log('[WebSocket] 👤 Current User ID:', userId);
+        console.log('[WebSocket] 📝 Previous User ID:', currentUserIdRef.current);
+
         if (currentUserIdRef.current === userId) {
+            console.log('[WebSocket] ℹ️ Même utilisateur, pas de reconnexion');
             return;
         }
         currentUserIdRef.current = userId;

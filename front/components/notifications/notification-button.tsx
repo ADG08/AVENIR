@@ -2,44 +2,174 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Bell, X, TrendingUp, Info, CheckCircle, AlertTriangle } from 'lucide-react';
-import { Notification, MOCK_NOTIFICATIONS } from '@/types/notification';
+import { Bell, X, TrendingUp, Info, CheckCircle, AlertTriangle, Newspaper } from 'lucide-react';
+import { Notification } from '@/types/notification';
+import { NotificationType } from '@avenir/shared/enums';
+import { useAuth } from '@/contexts/AuthContext';
+import { useWebSocket, WebSocketMessageType } from '@/contexts/WebSocketContext';
+import { useToast } from '@/hooks/use-toast';
+import { NotificationDetailModal } from './notification-detail-modal';
+import {
+  getNotifications,
+  markNotificationAsRead,
+  markAllNotificationsAsRead,
+  deleteNotification as deleteNotificationApi,
+} from '@/lib/api/notification.api';
+import {useTranslation} from "react-i18next";
 
 export const NotificationButton = () => {
+  const { user: currentUser } = useAuth();
+  const { subscribe } = useWebSocket();
+  const { toast } = useToast();
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [selectedNotification, setSelectedNotification] = useState<Notification | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
-    // Charger les notifications mock
-    setTimeout(() => setNotifications(MOCK_NOTIFICATIONS), 0);
-  }, []);
+    const loadNotifications = async () => {
+      if (!currentUser) return;
+
+      try {
+        setIsLoading(true);
+        const data = await getNotifications();
+        setNotifications(data);
+      } catch (error) {
+        console.error('Error loading notifications:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadNotifications();
+  }, [currentUser]);
+
+  useEffect(() => {
+    const unsubscribe = subscribe((message) => {
+      if (message.type === WebSocketMessageType.NOTIFICATION_CREATED && message.payload) {
+        const notifPayload = message.payload as {
+          id: string;
+          title: string;
+          message: string;
+          type: string;
+          advisorName: string | null;
+          read: boolean;
+          createdAt: string;
+          newsId?: string | null;
+        };
+
+        const newNotification: Notification = {
+          id: notifPayload.id,
+          title: notifPayload.title,
+          message: notifPayload.message,
+          type: notifPayload.type as NotificationType,
+          advisorName: notifPayload.advisorName ?? undefined,
+          read: notifPayload.read,
+          createdAt: new Date(notifPayload.createdAt),
+          newsId: notifPayload.newsId ?? undefined,
+        };
+
+        setNotifications((prev) => {
+          // Vérifier si la notification n'existe pas déjà
+          if (prev.some((n) => n.id === newNotification.id)) {
+            return prev;
+          }
+          return [newNotification, ...prev];
+        });
+      }
+    });
+
+    return () => unsubscribe();
+  }, [subscribe]);
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
-  const markAsRead = (notificationId: string) => {
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === notificationId ? { ...n, read: true } : n))
-    );
+  const handleMarkAsRead = async (notificationId: string) => {
+    try {
+      await markNotificationAsRead(notificationId);
+      setNotifications((prev) =>
+        prev.map((n) => (n.id === notificationId ? { ...n, read: true } : n))
+      );
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
+    }
   };
 
-  const markAllAsRead = () => {
-    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+  const handleMarkAllAsRead = async () => {
+    try {
+      await markAllNotificationsAsRead();
+      setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+    } catch (error) {
+      console.error('Error marking all notifications as read:', error);
+    }
   };
 
-  const deleteNotification = (notificationId: string) => {
-    setNotifications((prev) => prev.filter((n) => n.id !== notificationId));
+  const handleDeleteNotification = async (notificationId: string) => {
+    try {
+      await deleteNotificationApi(notificationId);
+      setNotifications((prev) => prev.filter((n) => n.id !== notificationId));
+    } catch (error) {
+      console.error('Error deleting notification:', error);
+    }
   };
 
-  const getNotificationIcon = (type: Notification['type']) => {
+  const handleNotificationClick = async (notification: Notification) => {
+    try {
+      const notificationExists = notifications.find((n) => n.id === notification.id);
+
+      if (!notificationExists) {
+        toast({
+          variant: 'destructive',
+          title: t('errors.notFound'),
+          description: t('notifications.notAvailable'),
+        });
+        return;
+      }
+
+      if (!notification.read) {
+        await handleMarkAsRead(notification.id);
+      }
+
+      setIsOpen(false);
+      setSelectedNotification(notification);
+      setIsModalOpen(true);
+    } catch {
+      toast({
+        variant: 'destructive',
+        title: t('errors.error'),
+        description: t('notifications.errorOpening'),
+      });
+    }
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setTimeout(() => setSelectedNotification(null), 300);
+  };
+
+  const handleNewsNotFound = () => {
+    toast({
+      variant: 'destructive',
+      title: t('errors.notFound'),
+      description: t('notifications.notAvailable'),
+    });
+  };
+
+  const getNotificationIcon = (type: NotificationType) => {
     switch (type) {
-      case 'loan':
+      case NotificationType.LOAN:
         return <TrendingUp className="h-5 w-5 text-blue-600" />;
-      case 'success':
+      case NotificationType.SUCCESS:
         return <CheckCircle className="h-5 w-5 text-green-600" />;
-      case 'warning':
-        return <AlertTriangle className="h-5 w-5 text-indigo-600" />;
+      case NotificationType.WARNING:
+        return <AlertTriangle className="h-5 w-5 text-orange-600" />;
+      case NotificationType.NEWS:
+        return <Newspaper className="h-5 w-5 text-purple-600" />;
+      case NotificationType.INFO:
       default:
-        return <Info className="h-5 w-5 text-gray-600" />;
+        return <Info className="h-5 w-5 text-blue-600" />;
     }
   };
 
@@ -100,28 +230,32 @@ export const NotificationButton = () => {
               <div className="border-b border-gray-200 p-4">
                 <div className="flex items-center justify-between">
                   <h3 className="text-lg font-bold text-gray-900">
-                    Notifications
+                    {t('notifications.title')}
                   </h3>
                   {unreadCount > 0 && (
                     <button
-                      onClick={markAllAsRead}
+                      onClick={handleMarkAllAsRead}
                       className="text-sm font-medium text-blue-600 transition-colors hover:text-blue-700"
                     >
-                      Tout marquer comme lu
+                      {t('notifications.markAllAsRead')}
                     </button>
                   )}
                 </div>
               </div>
 
-              <div className="max-h-[500px] overflow-y-auto">
-                {notifications.length === 0 ? (
+              <div className="max-h-125 overflow-y-auto">
+                {isLoading ? (
+                  <div className="p-8 text-center">
+                    <p className="text-sm text-gray-500">{t('common.loading')}</p>
+                  </div>
+                ) : notifications.length === 0 ? (
                   <div className="p-8 text-center">
                     <Bell className="mx-auto h-12 w-12 text-gray-300" />
                     <p className="mt-3 text-sm font-medium text-gray-900">
-                      Aucune notification
+                      {t('notifications.noNotifications')}
                     </p>
                     <p className="mt-1 text-xs text-gray-500">
-                      Vous êtes à jour !
+                      {t('notifications.upToDate')}
                     </p>
                   </div>
                 ) : (
@@ -129,12 +263,11 @@ export const NotificationButton = () => {
                     {notifications.map((notification) => (
                       <motion.div
                         key={notification.id}
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        onClick={() => {
-                          if (!notification.read) markAsRead(notification.id);
-                        }}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: 20 }}
+                        transition={{ duration: 0.2 }}
+                        onClick={() => handleNotificationClick(notification)}
                         className={`group relative cursor-pointer p-4 transition-colors hover:bg-gray-50 ${
                           !notification.read ? 'bg-blue-50/50' : ''
                         }`}
@@ -146,25 +279,25 @@ export const NotificationButton = () => {
 
                           <div className="min-w-0 flex-1">
                             <div className="flex items-start justify-between gap-2">
-                              <h4 className="text-sm font-semibold text-gray-900">
+                              <h4 className="line-clamp-1 text-sm font-semibold text-gray-900">
                                 {notification.title}
                               </h4>
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  deleteNotification(notification.id);
+                                  handleDeleteNotification(notification.id);
                                 }}
                                 className="shrink-0 opacity-0 transition-opacity group-hover:opacity-100"
                               >
                                 <X className="h-4 w-4 text-gray-400 hover:text-gray-600" />
                               </button>
                             </div>
-                            <p className="mt-1 text-sm text-gray-600">
+                            <p className="mt-1 line-clamp-2 text-sm text-gray-600">
                               {notification.message}
                             </p>
                             {notification.advisorName && (
                               <p className="mt-1 text-xs text-gray-500">
-                                De: {notification.advisorName}
+                                {t('notifications.from')}: {notification.advisorName}
                               </p>
                             )}
                             <p className="mt-2 text-xs text-gray-400">
@@ -185,6 +318,13 @@ export const NotificationButton = () => {
           </>
         )}
       </AnimatePresence>
+
+      <NotificationDetailModal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        notification={selectedNotification}
+        onNewsNotFound={handleNewsNotFound}
+      />
     </div>
   );
 };

@@ -1,6 +1,6 @@
-import { FastifyInstance, FastifyPluginOptions, FastifyRequest, FastifyReply } from 'fastify';
+import {FastifyInstance, FastifyPluginOptions, FastifyReply, FastifyRequest} from 'fastify';
 import { ChatController } from '../controllers/ChatController';
-import { CreateChatRequest } from '@avenir/application/requests';
+import { authMiddleware } from '../middleware/authMiddleware';
 
 export async function chatRoutes(
     fastify: FastifyInstance,
@@ -12,94 +12,65 @@ export async function chatRoutes(
 
     fastify.post(
         '/chats',
-        async (request: FastifyRequest<{ Body: CreateChatRequest }>, reply: FastifyReply) => {
-            return chatController.createChat(request, reply);
+        { preHandler: authMiddleware },
+        async (request: FastifyRequest, reply: FastifyReply) => {
+            return chatController.createChat(request as any, reply);
         }
     );
 
     fastify.get(
         '/chats',
-        async (
-            request: FastifyRequest<{ Querystring: { userId: string; userRole: string } }>,
-            reply: FastifyReply
-        ) => {
-            return chatController.getChats(request, reply);
+        { preHandler: authMiddleware },
+        async (request: FastifyRequest, reply: FastifyReply) => {
+            return chatController.getChats(request as any, reply);
         }
     );
 
     fastify.get(
         '/chats/:chatId',
-        async (
-            request: FastifyRequest<{ Params: { chatId: string }; Querystring: { userId: string; userRole: string } }>,
-            reply: FastifyReply
-        ) => {
-            return chatController.getChatById(request, reply);
+        { preHandler: authMiddleware },
+        async (request, reply) => {
+            return chatController.getChatById(request as any, reply);
         }
     );
 
     fastify.get(
         '/chats/:chatId/messages',
-        async (
-            request: FastifyRequest<{ Params: { chatId: string }; Querystring: { userId: string } }>,
-            reply: FastifyReply
-        ) => {
-            return chatController.getChatMessages(request, reply);
+        { preHandler: authMiddleware },
+        async (request, reply) => {
+            return chatController.getChatMessages(request as any, reply);
         }
     );
 
     fastify.put(
         '/chats/:chatId/transfer',
-        async (
-            request: FastifyRequest<{
-                Params: { chatId: string };
-                Body: { newAdvisorId: string; currentUserId: string }
-            }>,
-            reply: FastifyReply
-        ) => {
-            const transferChatRequest = {
-                params: { chatId: request.params.chatId },
-                body: {
-                    advisorId: request.body.newAdvisorId,
-                    currentUserId: request.body.currentUserId
-                }
-            };
-            return chatController.assignOrTransferChat(transferChatRequest as any, reply);
+        { preHandler: authMiddleware },
+        async (request, reply) => {
+            return chatController.assignOrTransferChat(request as any, reply);
         }
     );
 
     fastify.put(
         '/chats/:chatId/assign',
-        async (
-            request: FastifyRequest<{
-                Params: { chatId: string };
-                Body: { advisorId: string }
-            }>,
-            reply: FastifyReply
-        ) => {
-            return chatController.assignOrTransferChat(request, reply);
+        { preHandler: authMiddleware },
+        async (request, reply) => {
+            return chatController.assignOrTransferChat(request as any, reply);
         }
     );
 
     fastify.put(
         '/chats/:chatId/messages/read',
-        async (
-            request: FastifyRequest<{ Params: { chatId: string }; Querystring: { userId: string } }>,
-            reply: FastifyReply
-        ) => {
-            return chatController.markChatMessagesAsRead(request, reply);
+        { preHandler: authMiddleware },
+        async (request, reply) => {
+            return chatController.markChatMessagesAsRead(request as any, reply);
         }
     );
 
     fastify.put(
         '/chats/:chatId/close',
-        async (
-            request: FastifyRequest<{
-                Params: { chatId: string };
-                Body: { userId: string; userRole?: string }
-            }>,
-            reply: FastifyReply
-        ) => {
-            return chatController.closeChat(request, reply);
+        { preHandler: authMiddleware },
+        async (request, reply) => {
+            return chatController.closeChat(request as any, reply);
         }
     );
 }

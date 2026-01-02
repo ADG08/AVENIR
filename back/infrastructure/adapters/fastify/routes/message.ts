@@ -1,6 +1,6 @@
-import { FastifyInstance, FastifyPluginOptions, FastifyRequest, FastifyReply } from 'fastify';
+import { FastifyInstance, FastifyPluginOptions } from 'fastify';
 import { MessageController } from '../controllers/MessageController';
-import { SendMessageRequest } from '@avenir/application/requests';
+import { authMiddleware } from '../middleware/authMiddleware';
 
 export async function messageRoutes(
     fastify: FastifyInstance,
@@ -10,16 +10,17 @@ export async function messageRoutes(
 
     fastify.post(
         '/messages',
-        async (request: FastifyRequest<{ Body: SendMessageRequest }>, reply: FastifyReply) => {
-            return messageController.sendMessage(request, reply);
+        { preHandler: authMiddleware },
+        async (request, reply) => {
+            return messageController.sendMessage(request as any, reply);
         }
     );
 
     fastify.put(
         '/messages/:messageId/read',
-        async (request: FastifyRequest<{ Params: { messageId: string } }>, reply: FastifyReply) => {
-            return messageController.markAsRead(request, reply);
+        { preHandler: authMiddleware },
+        async (request, reply) => {
+            return messageController.markAsRead(request as any, reply);
         }
     );
 }
-

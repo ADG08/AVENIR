@@ -174,7 +174,7 @@ export const ClientDetailsModal = ({
                   ) : (
                     <div className="space-y-4">
                       {client.loans.map((loan) => {
-                        const progress = ((loan.amount - loan.remainingBalance) / loan.amount) * 100;
+                        const progress = loan.progressPercentage || 0;
                         return (
                           <motion.div
                             key={loan.id}
@@ -232,7 +232,7 @@ export const ClientDetailsModal = ({
                                 <div>
                                   <p className="text-xs text-gray-500">{t('clients.loan.remainingBalance')}</p>
                                   <p className="mt-1 text-sm font-semibold text-red-700">
-                                    {formatCurrency(loan.remainingBalance)}
+                                    {formatCurrency(loan.remainingPayment)}
                                   </p>
                                 </div>
                                 <div>

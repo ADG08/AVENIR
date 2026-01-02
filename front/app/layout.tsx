@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Inter, Manrope } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
-import ClientProviders from "@/components/client-providers";
 import { WebSocketProvider } from "@/contexts/WebSocketContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 
@@ -39,7 +38,6 @@ export default function RootLayout({
           <WebSocketProvider>
             {children}
             <Toaster />
-            <ClientProviders />
           </WebSocketProvider>
         </AuthProvider>
       </body>

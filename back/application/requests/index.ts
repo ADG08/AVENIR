@@ -9,3 +9,6 @@ export { SendMessageRequest } from "./SendMessageRequest";
 export { GetChatsRequest } from "./GetChatsRequest";
 export { AssignAdvisorRequest } from "./AssignAdvisorRequest";
 export { TransferChatRequest } from "./TransferChatRequest";
+export { GetAdvisorClientsRequest } from "./GetAdvisorClientsRequest";
+export { GetAdvisorClientsWithChatsAndLoansRequest } from "./GetAdvisorClientsWithChatsAndLoansRequest";
+export { CheckClientAdvisorRequest } from "./CheckClientAdvisorRequest";

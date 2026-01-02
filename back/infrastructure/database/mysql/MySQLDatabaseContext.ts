@@ -8,6 +8,9 @@ import { MySQLStockRepository } from '../../adapters/repositories/mysql/MySQLSto
 import { MySQLPortfolioRepository } from '../../adapters/repositories/mysql/MySQLPortfolioRepository';
 import { MySQLOrderBookRepository } from '../../adapters/repositories/mysql/MySQLOrderBookRepository';
 import { MySQLTradeRepository } from '../../adapters/repositories/mysql/MySQLTradeRepository';
+import { MySQLNewsRepository } from '../../adapters/repositories/mysql/MySQLNewsRepository';
+import { MySQLNotificationRepository } from '../../adapters/repositories/mysql/MySQLNotificationRepository';
+import { MySQLLoanRepository } from '../../adapters/repositories/mysql/MySQLLoanRepository';
 import { UserRepository } from '@avenir/domain/repositories/UserRepository';
 import { ChatRepository } from '@avenir/domain/repositories/ChatRepository';
 import { MessageRepository } from '@avenir/domain/repositories/MessageRepository';
@@ -16,6 +19,9 @@ import { StockRepository } from '@avenir/domain/repositories/StockRepository';
 import { PortfolioRepository } from '@avenir/domain/repositories/PortfolioRepository';
 import { OrderBookRepository } from '@avenir/domain/repositories/OrderBookRepository';
 import { TradeRepository } from '@avenir/domain/repositories/TradeRepository';
+import { NewsRepository } from '@avenir/domain/repositories/NewsRepository';
+import { NotificationRepository } from '@avenir/domain/repositories/NotificationRepository';
+import {LoanRepository} from "@avenir/domain/repositories/LoanRepository";
 
 export class MySQLDatabaseContext implements DatabaseContext {
     public readonly userRepository: UserRepository;
@@ -26,6 +32,9 @@ export class MySQLDatabaseContext implements DatabaseContext {
     public readonly portfolioRepository: PortfolioRepository;
     public readonly orderBookRepository: OrderBookRepository;
     public readonly tradeRepository: TradeRepository;
+    public readonly newsRepository: NewsRepository;
+    public readonly notificationRepository: NotificationRepository;
+    public readonly loanRepository: LoanRepository;
 
     constructor() {
         this.userRepository = new MySQLUserRepository(pool);
@@ -36,6 +45,9 @@ export class MySQLDatabaseContext implements DatabaseContext {
         this.portfolioRepository = new MySQLPortfolioRepository(pool);
         this.orderBookRepository = new MySQLOrderBookRepository(pool);
         this.tradeRepository = new MySQLTradeRepository(pool);
+        this.newsRepository = new MySQLNewsRepository(pool);
+        this.notificationRepository = new MySQLNotificationRepository(pool);
+        this.loanRepository = new MySQLLoanRepository(pool);
     }
 
     async close(): Promise<void> {

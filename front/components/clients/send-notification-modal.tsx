@@ -1,17 +1,18 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Send } from 'lucide-react';
+import { X, Send, Info, AlertTriangle, CheckCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { sendNotificationSchema, type SendNotificationFormData } from '@/lib/validation/client-forms.schema';
+import { sendNotificationSchema, type SendNotificationData as SendNotificationFormData } from '@avenir/shared/schemas/notification.schema';
+import { CustomNotificationType } from '@avenir/shared';
 
 interface SendNotificationModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (title: string, message: string) => Promise<void>;
+  onSubmit: (title: string, message: string, type: CustomNotificationType) => Promise<void>;
   clientName: string;
   isLoading?: boolean;
 }
@@ -24,12 +25,14 @@ export const SendNotificationModal = ({
   isLoading = false,
 }: SendNotificationModalProps) => {
   const { t } = useTranslation();
+  const [selectedType, setSelectedType] = useState<CustomNotificationType | null>(null);
 
   const {
     register,
     handleSubmit,
     formState: { errors, isValid },
     reset,
+    setValue,
   } = useForm<SendNotificationFormData>({
     resolver: zodResolver(sendNotificationSchema),
     mode: 'onChange',
@@ -37,23 +40,38 @@ export const SendNotificationModal = ({
 
   const onFormSubmit = async (data: SendNotificationFormData) => {
     if (isLoading) return;
-    await onSubmit(data.title, data.message);
+    await onSubmit(data.title, data.message, data.type);
     handleClose();
   };
 
   const handleClose = () => {
     if (!isLoading) {
       reset();
+      setSelectedType(null);
       onClose();
     }
   };
 
-  // Reset form when modal opens
+  // Reset form when modal opens/closes
+  useEffect(() => {
+    if (!isOpen) {
+      const timer = setTimeout(() => {
+        setSelectedType(null);
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen]);
+
   useEffect(() => {
     if (isOpen) {
       reset();
     }
   }, [isOpen, reset]);
+
+  const handleTypeChange = (type: CustomNotificationType) => {
+    setSelectedType(type);
+    setValue('type', type, { shouldValidate: true });
+  };
 
   return (
     <AnimatePresence>
@@ -97,6 +115,104 @@ export const SendNotificationModal = ({
 
               {/* Form */}
               <form onSubmit={handleSubmit(onFormSubmit)} className="space-y-4">
+                {/* Type Notification */}
+                <div>
+                  <label className="mb-3 block text-sm font-medium text-gray-700">
+                    {t('clients.notification.type.label')}
+                  </label>
+                  <div className="grid grid-cols-3 gap-3">
+                    {/* INFO */}
+                    <label
+                      className={`flex cursor-pointer flex-col items-center gap-2 rounded-lg border-2 p-4 transition-all ${
+                        errors.type ? 'border-red-500' : 
+                        selectedType === CustomNotificationType.INFO 
+                          ? 'border-blue-500 bg-blue-50 shadow-md' 
+                          : 'border-gray-200'
+                      } hover:border-blue-400 hover:bg-blue-50 ${
+                        isLoading ? 'cursor-not-allowed opacity-50' : ''
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        value={CustomNotificationType.INFO}
+                        checked={selectedType === CustomNotificationType.INFO}
+                        onChange={() => handleTypeChange(CustomNotificationType.INFO)}
+                        disabled={isLoading}
+                        className="sr-only"
+                      />
+                      <Info className={`h-6 w-6 ${
+                        selectedType === CustomNotificationType.INFO ? 'text-blue-600' : 'text-blue-500'
+                      }`} />
+                      <span className={`text-xs font-medium ${
+                        selectedType === CustomNotificationType.INFO ? 'text-blue-900' : 'text-gray-700'
+                      }`}>
+                        {t('clients.notification.type.info')}
+                      </span>
+                    </label>
+
+                    {/* WARNING */}
+                    <label
+                      className={`flex cursor-pointer flex-col items-center gap-2 rounded-lg border-2 p-4 transition-all ${
+                        errors.type ? 'border-red-500' : 
+                        selectedType === CustomNotificationType.WARNING 
+                          ? 'border-orange-500 bg-orange-50 shadow-md' 
+                          : 'border-gray-200'
+                      } hover:border-orange-400 hover:bg-orange-50 ${
+                        isLoading ? 'cursor-not-allowed opacity-50' : ''
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        value={CustomNotificationType.WARNING}
+                        checked={selectedType === CustomNotificationType.WARNING}
+                        onChange={() => handleTypeChange(CustomNotificationType.WARNING)}
+                        disabled={isLoading}
+                        className="sr-only"
+                      />
+                      <AlertTriangle className={`h-6 w-6 ${
+                        selectedType === CustomNotificationType.WARNING ? 'text-orange-600' : 'text-orange-500'
+                      }`} />
+                      <span className={`text-xs font-medium ${
+                        selectedType === CustomNotificationType.WARNING ? 'text-orange-900' : 'text-gray-700'
+                      }`}>
+                        {t('clients.notification.type.warning')}
+                      </span>
+                    </label>
+
+                    {/* SUCCESS */}
+                    <label
+                      className={`flex cursor-pointer flex-col items-center gap-2 rounded-lg border-2 p-4 transition-all ${
+                        errors.type ? 'border-red-500' : 
+                        selectedType === CustomNotificationType.SUCCESS 
+                          ? 'border-green-500 bg-green-50 shadow-md' 
+                          : 'border-gray-200'
+                      } hover:border-green-400 hover:bg-green-50 ${
+                        isLoading ? 'cursor-not-allowed opacity-50' : ''
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        value={CustomNotificationType.SUCCESS}
+                        checked={selectedType === CustomNotificationType.SUCCESS}
+                        onChange={() => handleTypeChange(CustomNotificationType.SUCCESS)}
+                        disabled={isLoading}
+                        className="sr-only"
+                      />
+                      <CheckCircle className={`h-6 w-6 ${
+                        selectedType === CustomNotificationType.SUCCESS ? 'text-green-600' : 'text-green-500'
+                      }`} />
+                      <span className={`text-xs font-medium ${
+                        selectedType === CustomNotificationType.SUCCESS ? 'text-green-900' : 'text-gray-700'
+                      }`}>
+                        {t('clients.notification.type.success')}
+                      </span>
+                    </label>
+                  </div>
+                  {errors.type && (
+                    <p className="mt-1 text-sm text-red-600">{errors.type.message}</p>
+                  )}
+                </div>
+
                 {/* Titre */}
                 <div>
                   <label htmlFor="notif-title" className="mb-2 block text-sm font-medium text-gray-700">

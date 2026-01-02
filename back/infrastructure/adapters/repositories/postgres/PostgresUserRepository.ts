@@ -10,8 +10,8 @@ export class PostgresUserRepository implements UserRepository {
 
     async add(user: User): Promise<User> {
         const query = `
-            INSERT INTO users (id, first_name, last_name, email, identity_number, role, state, passcode, verification_token, verified_at, created_at)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+            INSERT INTO users (id, first_name, last_name, email, identity_number, role, state, passcode, advisor_id, verification_token, verified_at, created_at)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
             RETURNING *
         `;
 
@@ -25,6 +25,7 @@ export class PostgresUserRepository implements UserRepository {
                 user.role,
                 user.state,
                 user.passcode,
+                user.advisorId || null,
                 user.verificationToken || null,
                 user.verifiedAt || null,
                 user.createdAt
@@ -50,7 +51,7 @@ export class PostgresUserRepository implements UserRepository {
             UPDATE users
             SET first_name = $2, last_name = $3, email = $4,
                 identity_number = $5, passcode = $6, role = $7, state = $8,
-                verification_token = $9, verified_at = $10
+                advisor_id = $9, verification_token = $10, verified_at = $11
             WHERE id = $1
         `;
 
@@ -64,6 +65,7 @@ export class PostgresUserRepository implements UserRepository {
                 user.passcode,
                 user.role,
                 user.state,
+                user.advisorId || null,
                 user.verificationToken || null,
                 user.verifiedAt || null
             ]);
@@ -123,6 +125,45 @@ export class PostgresUserRepository implements UserRepository {
         }
     }
 
+    async getClientsByAdvisorId(advisorId: string): Promise<User[]> {
+        try {
+            const result = await this.pool.query(
+                'SELECT * FROM users WHERE advisor_id = $1 AND role = $2 ORDER BY created_at DESC',
+                [advisorId, UserRole.CLIENT]
+            );
+            return result.rows.map(row => this.mapRowToUser(row));
+        } catch (error) {
+            console.error('PostgreSQL error:', error);
+            throw error;
+        }
+    }
+
+    async getRandomAdvisor(): Promise<User | null> {
+        try {
+            const result = await this.pool.query(
+                'SELECT * FROM users WHERE role = $1 AND state = $2 ORDER BY RANDOM() LIMIT 1',
+                [UserRole.ADVISOR, UserState.ACTIVE]
+            );
+            return result.rows.length === 0 ? null : this.mapRowToUser(result.rows[0]);
+        } catch (error) {
+            console.error('PostgreSQL error:', error);
+            throw error;
+        }
+    }
+
+    async isClientManagedByAdvisor(clientId: string, advisorId: string): Promise<boolean> {
+        try {
+            const result = await this.pool.query(
+                'SELECT EXISTS(SELECT 1 FROM users WHERE id = $1 AND advisor_id = $2 AND role = $3) as is_managed',
+                [clientId, advisorId, UserRole.CLIENT]
+            );
+            return result.rows[0].is_managed;
+        } catch (error) {
+            console.error('PostgreSQL error:', error);
+            throw error;
+        }
+    }
+
     private mapRowToUser(row: RowDataPacket): User {
         return new User(
             row.id,
@@ -138,7 +179,8 @@ export class PostgresUserRepository implements UserRepository {
             [],
             new Date(row.created_at),
             row.verification_token,
-            row.verified_at ? new Date(row.verified_at) : undefined
+            row.verified_at ? new Date(row.verified_at) : undefined,
+            row.advisor_id
         );
     }
 }

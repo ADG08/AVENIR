@@ -1,11 +1,15 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext';
+import { useWebSocket, WebSocketMessageType } from '@/contexts/WebSocketContext';
 import { DashboardHeader } from '@/components/dashboard-header';
 import { CreateNewsModal } from '@/components/news/create-news-modal';
 import { NewsDetailModal } from '@/components/news/news-detail-modal';
 import { DeleteNewsModal } from '@/components/news/delete-news-modal';
-import { News, MOCK_NEWS } from '@/types/news';
+import { News } from '@/types/news';
+import { createNews, getAllNews, deleteNews } from '@/lib/api/news.api';
 import { motion } from 'framer-motion';
 import { Newspaper, Plus, Trash2, Calendar, User } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -14,6 +18,9 @@ import { useTranslation } from 'react-i18next';
 export default function NewsPage() {
   const { t } = useTranslation();
   const { toast } = useToast();
+  const { user, isLoading: isAuthLoading } = useAuth();
+  const { subscribe } = useWebSocket();
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState('news');
   const [news, setNews] = useState<News[]>([]);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -26,35 +33,83 @@ export default function NewsPage() {
   const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
-    // Charger les actualités (mock pour l'instant)
+    if (!isAuthLoading && !user) {
+      router.push('/not-found');
+    }
+  }, [user, isAuthLoading, router]);
+
+  useEffect(() => {
+    if (!user) return;
+
     const loadNews = async () => {
-      setIsLoading(true);
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      setNews(MOCK_NEWS);
-      setIsLoading(false);
+      try {
+        setIsLoading(true);
+        const newsData = await getAllNews();
+        setNews(newsData);
+      } catch (error) {
+        console.error('Error loading news:', error);
+        toast({
+          title: 'Erreur',
+          description: 'Impossible de charger les actualités',
+          variant: 'destructive',
+        });
+      } finally {
+        setIsLoading(false);
+      }
     };
 
     loadNews();
-  }, []);
+  }, [toast, user]);
+
+  useEffect(() => {
+    const unsubscribe = subscribe((message) => {
+      if (message.type === WebSocketMessageType.NEWS_CREATED && message.payload) {
+        const newsPayload = message.payload as {
+          id: string;
+          title: string;
+          description: string;
+          authorId: string;
+          authorName: string;
+          createdAt: string;
+        };
+
+        const newNews: News = {
+          id: newsPayload.id,
+          title: newsPayload.title,
+          description: newsPayload.description,
+          authorId: newsPayload.authorId,
+          authorName: newsPayload.authorName,
+          createdAt: new Date(newsPayload.createdAt),
+        };
+
+        setNews((prev) => {
+          if (prev.some((n) => n.id === newNews.id)) {
+            return prev;
+          }
+          return [newNews, ...prev];
+        });
+
+        toast({
+          title: 'Nouvelle actualité',
+          description: `${newsPayload.authorName} a publié une nouvelle actualité`,
+        });
+      } else if (message.type === WebSocketMessageType.NEWS_DELETED && message.payload) {
+        const { newsId } = message.payload as { newsId: string };
+        setNews((prev) => prev.filter((n) => n.id !== newsId));
+      }
+    });
+
+    return () => unsubscribe();
+  }, [subscribe, toast]);
 
   const handleCreateNews = async (title: string, description: string) => {
     try {
       setIsLoadingNews(true);
 
-      // TODO: Remplacer par un vrai appel API
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-
-      // Créer la nouvelle actualité
-      const newNews: News = {
-        id: `news-${Date.now()}`,
+      await createNews({
         title,
         description,
-        createdAt: new Date(),
-        authorId: 'advisor-001',
-        authorName: 'Marie Conseil',
-      };
-
-      setNews([newNews, ...news]);
+      });
 
       toast({
         title: t('news.modal.success'),
@@ -66,6 +121,7 @@ export default function NewsPage() {
       console.error('Error creating news:', error);
       toast({
         title: t('news.modal.error'),
+        description: error instanceof Error ? error.message : 'Erreur lors de la création',
         variant: 'destructive',
       });
     } finally {
@@ -84,10 +140,7 @@ export default function NewsPage() {
     try {
       setIsDeleting(true);
 
-      // TODO: Remplacer par un vrai appel API
-      await new Promise((resolve) => setTimeout(resolve, 800));
-
-      setNews(news.filter((n) => n.id !== newsToDelete.id));
+      await deleteNews(newsToDelete.id);
 
       toast({
         title: t('news.delete.success'),
@@ -100,7 +153,7 @@ export default function NewsPage() {
       console.error('Error deleting news:', error);
       toast({
         title: 'Erreur',
-        description: 'Impossible de supprimer l\'actualité',
+        description: error instanceof Error ? error.message : 'Impossible de supprimer l\'actualité',
         variant: 'destructive',
       });
     } finally {

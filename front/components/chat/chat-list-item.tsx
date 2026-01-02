@@ -6,16 +6,27 @@ import { MessageCircle, Clock, CheckCircle2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { fr, enUS } from 'date-fns/locale';
 import {formatDistanceToNow} from "date-fns";
+import React from "react";
 
 interface ChatListItemProps {
   chat: Chat;
   isActive?: boolean;
   onClick: () => void;
   currentUserRole?: UserRole;
+  onClientClick?: (clientId: string) => void;
 }
 
-export const ChatListItem = ({ chat, isActive, onClick, currentUserRole }: ChatListItemProps) => {
+export const ChatListItem = ({ chat, isActive, onClick, currentUserRole, onClientClick }: ChatListItemProps) => {
   const { t, i18n } = useTranslation();
+
+  const handleClientNameClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+
+    if (currentUserRole === UserRole.ADVISOR && onClientClick && chat.client) {
+      onClientClick(chat.client.id);
+    }
+  };
+
   const getStatusIcon = (status: ChatStatus) => {
     switch (status) {
       case ChatStatus.PENDING:
@@ -92,7 +103,15 @@ export const ChatListItem = ({ chat, isActive, onClick, currentUserRole }: ChatL
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
-            <h4 className="font-semibold text-gray-900 truncate">
+            <h4
+              className={`font-semibold text-gray-900 truncate ${
+                currentUserRole === UserRole.ADVISOR && otherUser 
+                  ? 'cursor-pointer hover:text-blue-600 hover:underline transition-colors' 
+                  : ''
+              }`}
+              onClick={currentUserRole === UserRole.ADVISOR ? handleClientNameClick : undefined}
+              title={currentUserRole === UserRole.ADVISOR && otherUser ? t('chat.viewClientDetails') : undefined}
+            >
               {otherUser
                 ? `${otherUser.firstName} ${otherUser.lastName}`
                 : t('chat.noAdvisorAvailable')

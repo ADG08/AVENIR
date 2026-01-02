@@ -102,7 +102,6 @@
     "weekly": "Weekly",
     "simulatedData": "Simulated Data",
     "spending": "Spending",
-    "receiveFunds": "Receive",
     "sendFunds": "Send",
     "addAccountModal": {
       "title": "Add Current Account",
@@ -391,7 +390,14 @@
       "send": "Send",
       "sending": "Sending...",
       "success": "Notification sent successfully",
-      "error": "Error sending notification"
+      "error": "Error sending notification",
+      "type": {
+        "label": "Notification type",
+        "selectType": "Select a type",
+        "info": "Information",
+        "warning": "Warning",
+        "success": "Success"
+      }
     },
     "loan": {
       "title": "Grant loan",
@@ -434,10 +440,15 @@
       "success": "Loan granted successfully",
       "error": "Error granting loan",
       "calculate": "Calculate",
-      "summary": "Loan summary"
+      "summary": "Loan summary",
+      "newLoanCreated": "New loan granted"
     },
     "errors": {
-      "loadingClients": "Unable to load clients list"
+      "loadingClients": "Error loading clients",
+      "notYourClient": "Client not managed",
+      "clientManagedBy": "This client is managed by {{advisorName}}",
+      "clientNotManaged": "This client is not under your management",
+      "checkingClient": "Error checking client"
     }
   },
   "news": {
@@ -446,6 +457,8 @@
     "noNews": "No news",
     "noNewsDescription": "No news has been published yet",
     "viewAll": "View all news",
+    "item": "news item",
+    "items": "news items",
     "postedBy": "Posted by",
     "postedOn": "on",
     "modal": {
@@ -486,6 +499,7 @@
     "alreadyAssigned": "Already assigned",
     "showClosedConversations": "Show closed conversations",
     "searchPlaceholder": "Search by name...",
+    "viewClientDetails": "View client details",
     "message": {
       "yourMessage": "Your message",
       "typeYourMessage": "Describe your request...",
@@ -545,7 +559,16 @@
       "closingConversation": "Unable to close conversation",
       "transferringConversation": "Unable to transfer conversation",
       "assigningAdvisor": "Unable to assign advisor",
-      "chatNotFound": "This conversation doesn't exist or you don't have access to it"
+      "chatNotFound": "This conversation does not exist or you do not have access"
     }
+  },
+  "notifications": {
+    "title": "Notifications",
+    "markAllAsRead": "Mark all as read",
+    "noNotifications": "No notifications",
+    "from": "From",
+    "notAvailable": "The notification is no longer available.",
+    "errorOpening": "Unable to open notification. Please try again.",
+    "upToDate": "You're all caught up!"
   }
 }

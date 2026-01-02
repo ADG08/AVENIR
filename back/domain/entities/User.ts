@@ -20,5 +20,6 @@ export class User {
         readonly createdAt: Date,
         readonly verificationToken?: string,
         readonly verifiedAt?: Date,
+        readonly advisorId?: string
     ) {}
 }

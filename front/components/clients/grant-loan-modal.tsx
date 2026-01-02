@@ -1,12 +1,12 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, TrendingUp } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { grantLoanSchema, type GrantLoanFormData } from '@/lib/validation/client-forms.schema';
+import { loanFormSchema as grantLoanSchema, type LoanFormData as GrantLoanFormData } from '@avenir/shared/schemas/loan.schema';
 
 interface GrantLoanModalProps {
   isOpen: boolean;
@@ -47,8 +47,8 @@ export const GrantLoanModal = ({
     mode: 'onChange',
     defaultValues: {
       name: '',
-      amount: 0,
-      duration: 0,
+      amount: 100,
+      duration: 3,
       interestRate: 3.5,
       insuranceRate: 0.36,
     },
@@ -57,7 +57,6 @@ export const GrantLoanModal = ({
   const onFormSubmit = async (data: GrantLoanFormData) => {
     if (isLoading) return;
 
-    // TODO : Récuperer les données du back
     const loanData: LoanCalculation = {
       name: data.name,
       amount: data.amount,
@@ -85,8 +84,8 @@ export const GrantLoanModal = ({
     if (isOpen) {
       reset({
         name: '',
-        amount: 0,
-        duration: 0,
+        amount: 100,
+        duration: 3,
         interestRate: 3.5,
         insuranceRate: 0.36,
       });

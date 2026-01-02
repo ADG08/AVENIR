@@ -10,7 +10,7 @@ VALUES
 (
     'ob_bid_aapl_1',
     'stock_1',
-    'a1b2c3d4-5e6f-7a8b-9c0d-1e2f3a4b5c6d',  -- Sophie Dubois
+    'd4e5f6a7-8b9c-4d0e-af3a-4b5c6d7e8f9a',  -- Sophie Dubois
     'BID',
     'LIMIT',
     10.00,
@@ -24,7 +24,7 @@ VALUES
 (
     'ob_bid_aapl_2',
     'stock_1',
-    'b2c3d4e5-6f7a-8b9c-0d1e-2f3a4b5c6d7e',  -- Lucas Petit
+    'e5f6a7b8-9c0d-41e2-bf4a-5c6d7e8f9a0b',  -- Lucas Petit
     'BID',
     'LIMIT',
     5.00,
@@ -59,7 +59,7 @@ VALUES
 (
     'ob_ask_aapl_1',
     'stock_1',
-    'a8c2f3e1-5b9d-4a2c-8f6e-1d4b7c9e2a5f',  -- Hugo Laurent
+    'a7b8c9d0-1e2f-43a4-9f6c-7e8f9a0b1c2d',  -- Hugo Laurent
     'ASK',
     'LIMIT',
     8.00,
@@ -73,7 +73,7 @@ VALUES
 (
     'ob_ask_aapl_2',
     'stock_1',
-    'b9d3e4f2-6c0e-5b3d-9a7f-2e5c8d0f3b6a',  -- Léa Simon
+    'b8c9d0e1-2f3a-44b5-af7d-8f9a0b1c2d3e',  -- Léa Simon
     'ASK',
     'LIMIT',
     15.00,
@@ -87,7 +87,7 @@ VALUES
 (
     'ob_ask_aapl_stop',
     'stock_1',
-    'b9d3e4f2-6c0e-5b3d-9a7f-2e5c8d0f3b6a',  -- Léa Simon
+    'b8c9d0e1-2f3a-44b5-af7d-8f9a0b1c2d3e',  -- Léa Simon
     'ASK',
     'STOP',
     5.00,
@@ -109,7 +109,7 @@ VALUES
 (
     'ob_hugo_bid_aapl_1',
     'stock_1',
-    'd2e5f6a4-8b1c-7d2e-9f3a-0c4b8d5e1f2a',  -- Hugo Laurent
+    'd0e1f2a3-4b5c-46d7-8f9f-0b1c2d3e4f5a',  -- Hugo Laurent
     'BID',
     'LIMIT',
     50.00,
@@ -123,7 +123,7 @@ VALUES
 (
     'ob_hugo_bid_aapl_2',
     'stock_1',
-    'd2e5f6a4-8b1c-7d2e-9f3a-0c4b8d5e1f2a',  -- Hugo Laurent
+    'd0e1f2a3-4b5c-46d7-8f9f-0b1c2d3e4f5a',  -- Hugo Laurent
     'BID',
     'LIMIT',
     100.00,
@@ -137,7 +137,7 @@ VALUES
 (
     'ob_hugo_bid_aapl_3',
     'stock_1',
-    'd2e5f6a4-8b1c-7d2e-9f3a-0c4b8d5e1f2a',  -- Hugo Laurent
+    'd0e1f2a3-4b5c-46d7-8f9f-0b1c2d3e4f5a',  -- Hugo Laurent
     'BID',
     'LIMIT',
     75.00,
@@ -152,7 +152,7 @@ VALUES
 (
     'ob_hugo_ask_aapl_1',
     'stock_1',
-    'd2e5f6a4-8b1c-7d2e-9f3a-0c4b8d5e1f2a',  -- Hugo Laurent
+    'd0e1f2a3-4b5c-46d7-8f9f-0b1c2d3e4f5a',  -- Hugo Laurent
     'ASK',
     'LIMIT',
     100.00,
@@ -166,7 +166,7 @@ VALUES
 (
     'ob_hugo_ask_aapl_2',
     'stock_1',
-    'd2e5f6a4-8b1c-7d2e-9f3a-0c4b8d5e1f2a',  -- Hugo Laurent
+    'd0e1f2a3-4b5c-46d7-8f9f-0b1c2d3e4f5a',  -- Hugo Laurent
     'ASK',
     'LIMIT',
     150.00,
@@ -180,7 +180,7 @@ VALUES
 (
     'ob_hugo_ask_aapl_3',
     'stock_1',
-    'd2e5f6a4-8b1c-7d2e-9f3a-0c4b8d5e1f2a',  -- Hugo Laurent
+    'd0e1f2a3-4b5c-46d7-8f9f-0b1c2d3e4f5a',  -- Hugo Laurent
     'ASK',
     'LIMIT',
     200.00,
@@ -201,7 +201,7 @@ VALUES
 (
     'ob_bid_googl_1',
     'stock_2',
-    'a1b2c3d4-5e6f-7a8b-9c0d-1e2f3a4b5c6d',  -- Sophie Dubois
+    'd4e5f6a7-8b9c-4d0e-af3a-4b5c6d7e8f9a',  -- Sophie Dubois
     'BID',
     'LIMIT',
     12.00,
@@ -215,7 +215,7 @@ VALUES
 (
     'ob_ask_googl_1',
     'stock_2',
-    'd1f5a6b4-8e2a-7d5f-1c9b-4a7e0f2b5d8c',  -- Marie Martin
+    'b2c3d4e5-6f7a-4b9c-8d1e-2f3a4b5c6d7e',  -- Marie Martin
     'ASK',
     'LIMIT',
     10.00,
@@ -229,7 +229,7 @@ VALUES
 (
     'ob_system_ask_googl_1',
     'stock_2',
-    'd1f5a6b4-8e2a-7d5f-1c9b-4a7e0f2b5d8c',  -- Marie Martin
+    'b2c3d4e5-6f7a-4b9c-8d1e-2f3a4b5c6d7e',  -- Marie Martin
     'ASK',
     'LIMIT',
     3750.00,
@@ -243,7 +243,7 @@ VALUES
 (
     'ob_system_ask_googl_2',
     'stock_2',
-    'a1b2c3d4-5e6f-7a8b-9c0d-1e2f3a4b5c6d',  -- Sophie Dubois
+    'd4e5f6a7-8b9c-4d0e-af3a-4b5c6d7e8f9a',  -- Sophie Dubois
     'ASK',
     'LIMIT',
     3750.00,
@@ -278,7 +278,7 @@ VALUES
 (
     'ob_ask_nvda_1',
     'stock_7',
-    'f3b7c8d6-0a4c-9f7b-3e1d-6c9a2b4d7f0e',  -- Pierre Durand (Director)
+    'a1b2c3d4-5e6f-4a8b-9c0d-1e2f3a4b5c6d',  -- Pierre Durand (Director)
     'ASK',
     'LIMIT',
     18.00,
@@ -299,7 +299,7 @@ VALUES
 (
     'ob_bid_tsla_1',
     'stock_6',
-    'b2c3d4e5-6f7a-8b9c-0d1e-2f3a4b5c6d7e',  -- Lucas Petit
+    'e5f6a7b8-9c0d-41e2-bf4a-5c6d7e8f9a0b',  -- Lucas Petit
     'BID',
     'LIMIT',
     15.00,
@@ -313,7 +313,7 @@ VALUES
 (
     'ob_ask_tsla_1',
     'stock_6',
-    'e2a6b7c5-9f3b-8e6a-2d0c-5b8f1a3c6e9d',  -- Thomas Bernard
+    'c3d4e5f6-7a8b-4c9d-9e2f-3a4b5c6d7e8f',  -- Thomas Bernard
     'ASK',
     'LIMIT',
     10.00,
@@ -334,7 +334,7 @@ VALUES
 (
     'ob_bid_meta_1',
     'stock_5',
-    'b2c3d4e5-6f7a-8b9c-0d1e-2f3a4b5c6d7e',
+    'e5f6a7b8-9c0d-41e2-bf4a-5c6d7e8f9a0b',
     'BID',
     'LIMIT',
     2.50,
@@ -348,7 +348,7 @@ VALUES
 (
     'ob_ask_meta_1',
     'stock_5',
-    'd1f5a6b4-8e2a-7d5f-1c9b-4a7e0f2b5d8c',
+    'b2c3d4e5-6f7a-4b9c-8d1e-2f3a4b5c6d7e',
     'ASK',
     'LIMIT',
     2.50,
@@ -369,7 +369,7 @@ VALUES
 (
     'ob_bid_amd_1',
     'stock_9',
-    'a8c2f3e1-5b9d-4a2c-8f6e-1d4b7c9e2a5f',
+    'a7b8c9d0-1e2f-43a4-9f6c-7e8f9a0b1c2d',
     'BID',
     'LIMIT',
     8.00,
@@ -383,7 +383,7 @@ VALUES
 (
     'ob_ask_amd_1',
     'stock_9',
-    'e2a6b7c5-9f3b-8e6a-2d0c-5b8f1a3c6e9d',
+    'c3d4e5f6-7a8b-4c9d-9e2f-3a4b5c6d7e8f',
     'ASK',
     'LIMIT',
     8.00,
@@ -404,7 +404,7 @@ VALUES
 (
     'ob_market_msft_1',
     'stock_3',
-    'a8c2f3e1-5b9d-4a2c-8f6e-1d4b7c9e2a5f',
+    'a7b8c9d0-1e2f-43a4-9f6c-7e8f9a0b1c2d',
     'BID',
     'MARKET',
     5.00,

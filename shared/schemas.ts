@@ -34,3 +34,6 @@ export * from './schemas/user.schema';
 export * from './schemas/chat.schema';
 export * from './schemas/stock.schema';
 export * from './schemas/investment.schema';
+export * from './schemas/loan.schema';
+export * from './schemas/news.schema';
+export * from './schemas/notification.schema';

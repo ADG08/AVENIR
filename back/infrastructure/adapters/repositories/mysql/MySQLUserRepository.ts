@@ -9,8 +9,8 @@ export class MySQLUserRepository implements UserRepository {
 
     async add(user: User): Promise<User> {
         const insertQuery = `
-            INSERT INTO users (id, first_name, last_name, email, identity_number, passcode, role, state, verification_token, verified_at, created_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO users (id, first_name, last_name, email, identity_number, passcode, role, state, advisor_id, verification_token, verified_at, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `;
 
         try {
@@ -23,6 +23,7 @@ export class MySQLUserRepository implements UserRepository {
                 user.passcode,
                 user.role,
                 user.state,
+                user.advisorId || null,
                 user.verificationToken || null,
                 user.verifiedAt || null,
                 user.createdAt
@@ -48,7 +49,7 @@ export class MySQLUserRepository implements UserRepository {
             UPDATE users
             SET first_name = ?, last_name = ?, email = ?,
                 identity_number = ?, passcode = ?, role = ?, state = ?,
-                verification_token = ?, verified_at = ?
+                advisor_id = ?, verification_token = ?, verified_at = ?
             WHERE id = ?
         `;
 
@@ -61,6 +62,7 @@ export class MySQLUserRepository implements UserRepository {
                 user.passcode,
                 user.role,
                 user.state,
+                user.advisorId || null,
                 user.verificationToken || null,
                 user.verifiedAt || null,
                 user.id
@@ -126,6 +128,46 @@ export class MySQLUserRepository implements UserRepository {
         }
     }
 
+    async getClientsByAdvisorId(advisorId: string): Promise<User[]> {
+        try {
+            const [rows] = await this.pool.execute(
+                'SELECT * FROM users WHERE advisor_id = ? AND role = ? ORDER BY created_at DESC',
+                [advisorId, UserRole.CLIENT]
+            );
+            const results = rows as RowDataPacket[];
+            return results.map(row => this.mapRowToUser(row));
+        } catch (error) {
+            console.error('MySQL error:', error);
+            throw error;
+        }
+    }
+
+    async getRandomAdvisor(): Promise<User | null> {
+        try {
+            const [rows] = await this.pool.execute(
+                'SELECT * FROM users WHERE role = ? AND state = ? ORDER BY RAND() LIMIT 1',
+                [UserRole.ADVISOR, UserState.ACTIVE]
+            );
+            const results = rows as RowDataPacket[];
+            return results.length === 0 ? null : this.mapRowToUser(results[0]);
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    async isClientManagedByAdvisor(clientId: string, advisorId: string): Promise<boolean> {
+        try {
+            const [rows] = await this.pool.execute(
+                'SELECT EXISTS(SELECT 1 FROM users WHERE id = ? AND advisor_id = ? AND role = ?) as is_managed',
+                [clientId, advisorId, UserRole.CLIENT]
+            );
+            const results = rows as RowDataPacket[];
+            return results[0].is_managed === 1;
+        } catch (error) {
+            throw error;
+        }
+    }
+
     private mapRowToUser(row: RowDataPacket): User {
         return new User(
             row.id,
@@ -141,8 +183,8 @@ export class MySQLUserRepository implements UserRepository {
             [],
             new Date(row.created_at),
             row.verification_token,
-            row.verified_at ? new Date(row.verified_at) : undefined
+            row.verified_at ? new Date(row.verified_at) : undefined,
+            row.advisor_id
         );
     }
 }
-

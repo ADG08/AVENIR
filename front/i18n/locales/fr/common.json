@@ -102,7 +102,6 @@
     "weekly": "Hebdomadaire",
     "simulatedData": "Données Simulées",
     "spending": "Dépenses",
-    "receiveFunds": "Recevoir",
     "sendFunds": "Envoyer",
     "addAccountModal": {
       "title": "Ajouter un compte courant",
@@ -390,7 +389,14 @@
       "send": "Envoyer",
       "sending": "Envoi...",
       "success": "Notification envoyée avec succès",
-      "error": "Erreur lors de l'envoi de la notification"
+      "error": "Erreur lors de l'envoi de la notification",
+      "type": {
+        "label": "Type de notification",
+        "selectType": "Sélectionnez un type",
+        "info": "Information",
+        "warning": "Avertissement",
+        "success": "Succès"
+      }
     },
     "loan": {
       "title": "Octroyer un crédit",
@@ -433,10 +439,15 @@
       "success": "Crédit octroyé avec succès",
       "error": "Erreur lors de l'octroi du crédit",
       "calculate": "Calculer",
-      "summary": "Récapitulatif du crédit"
+      "summary": "Récapitulatif du crédit",
+      "newLoanCreated": "Nouveau crédit octroyé"
     },
     "errors": {
-      "loadingClients": "Impossible de charger la liste des clients"
+      "loadingClients": "Erreur lors du chargement des clients",
+      "notYourClient": "Client non géré",
+      "clientManagedBy": "Ce client est géré par {{advisorName}}",
+      "clientNotManaged": "Ce client n'est pas sous votre gestion",
+      "checkingClient": "Erreur lors de la vérification du client"
     }
   },
   "news": {
@@ -445,6 +456,8 @@
     "noNews": "Aucune actualité",
     "noNewsDescription": "Aucune actualité n'a été publiée pour le moment",
     "viewAll": "Voir toutes les actualités",
+    "item": "actualité",
+    "items": "actualités",
     "postedBy": "Publié par",
     "postedOn": "le",
     "modal": {
@@ -470,6 +483,7 @@
     }
   },
   "chat": {
+    "title": "Contact",
     "conversations": "Conversations",
     "newConversation": "Nouvelle conversation",
     "noConversations": "Aucune conversation",
@@ -485,6 +499,7 @@
     "alreadyAssigned": "Déjà assigné",
     "showClosedConversations": "Afficher les conversations fermées",
     "searchPlaceholder": "Rechercher par nom...",
+    "viewClientDetails": "Voir les détails du client",
     "message": {
       "yourMessage": "Votre message",
       "typeYourMessage": "Décrivez votre demande...",
@@ -546,5 +561,14 @@
       "assigningAdvisor": "Impossible d'assigner le conseiller",
       "chatNotFound": "Cette conversation n'existe pas ou vous n'y avez pas accès"
     }
+  },
+  "notifications": {
+    "title": "Notifications",
+    "markAllAsRead": "Tout marquer comme lu",
+    "noNotifications": "Aucune notification",
+    "from": "De",
+    "notAvailable": "La notification n'est plus disponible.",
+    "errorOpening": "Impossible d'ouvrir la notification. Veuillez réessayer.",
+    "upToDate": "Vous êtes à jour !"
   }
 }
