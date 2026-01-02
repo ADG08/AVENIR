@@ -36,7 +36,7 @@ VALUES (
     'Durand',
     'pierre.durand@avenir-bank.fr',
     'DIR001',
-    '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
+    '$2b$10$uiCjCBOEgQ2TrZWd4eX3yOtDOnxbgON/B6qxzpko3fLv.rTdRN4n2',
     'DIRECTOR',
     'ACTIVE',
     NOW() - INTERVAL '2 years',
@@ -55,7 +55,7 @@ VALUES
     'Martin',
     'marie.martin@avenir-bank.fr',
     'ADV001',
-    '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
+    '$2b$10$uiCjCBOEgQ2TrZWd4eX3yOtDOnxbgON/B6qxzpko3fLv.rTdRN4n2',
     'ADVISOR',
     'ACTIVE',
     NOW() - INTERVAL '1 year',
@@ -67,7 +67,7 @@ VALUES
     'Bernard',
     'thomas.bernard@avenir-bank.fr',
     'ADV002',
-    '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
+    '$2b$10$uiCjCBOEgQ2TrZWd4eX3yOtDOnxbgON/B6qxzpko3fLv.rTdRN4n2',
     'ADVISOR',
     'ACTIVE',
     NOW() - INTERVAL '1 year',
@@ -79,7 +79,7 @@ VALUES
     'Dubois',
     'sophie.dubois@avenir-bank.fr',
     'ADV003',
-    '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
+    '$2b$10$uiCjCBOEgQ2TrZWd4eX3yOtDOnxbgON/B6qxzpko3fLv.rTdRN4n2',
     'ADVISOR',
     'ACTIVE',
     NOW() - INTERVAL '6 months',
@@ -98,7 +98,7 @@ VALUES (
     'Tine',
     'clement.tine@example.com',
     'CLIENT001',
-    '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
+    '$2b$10$uiCjCBOEgQ2TrZWd4eX3yOtDOnxbgON/B6qxzpko3fLv.rTdRN4n2',
     'CLIENT',
     'ACTIVE',
     'b2c3d4e5-6f7a-4b9c-8d1e-2f3a4b5c6d7e', -- Marie Martin
@@ -115,7 +115,7 @@ VALUES
     'Dupont',
     'jean.dupont@gmail.com',
     'CLI001',
-    '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
+    '$2b$10$uiCjCBOEgQ2TrZWd4eX3yOtDOnxbgON/B6qxzpko3fLv.rTdRN4n2',
     'CLIENT',
     'ACTIVE',
     'b2c3d4e5-6f7a-4b9c-8d1e-2f3a4b5c6d7e', -- Marie Martin
@@ -128,7 +128,7 @@ VALUES
     'Leroy',
     'emma.leroy@gmail.com',
     'CLI002',
-    '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
+    '$2b$10$uiCjCBOEgQ2TrZWd4eX3yOtDOnxbgON/B6qxzpko3fLv.rTdRN4n2',
     'CLIENT',
     'ACTIVE',
     'c3d4e5f6-7a8b-4c9d-9e2f-3a4b5c6d7e8f', -- Thomas Bernard
@@ -141,7 +141,7 @@ VALUES
     'Moreau',
     'lucas.moreau@gmail.com',
     'CLI003',
-    '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
+    '$2b$10$uiCjCBOEgQ2TrZWd4eX3yOtDOnxbgON/B6qxzpko3fLv.rTdRN4n2',
     'CLIENT',
     'ACTIVE',
     'c3d4e5f6-7a8b-4c9d-9e2f-3a4b5c6d7e8f', -- Thomas Bernard
@@ -154,7 +154,7 @@ VALUES
     'Simon',
     'lea.simon@gmail.com',
     'CLI004',
-    '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
+    '$2b$10$uiCjCBOEgQ2TrZWd4eX3yOtDOnxbgON/B6qxzpko3fLv.rTdRN4n2',
     'CLIENT',
     'ACTIVE',
     'd4e5f6a7-8b9c-4d0e-af3a-4b5c6d7e8f9a', -- Sophie Dubois
@@ -167,7 +167,7 @@ VALUES
     'Laurent',
     'hugo.laurent@gmail.com',
     'CLI005',
-    '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
+    '$2b$10$uiCjCBOEgQ2TrZWd4eX3yOtDOnxbgON/B6qxzpko3fLv.rTdRN4n2',
     'CLIENT',
     'ACTIVE',
     'b2c3d4e5-6f7a-4b9c-8d1e-2f3a4b5c6d7e', -- Marie Martin
@@ -271,7 +271,7 @@ INSERT INTO accounts (id, user_id, iban, name, type, balance, currency, card_num
 VALUES
 (
     'd8e1f2a0-4b7c-3d8e-5f9a-6c0d4e7b1f3a',
-    'd2e5f6a4-8b1c-7d2e-9f3a-0c4b8d5e1f2a',
+    'd0e1f2a3-4b5c-46d7-8f9f-0b1c2d3e4f5a',
     'FR7612345678901234567890133',
     'Compte Courant - Hugo Laurent',
     'CURRENT',

@@ -145,7 +145,7 @@ GET http://localhost:3000/health
   "lastName": "Tine",
   "email": "clement.tine@example.com",
   "identityNumber": "CLIENT001",
-  "passcode": "password"
+  "passcode": "Password1!"
 }
 ```
 ### Conseillers
@@ -155,7 +155,7 @@ GET http://localhost:3000/health
   "lastName": "Martin",
   "email": "marie.martin@avenir-bank.fr",
   "identityNumber": "ADV001",
-  "passcode": "password"
+  "passcode": "Password1!"
 }
 ```
 ```json
@@ -164,7 +164,7 @@ GET http://localhost:3000/health
   "lastName": "Bernard",
   "email": "thomas.bernard@avenir-bank.fr",
   "identityNumber": "ADV002",
-  "passcode": "password"
+  "passcode": "Password1!"
 }
 ```
 
@@ -175,6 +175,6 @@ GET http://localhost:3000/health
   "lastName": "Durand",
   "email": "pierre.durand@avenir-bank.fr",
   "identityNumber": "DIR001",
-  "passcode": "password"
+  "passcode": "Password1!"
 }
 ```

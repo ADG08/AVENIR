@@ -16,12 +16,12 @@ SET CHARACTER_SET_CLIENT = utf8mb4;
 
 INSERT INTO users (id, first_name, last_name, email, identity_number, passcode, role, state, created_at, updated_at)
 VALUES (
-    'f3b7c8d6-0a4c-9f7b-3e1d-6c9a2b4d7f0e',
+    'a1b2c3d4-5e6f-4a8b-9c0d-1e2f3a4b5c6d',
     'Pierre',
     'Durand',
     'pierre.durand@avenir-bank.fr',
     'DIR001',
-    '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
+    '$2b$10$uiCjCBOEgQ2TrZWd4eX3yOtDOnxbgON/B6qxzpko3fLv.rTdRN4n2',
     'DIRECTOR',
     'ACTIVE',
     DATE_SUB(NOW(), INTERVAL 2 YEAR),
@@ -35,36 +35,36 @@ VALUES (
 INSERT INTO users (id, first_name, last_name, email, identity_number, passcode, role, state, created_at, updated_at)
 VALUES
 (
-    'd1f5a6b4-8e2a-7d5f-1c9b-4a7e0f2b5d8c',
+    'b2c3d4e5-6f7a-4b9c-8d1e-2f3a4b5c6d7e',
     'Marie',
     'Martin',
     'marie.martin@avenir-bank.fr',
     'ADV001',
-    '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
+    '$2b$10$uiCjCBOEgQ2TrZWd4eX3yOtDOnxbgON/B6qxzpko3fLv.rTdRN4n2',
     'ADVISOR',
     'ACTIVE',
     DATE_SUB(NOW(), INTERVAL 1 YEAR),
     NOW()
 ),
 (
-    'e2a6b7c5-9f3b-8e6a-2d0c-5b8f1a3c6e9d',
+    'c3d4e5f6-7a8b-4c9d-9e2f-3a4b5c6d7e8f',
     'Thomas',
     'Bernard',
     'thomas.bernard@avenir-bank.fr',
     'ADV002',
-    '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
+    '$2b$10$uiCjCBOEgQ2TrZWd4eX3yOtDOnxbgON/B6qxzpko3fLv.rTdRN4n2',
     'ADVISOR',
     'ACTIVE',
     DATE_SUB(NOW(), INTERVAL 1 YEAR),
     NOW()
 ),
 (
-    'a1b2c3d4-5e6f-7a8b-9c0d-1e2f3a4b5c6d',
+    'd4e5f6a7-8b9c-4d0e-af3a-4b5c6d7e8f9a',
     'Sophie',
     'Dubois',
     'sophie.dubois@avenir-bank.fr',
     'ADV003',
-    '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
+    '$2b$10$uiCjCBOEgQ2TrZWd4eX3yOtDOnxbgON/B6qxzpko3fLv.rTdRN4n2',
     'ADVISOR',
     'ACTIVE',
     DATE_SUB(NOW(), INTERVAL 6 MONTH),
@@ -78,15 +78,15 @@ VALUES
 -- Clement Tine (utilisateur existant à préserver)
 INSERT INTO users (id, first_name, last_name, email, identity_number, passcode, role, state, advisor_id, created_at, updated_at)
 VALUES (
-    'b2c3d4e5-6f7a-8b9c-0d1e-2f3a4b5c6d7e',
+    'e5f6a7b8-9c0d-41e2-bf4a-5c6d7e8f9a0b',
     'Clement',
     'Tine',
     'clement.tine@example.com',
     'CLIENT001',
-    '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
+    '$2b$10$uiCjCBOEgQ2TrZWd4eX3yOtDOnxbgON/B6qxzpko3fLv.rTdRN4n2',
     'CLIENT',
     'ACTIVE',
-    'd1f5a6b4-8e2a-7d5f-1c9b-4a7e0f2b5d8c', -- Marie Martin
+    'b2c3d4e5-6f7a-4b9c-8d1e-2f3a4b5c6d7e', -- Marie Martin
     DATE_SUB(NOW(), INTERVAL 6 MONTH),
     NOW()
 ) ON DUPLICATE KEY UPDATE id = id;
@@ -100,62 +100,62 @@ VALUES
     'Dupont',
     'jean.dupont@gmail.com',
     'CLI001',
-    '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
+    '$2b$10$uiCjCBOEgQ2TrZWd4eX3yOtDOnxbgON/B6qxzpko3fLv.rTdRN4n2',
     'CLIENT',
     'ACTIVE',
-    'd1f5a6b4-8e2a-7d5f-1c9b-4a7e0f2b5d8c', -- Marie Martin
+    'b2c3d4e5-6f7a-4b9c-8d1e-2f3a4b5c6d7e', -- Marie Martin
     DATE_SUB(NOW(), INTERVAL 3 MONTH),
     NOW()
 ),
 (
-    'a8c2f3e1-5b9d-4a2c-8f6e-1d4b7c9e2a5f',
+    'a7b8c9d0-1e2f-43a4-9f6c-7e8f9a0b1c2d',
     'Emma',
     'Leroy',
     'emma.leroy@gmail.com',
     'CLI002',
-    '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
+    '$2b$10$uiCjCBOEgQ2TrZWd4eX3yOtDOnxbgON/B6qxzpko3fLv.rTdRN4n2',
     'CLIENT',
     'ACTIVE',
-    'e2a6b7c5-9f3b-8e6a-2d0c-5b8f1a3c6e9d', -- Thomas Bernard
+    'c3d4e5f6-7a8b-4c9d-9e2f-3a4b5c6d7e8f', -- Thomas Bernard
     DATE_SUB(NOW(), INTERVAL 2 MONTH),
     NOW()
 ),
 (
-    'b9d3e4f2-6c0e-5b3d-9a7f-2e5c8d0f3b6a',
+    'b8c9d0e1-2f3a-44b5-af7d-8f9a0b1c2d3e',
     'Lucas',
     'Moreau',
     'lucas.moreau@gmail.com',
     'CLI003',
-    '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
+    '$2b$10$uiCjCBOEgQ2TrZWd4eX3yOtDOnxbgON/B6qxzpko3fLv.rTdRN4n2',
     'CLIENT',
     'ACTIVE',
-    'e2a6b7c5-9f3b-8e6a-2d0c-5b8f1a3c6e9d', -- Thomas Bernard
+    'c3d4e5f6-7a8b-4c9d-9e2f-3a4b5c6d7e8f', -- Thomas Bernard
     DATE_SUB(NOW(), INTERVAL 1 MONTH),
     NOW()
 ),
 (
-    'c0e4f5a3-7d1f-6c4e-0b8a-3f6d9e1a4c7b',
+    'c9d0e1f2-3a4b-45c6-bf8e-9a0b1c2d3e4f',
     'Léa',
     'Simon',
     'lea.simon@gmail.com',
     'CLI004',
-    '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
+    '$2b$10$uiCjCBOEgQ2TrZWd4eX3yOtDOnxbgON/B6qxzpko3fLv.rTdRN4n2',
     'CLIENT',
     'ACTIVE',
-    'a1b2c3d4-5e6f-7a8b-9c0d-1e2f3a4b5c6d', -- Sophie Dubois
+    'd4e5f6a7-8b9c-4d0e-af3a-4b5c6d7e8f9a', -- Sophie Dubois
     DATE_SUB(NOW(), INTERVAL 2 WEEK),
     NOW()
 ),
 (
-    'd2e5f6a4-8b1c-7d2e-9f3a-0c4b8d5e1f2a',
+    'd0e1f2a3-4b5c-46d7-8f9f-0b1c2d3e4f5a',
     'Hugo',
     'Laurent',
     'hugo.laurent@gmail.com',
     'CLI005',
-    '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
+    '$2b$10$uiCjCBOEgQ2TrZWd4eX3yOtDOnxbgON/B6qxzpko3fLv.rTdRN4n2',
     'CLIENT',
     'ACTIVE',
-    'd1f5a6b4-8e2a-7d5f-1c9b-4a7e0f2b5d8c', -- Marie Martin
+    'b2c3d4e5-6f7a-4b9c-8d1e-2f3a4b5c6d7e', -- Marie Martin
     DATE_SUB(NOW(), INTERVAL 1 WEEK),
     NOW()
 ) ON DUPLICATE KEY UPDATE id = id;
@@ -169,7 +169,7 @@ INSERT INTO accounts (id, user_id, iban, name, type, balance, currency, card_num
 VALUES
 (
     'acc-clement-tine-1',
-    'b2c3d4e5-6f7a-8b9c-0d1e-2f3a4b5c6d7e',
+    'e5f6a7b8-9c0d-41e2-bf4a-5c6d7e8f9a0b',
     'FR7612345678901234567890128',
     'Compte Courant - Clement Tine',
     'CURRENT',
@@ -185,7 +185,7 @@ VALUES
 ),
 (
     'acc-clement-tine-2',
-    'b2c3d4e5-6f7a-8b9c-0d1e-2f3a4b5c6d7e',
+    'e5f6a7b8-9c0d-41e2-bf4a-5c6d7e8f9a0b',
     'FR7612345678901234567890129',
     'Livret Épargne - Clement Tine',
     'SAVINGS',
@@ -205,7 +205,7 @@ INSERT INTO accounts (id, user_id, iban, name, type, balance, currency, card_num
 VALUES
 (
     'acc-client-001-1',
-    'f7f35a80-0a07-4f07-a429-70be5f5c4d86',
+    'f6a7b8c9-0d1e-42f3-8f5b-6d7e8f9a0b1c',
     'FR7612345678901234567890130',
     'Compte Courant - Jean Dupont',
     'CURRENT',
@@ -225,7 +225,7 @@ INSERT INTO accounts (id, user_id, iban, name, type, balance, currency, card_num
 VALUES
 (
     'acc-client-002-1',
-    'a8c2f3e1-5b9d-4a2c-8f6e-1d4b7c9e2a5f',
+    'a7b8c9d0-1e2f-43a4-9f6c-7e8f9a0b1c2d',
     'FR7612345678901234567890131',
     'Compte Courant - Emma Leroy',
     'CURRENT',
@@ -241,7 +241,7 @@ VALUES
 ),
 (
     'acc-client-002-2',
-    'a8c2f3e1-5b9d-4a2c-8f6e-1d4b7c9e2a5f',
+    'a7b8c9d0-1e2f-43a4-9f6c-7e8f9a0b1c2d',
     'FR7612345678901234567890132',
     'Livret Épargne - Emma Leroy',
     'SAVINGS',
@@ -261,7 +261,7 @@ INSERT INTO accounts (id, user_id, iban, name, type, balance, currency, card_num
 VALUES
 (
     'acc-client-005-1',
-    'd2e5f6a4-8b1c-7d2e-9f3a-0c4b8d5e1f2a',
+    'd0e1f2a3-4b5c-46d7-8f9f-0b1c2d3e4f5a',
     'FR7612345678901234567890133',
     'Compte Courant - Hugo Laurent',
     'CURRENT',
