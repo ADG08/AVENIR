@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
-import { useWebSocket, WebSocketMessageType } from '@/contexts/WebSocketContext';
+import { useSSE, SSEEventType, isNewsCreatedPayload, isNewsDeletedPayload } from '@/contexts/SSEContext';
+import { mapSSENewsToNews } from '@/lib/mapping/sse.mapping';
 import { DashboardHeader } from '@/components/dashboard-header';
 import { CreateNewsModal } from '@/components/news/create-news-modal';
 import { NewsDetailModal } from '@/components/news/news-detail-modal';
@@ -19,7 +20,7 @@ export default function NewsPage() {
   const { t } = useTranslation();
   const { toast } = useToast();
   const { user, isLoading: isAuthLoading } = useAuth();
-  const { subscribe } = useWebSocket();
+  const { subscribe } = useSSE();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState('news');
   const [news, setNews] = useState<News[]>([]);
@@ -62,25 +63,10 @@ export default function NewsPage() {
   }, [toast, user]);
 
   useEffect(() => {
-    const unsubscribe = subscribe((message) => {
-      if (message.type === WebSocketMessageType.NEWS_CREATED && message.payload) {
-        const newsPayload = message.payload as {
-          id: string;
-          title: string;
-          description: string;
-          authorId: string;
-          authorName: string;
-          createdAt: string;
-        };
-
-        const newNews: News = {
-          id: newsPayload.id,
-          title: newsPayload.title,
-          description: newsPayload.description,
-          authorId: newsPayload.authorId,
-          authorName: newsPayload.authorName,
-          createdAt: new Date(newsPayload.createdAt),
-        };
+    const unsubscribe = subscribe((event) => {
+      // Écouter les événements SSE de création de news
+      if (event.type === SSEEventType.NEWS_CREATED && isNewsCreatedPayload(event.data)) {
+        const newNews = mapSSENewsToNews(event.data);
 
         setNews((prev) => {
           if (prev.some((n) => n.id === newNews.id)) {
@@ -89,18 +75,26 @@ export default function NewsPage() {
           return [newNews, ...prev];
         });
 
+        if (event.data.authorId !== user?.id) {
+          toast({
+            title: 'Nouvelle actualité',
+            description: `${event.data.authorName} a publié une nouvelle actualité`,
+          });
+        }
+      }
+      else if (event.type === SSEEventType.NEWS_DELETED && isNewsDeletedPayload(event.data)) {
+        const deletedNewsId = event.data.newsId;
+        setNews((prev) => prev.filter((n) => n.id !== deletedNewsId));
+
         toast({
-          title: 'Nouvelle actualité',
-          description: `${newsPayload.authorName} a publié une nouvelle actualité`,
+          title: 'Actualité supprimée',
+          description: 'Une actualité a été supprimée',
         });
-      } else if (message.type === WebSocketMessageType.NEWS_DELETED && message.payload) {
-        const { newsId } = message.payload as { newsId: string };
-        setNews((prev) => prev.filter((n) => n.id !== newsId));
       }
     });
 
     return () => unsubscribe();
-  }, [subscribe, toast]);
+  }, [subscribe, toast, user?.id]);
 
   const handleCreateNews = async (title: string, description: string) => {
     try {
@@ -185,7 +179,7 @@ export default function NewsPage() {
     <div className="min-h-screen bg-linear-to-br from-gray-50 to-gray-100">
       <DashboardHeader activeTab={activeTab} setActiveTab={setActiveTab} />
 
-      <main className="mx-auto max-w-[1800px] p-6">
+      <main className="mx-auto max-w-450 p-6">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}

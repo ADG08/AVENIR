@@ -7,7 +7,6 @@ import { CreateNewsRequest } from '@avenir/application/requests/CreateNewsReques
 import { GetAllNewsRequest } from '@avenir/application/requests/GetAllNewsRequest';
 import { GetNewsByIdRequest } from '@avenir/application/requests/GetNewsByIdRequest';
 import { DeleteNewsRequest } from '@avenir/application/requests/DeleteNewsRequest';
-import { webSocketService } from '../../services/WebSocketService';
 import { ValidationError } from '@avenir/application/errors';
 import { NewsNotFoundError, UserNotFoundError, UnauthorizedNewsAccessError } from '@avenir/domain/errors';
 import {
@@ -58,8 +57,7 @@ export class NewsController {
 
       const response = await this.createNewsUseCase.execute(createNewsRequest);
 
-      webSocketService.notifyNewsCreated(response);
-
+      // La notification SSE est gérée dans CreateNewsUseCase
       reply.code(201).send(response);
     } catch (error) {
       if (error instanceof ZodError) {
@@ -176,8 +174,7 @@ export class NewsController {
 
       await this.deleteNewsUseCase.execute(deleteNewsRequest);
 
-      webSocketService.notifyNewsDeleted(validatedParams.newsId);
-
+      // La notification SSE est gérée dans DeleteNewsUseCase
       reply.code(204).send();
     } catch (error) {
       if (error instanceof ZodError) {

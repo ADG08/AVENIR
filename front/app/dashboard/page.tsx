@@ -24,12 +24,13 @@ import { motion } from 'framer-motion';
 import { useState, useRef, useEffect } from 'react';
 import { useLanguage } from '@/hooks/use-language';
 import { useAuth } from '@/contexts/AuthContext';
-import { useWebSocket, WebSocketMessageType } from '@/contexts/WebSocketContext';
+import { useSSE, SSEEventType, isNewsCreatedPayload, isNewsDeletedPayload } from '@/contexts/SSEContext';
+import { mapSSENewsToNews } from '@/lib/mapping/sse.mapping';
 
 export default function Home() {
     const { t } = useLanguage();
     const { user: currentUser } = useAuth();
-    const { subscribe } = useWebSocket();
+    const { subscribe } = useSSE();
     const [period, setPeriod] = useState('yearly');
     const [activeTab, setActiveTab] = useState('overview');
     const [filterOpen, setFilterOpen] = useState(false);
@@ -73,30 +74,14 @@ export default function Home() {
     }, [currentUser]);
 
     useEffect(() => {
-        const unsubscribe = subscribe((message) => {
-            if (message.type === WebSocketMessageType.NEWS_CREATED && message.payload) {
-                const newsPayload = message.payload as {
-                    id: string;
-                    title: string;
-                    description: string;
-                    authorId: string;
-                    authorName: string;
-                    createdAt: string;
-                };
-
-                const newNews: News = {
-                    id: newsPayload.id,
-                    title: newsPayload.title,
-                    description: newsPayload.description,
-                    authorId: newsPayload.authorId,
-                    authorName: newsPayload.authorName,
-                    createdAt: new Date(newsPayload.createdAt),
-                };
-
+        const unsubscribe = subscribe((event) => {
+            if (event.type === SSEEventType.NEWS_CREATED && isNewsCreatedPayload(event.data)) {
+                const newNews = mapSSENewsToNews(event.data);
                 setNews((prev) => [newNews, ...prev]);
-            } else if (message.type === WebSocketMessageType.NEWS_DELETED && message.payload) {
-                const { newsId } = message.payload as { newsId: string };
-                setNews((prev) => prev.filter((n) => n.id !== newsId));
+            }
+            else if (event.type === SSEEventType.NEWS_DELETED && isNewsDeletedPayload(event.data)) {
+                const deletedNewsId = event.data.newsId;
+                setNews((prev) => prev.filter((n) => n.id !== deletedNewsId));
             }
         });
 

@@ -26,4 +26,16 @@ export class NewsResponse {
   static fromNewsList(newsList: News[]): NewsResponse[] {
     return newsList.map((news) => NewsResponse.fromNews(news));
   }
+
+  toApiDto() {
+    return {
+      id: this.id,
+      title: this.title,
+      description: this.description,
+      authorId: this.authorId,
+      authorName: this.authorName,
+      createdAt: this.createdAt.toISOString(),
+      updatedAt: this.updatedAt.toISOString(),
+    };
+  }
 }

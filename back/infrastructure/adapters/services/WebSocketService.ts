@@ -156,41 +156,6 @@ export class WebSocketService {
         });
     }
 
-    notifyNewsCreated(newsData: any): void {
-        this.clients.forEach((clients, userId) => {
-            this.sendMessageToUser(userId, {
-                type: WebSocketMessageType.NEWS_CREATED,
-                chatId: '',
-                payload: newsData,
-            });
-        });
-    }
-
-    notifyNewsDeleted(newsId: string): void {
-        this.clients.forEach((clients, userId) => {
-            this.sendMessageToUser(userId, {
-                type: WebSocketMessageType.NEWS_DELETED,
-                chatId: '',
-                payload: { newsId },
-            });
-        });
-    }
-
-    notifyNotificationCreated(userId: string, notificationData: any): void {
-        this.sendMessageToUser(userId, {
-            type: WebSocketMessageType.NOTIFICATION_CREATED,
-            chatId: '',
-            payload: notificationData,
-        });
-    }
-
-    notifyLoanCreated(userId: string, loanData: any): void {
-        this.sendMessageToUser(userId, {
-            type: WebSocketMessageType.LOAN_CREATED,
-            chatId: '',
-            payload: loanData,
-        });
-    }
 
     getConnectedClientsCount(): number {
         let count = 0;

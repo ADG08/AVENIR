@@ -10,13 +10,14 @@ import { UserRole, NotificationType } from '@avenir/shared/enums';
 import { UserNotFoundError } from '@avenir/domain/errors';
 import { ValidationError } from '../../errors';
 import { randomUUID } from 'crypto';
-import { webSocketService } from '@avenir/infrastructure/adapters/services/WebSocketService';
+import { SSEService } from '@avenir/infrastructure/adapters/services/SSEService';
 
 export class CreateNewsUseCase {
   constructor(
     private readonly newsRepository: NewsRepository,
     private readonly userRepository: UserRepository,
-    private readonly notificationRepository: NotificationRepository
+    private readonly notificationRepository: NotificationRepository,
+    private readonly sseService: SSEService
   ) {}
 
   async execute(request: CreateNewsRequest): Promise<NewsResponse> {
@@ -46,6 +47,9 @@ export class CreateNewsUseCase {
 
     const createdNews = await this.newsRepository.addNews(news);
 
+    const newsResponse = NewsResponse.fromNews(createdNews);
+    this.sseService.notifyNewsCreated(newsResponse.toApiDto());
+
     try {
       const allUsers = await this.userRepository.getAll();
       const clients = allUsers.filter((u) => u.role === UserRole.CLIENT);
@@ -66,7 +70,7 @@ export class CreateNewsUseCase {
         const createdNotification = await this.notificationRepository.addNotification(notification);
 
         const notificationResponse = NotificationResponse.fromNotification(createdNotification);
-        webSocketService.notifyNotificationCreated(client.id, notificationResponse.toWebSocketPayload());
+        this.sseService.notifyNotificationCreated(client.id, notificationResponse.toWebSocketPayload());
 
         return createdNotification;
       });
@@ -76,6 +80,6 @@ export class CreateNewsUseCase {
       console.error('Error creating notifications for news:', error);
     }
 
-    return NewsResponse.fromNews(createdNews);
+    return newsResponse;
   }
 }

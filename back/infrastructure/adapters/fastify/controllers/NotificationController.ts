@@ -6,7 +6,6 @@ import { MarkAllNotificationsAsReadUseCase } from '@avenir/application/usecases/
 import { DeleteNotificationUseCase } from '@avenir/application/usecases/notification/DeleteNotificationUseCase';
 import { NotificationResponse } from '@avenir/application/responses/NotificationResponse';
 import { sendNotificationSchema } from '@avenir/shared/schemas/notification.schema';
-import { webSocketService } from '../../services/WebSocketService';
 import { z } from 'zod';
 
 export class NotificationController {
@@ -143,7 +142,8 @@ export class NotificationController {
       );
 
       const notificationResponse = NotificationResponse.fromNotification(notification);
-      webSocketService.notifyNotificationCreated(userId, notificationResponse.toWebSocketPayload());
+
+      // La notification SSE est gérée dans CreateNotificationUseCase
 
       return reply.code(201).send(notificationResponse);
     } catch (error) {
