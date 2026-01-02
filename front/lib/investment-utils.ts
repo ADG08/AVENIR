@@ -10,3 +10,12 @@ export const formatPercent = (value: number) =>
   `${value >= 0 ? '+' : ''}${value.toFixed(2)}%`;
 
 export const getStockColor = (symbol: string) => STOCK_COLORS[symbol] || '6366f1';
+
+export const mapPeriodToAPI = (period: 'yearly' | 'monthly' | 'weekly'): 'year' | 'month' | 'week' => {
+  const mapping = {
+    yearly: 'year' as const,
+    monthly: 'month' as const,
+    weekly: 'week' as const,
+  };
+  return mapping[period];
+};

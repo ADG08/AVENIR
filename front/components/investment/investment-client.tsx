@@ -19,7 +19,7 @@ import type { ChartConfig } from '@/components/ui/chart';
 import type { Stock } from '@/components/investment/types';
 import type { PortfolioSummary, StockData } from '@/types/investment';
 import { fetchJSON } from '@/lib/api-client';
-import { getAvatarUrl, formatCurrency, formatPercent, getStockColor } from '@/lib/investment-utils';
+import { getAvatarUrl, formatCurrency, formatPercent, getStockColor, mapPeriodToAPI } from '@/lib/investment-utils';
 import { MARKET_INSIGHTS } from '@/constants/investment';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
@@ -61,16 +61,18 @@ export const InvestmentClient = ({ initialStocks, initialPortfolio }: Investment
     if (data) setPortfolio(data);
   };
 
-  const fetchPortfolioHistory = async (selectedPeriod: string) => {
+  const fetchPortfolioHistory = async (selectedPeriod: 'yearly' | 'monthly' | 'weekly') => {
+    const apiPeriod = mapPeriodToAPI(selectedPeriod);
     const data = await fetchJSON<{ history: Array<{ date: string; value: number }> }>(
-      `${API_BASE_URL}/api/investment/portfolio/history?period=${selectedPeriod}`
+      `${API_BASE_URL}/api/investment/portfolio/history?period=${apiPeriod}`
     );
     if (data) setPortfolioHistory(data.history);
   };
 
-  const fetchProfitsBreakdown = async (selectedPeriod: string) => {
+  const fetchProfitsBreakdown = async (selectedPeriod: 'yearly' | 'monthly' | 'weekly') => {
+    const apiPeriod = mapPeriodToAPI(selectedPeriod);
     const data = await fetchJSON<{ breakdown: Array<{ symbol: string; name: string; profitLoss: number; percentage: number }> }>(
-      `${API_BASE_URL}/api/investment/profits/breakdown?period=${selectedPeriod}`
+      `${API_BASE_URL}/api/investment/profits/breakdown?period=${apiPeriod}`
     );
     if (data) setProfitsBreakdown(data.breakdown);
   };

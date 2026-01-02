@@ -10,6 +10,7 @@ import { useLanguage } from '@/hooks/use-language';
 import { useAuth } from '@/contexts/AuthContext';
 import Image from 'next/image';
 import type { Stock } from './types';
+import { mapPeriodToAPI } from '@/lib/investment-utils';
 import { StockAdminModal } from './stock-admin-modal';
 import { DeleteStockModal } from './delete-stock-modal';
 import type { CreateStockFormInput, UpdateStockFormInput } from '@avenir/shared/schemas/stock.schema';
@@ -65,7 +66,10 @@ const StockChart = React.memo<StockChartProps>(({ symbol, currentPrice, period, 
       setIsLoadingChart(true);
       setIsSimulatedData(false);
       try {
-        const response = await fetch(`${API_BASE_URL}/investment/prices/${stockId}?period=${period}`, {
+        const apiPeriod = period === 'yearly' || period === 'monthly' || period === 'weekly'
+          ? mapPeriodToAPI(period as 'yearly' | 'monthly' | 'weekly')
+          : period;
+        const response = await fetch(`${API_BASE_URL}/investment/prices/${stockId}?period=${apiPeriod}`, {
           credentials: 'include',
         });
         if (response.ok) {
@@ -386,7 +390,7 @@ export const StockDetailModal = ({ isOpen, onClose, stock, onPurchaseSuccess }: 
   const handleDeleteStock = async () => {
     if (!stock) return;
     setIsAdminSubmitting(true);
-    setDeleteError(''); // Reset error
+    setDeleteError('');
     try {
       const response = await fetch(`${API_BASE_URL}/investment/admin/stocks/${stock.id}`, {
         method: 'DELETE',
@@ -399,7 +403,6 @@ export const StockDetailModal = ({ isOpen, onClose, stock, onPurchaseSuccess }: 
         throw new Error(result.message || t('admin.stock.deleteError'));
       }
 
-      // Success: close modal and refresh
       setIsDeleteModalOpen(false);
       setDeleteError('');
       if (onPurchaseSuccess) {
@@ -538,7 +541,6 @@ export const StockDetailModal = ({ isOpen, onClose, stock, onPurchaseSuccess }: 
   const handleBuy = async () => {
     if (!stock) return;
 
-    // Update form values before submission
     form.setValue('stockId', stock.id);
     form.setValue('side', orderSide === 'BUY' ? 'BID' : 'ASK');
     form.setValue('type', orderType);
@@ -548,7 +550,6 @@ export const StockDetailModal = ({ isOpen, onClose, stock, onPurchaseSuccess }: 
       form.setValue('limitPrice', numericLimitPrice);
     }
 
-    // Trigger form submission which will validate with Zod
     await form.handleSubmit(onSubmitOrder)();
   };
 
