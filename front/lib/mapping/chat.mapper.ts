@@ -8,6 +8,7 @@ export interface ChatApiDto {
   id: string;
   clientId: string;
   clientName?: string;
+  isMyClient: boolean;
   advisorId: string | null;
   advisorName?: string | null;
   status: ChatStatus;
@@ -91,6 +92,7 @@ export const mapChatFromApi = (apiChat: ChatApiDto): Chat => {
     id: apiChat.id,
     clientId: apiChat.clientId,
     client: client,
+    isMyClient: apiChat.isMyClient,
     advisorId: apiChat.advisorId,
     advisor: advisor,
     status: apiChat.status,

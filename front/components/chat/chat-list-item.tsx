@@ -130,7 +130,7 @@ export const ChatListItem = ({ chat, isActive, onClick, currentUserRole, onClien
             </p>
           )}
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <span
               className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium ${getStatusColor(
                 chat.status
@@ -139,6 +139,13 @@ export const ChatListItem = ({ chat, isActive, onClick, currentUserRole, onClien
               {getStatusIcon(chat.status)}
               {getStatusLabel(chat.status)}
             </span>
+
+            {/* Tag si c'est un client de l'advisor connecté */}
+            {chat.isMyClient && currentUserRole === UserRole.ADVISOR && (
+              <span className="inline-flex items-center gap-1 rounded-full border border-purple-300 bg-purple-50 px-2 py-0.5 text-xs font-medium text-purple-700">
+                {t('chat.status.myClient')}
+              </span>
+            )}
           </div>
         </div>
 

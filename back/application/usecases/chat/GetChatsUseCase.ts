@@ -21,7 +21,7 @@ export class GetChatsUseCase {
             throw new UserNotFoundError(`User with id ${request.userId} not found`);
         }
 
-        let chats: Chat[] = [];
+        let chats: Chat[];
 
         switch (user.role) {
             case UserRole.CLIENT:
@@ -42,6 +42,12 @@ export class GetChatsUseCase {
                 chats = [];
         }
 
+        let advisorClientIds: Set<string> = new Set();
+        if (user.role === UserRole.ADVISOR) {
+            const advisorClients = await this.userRepository.getClientsByAdvisorId(request.userId);
+            advisorClientIds = new Set(advisorClients.map(client => client.id));
+        }
+
         const chatResponses = await Promise.all(
             chats.map(async (chat: Chat) => {
                 const messages = await this.messageRepository.getByChatId(chat.id);
@@ -50,7 +56,9 @@ export class GetChatsUseCase {
                 ).length;
 
                 chat.messages.push(...messages);
-                return ChatResponse.fromChat(chat, unreadCount);
+
+                const isMyClient = advisorClientIds.has(chat.client.id);
+                return ChatResponse.fromChat(chat, unreadCount, isMyClient);
             })
         );
 
