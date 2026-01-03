@@ -8,17 +8,11 @@ import { useState } from 'react';
 import { useLanguage } from '@/hooks/use-language';
 import { useAuth } from '@/contexts/AuthContext';
 
-interface LandingHeaderProps {
-    initialAuth: { isAuthenticated: boolean };
-}
-
-export const LandingHeader = ({ initialAuth }: LandingHeaderProps) => {
+export const LandingHeader = () => {
     const { t } = useLanguage();
-    const { isAuthenticated: contextAuth, isLoading } = useAuth();
+    const { isAuthenticated, isLoading } = useAuth();
     const [hoveredItem, setHoveredItem] = useState<string | null>(null);
     const [activeItem, setActiveItem] = useState<string>('product');
-
-    const isAuthenticated = isLoading ? initialAuth.isAuthenticated : contextAuth;
 
     const navItems = [
         { id: 'product', label: t('landing.product'), href: '#', icon: Package },
@@ -74,7 +68,9 @@ export const LandingHeader = ({ initialAuth }: LandingHeaderProps) => {
                 </nav>
 
                 <div className="flex items-center gap-4">
-                    {isAuthenticated ? (
+                    {isLoading ? (
+                        <div className="h-10 w-32 animate-pulse rounded-full bg-gray-200"></div>
+                    ) : isAuthenticated ? (
                                 <motion.div
                                     whileHover={{ scale: 1.02 }}
                                     whileTap={{ scale: 0.98 }}

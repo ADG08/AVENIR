@@ -8,16 +8,12 @@ import { useLanguage } from '@/hooks/use-language';
 import { LandingHeader } from '@/components/landing-header';
 import { DashboardPreview } from '@/components/dashboard-preview';
 
-interface LandingClientProps {
-    initialAuth: { isAuthenticated: boolean };
-}
-
-export const LandingClient = ({ initialAuth }: LandingClientProps) => {
+export const LandingClient = () => {
     const { t } = useLanguage();
 
     return (
         <div className="relative min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-            <LandingHeader initialAuth={initialAuth} />
+            <LandingHeader />
 
             <div className="pointer-events-none fixed inset-0 overflow-hidden">
                 <motion.div
