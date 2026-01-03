@@ -10,6 +10,13 @@ import { AccountNotFoundError } from '../../../../domain/errors';
 import { UnauthorizedAccountAccessError } from '../../../../domain/errors';
 import { UserNotFoundError } from '../../../../domain/errors';
 import { ValidationError } from '../../../../application/errors';
+import {
+    addAccountSchema,
+    deleteAccountSchema,
+    updateAccountNameSchema,
+    getAccountsSchema,
+} from '@avenir/shared/schemas/account.schema';
+import { ZodError } from 'zod';
 
 export class AccountController {
     constructor(
@@ -28,13 +35,25 @@ export class AccountController {
                 });
             }
 
+            // Validation Zod
+            const validatedData = getAccountsSchema.parse({
+                userId: request.user.userId,
+            });
+
             // Use authenticated user's ID for security
             const getAccountsRequest: GetAccountsRequest = {
-                userId: request.user.userId,
+                userId: validatedData.userId,
             };
             const response = await this.getAccountsUseCase.execute(getAccountsRequest);
             return reply.code(200).send(response);
         } catch (error) {
+            if (error instanceof ZodError) {
+                return reply.code(400).send({
+                    error: 'Validation error',
+                    message: error.issues.map((e: any) => `${e.path.join('.')}: ${e.message}`).join(', '),
+                });
+            }
+
             console.error('Unexpected error:', error);
             return reply.code(500).send({
                 error: 'Internal server error',
@@ -52,14 +71,29 @@ export class AccountController {
                 });
             }
 
-            // Use authenticated user's ID for security
-            const addAccountRequest: AddAccountRequest = {
+            // Validation Zod
+            const validatedData = addAccountSchema.parse({
                 ...request.body,
                 userId: request.user.userId,
+            });
+
+            // Use authenticated user's ID for security
+            const addAccountRequest: AddAccountRequest = {
+                name: validatedData.name,
+                type: validatedData.type,
+                savingType: validatedData.savingType,
+                userId: validatedData.userId,
             };
             const response = await this.addAccountUseCase.execute(addAccountRequest);
             return reply.code(201).send(response);
         } catch (error) {
+            if (error instanceof ZodError) {
+                return reply.code(400).send({
+                    error: 'Validation error',
+                    message: error.issues.map((e: any) => `${e.path.join('.')}: ${e.message}`).join(', '),
+                });
+            }
+
             if (error instanceof UserNotFoundError) {
                 return reply.code(404).send({
                     error: 'User not found',
@@ -91,13 +125,26 @@ export class AccountController {
                 });
             }
 
-            const deleteAccountRequest: DeleteAccountRequest = {
+            // Validation Zod
+            const validatedData = deleteAccountSchema.parse({
                 id: request.params.id,
                 userId: request.user.userId,
+            });
+
+            const deleteAccountRequest: DeleteAccountRequest = {
+                id: validatedData.id,
+                userId: validatedData.userId,
             };
             await this.deleteAccountUseCase.execute(deleteAccountRequest);
             return reply.code(204).send();
         } catch (error) {
+            if (error instanceof ZodError) {
+                return reply.code(400).send({
+                    error: 'Validation error',
+                    message: error.issues.map((e: any) => `${e.path.join('.')}: ${e.message}`).join(', '),
+                });
+            }
+
             if (error instanceof AccountNotFoundError) {
                 return reply.code(404).send({
                     error: 'Account not found',
@@ -136,14 +183,28 @@ export class AccountController {
                 });
             }
 
-            const updateAccountNameRequest: UpdateAccountNameRequest = {
+            // Validation Zod
+            const validatedData = updateAccountNameSchema.parse({
                 id: request.params.id,
                 name: request.body.name,
                 userId: request.user.userId,
+            });
+
+            const updateAccountNameRequest: UpdateAccountNameRequest = {
+                id: validatedData.id,
+                name: validatedData.name,
+                userId: validatedData.userId,
             };
             await this.updateAccountNameUseCase.execute(updateAccountNameRequest);
             return reply.code(204).send();
         } catch (error) {
+            if (error instanceof ZodError) {
+                return reply.code(400).send({
+                    error: 'Validation error',
+                    message: error.issues.map((e: any) => `${e.path.join('.')}: ${e.message}`).join(', '),
+                });
+            }
+
             if (error instanceof AccountNotFoundError) {
                 return reply.code(404).send({
                     error: 'Account not found',
