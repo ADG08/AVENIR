@@ -49,7 +49,6 @@ export const LoginForm = () => {
                 throw new Error(errorData.message || 'Login failed');
             }
 
-            // Cookies are now set, redirect with full page reload to ensure middleware sees them
             window.location.href = '/dashboard';
         } catch (error) {
             setError(error instanceof Error ? error.message : t('auth.login.error'));
