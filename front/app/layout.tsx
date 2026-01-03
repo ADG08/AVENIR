@@ -3,6 +3,7 @@ import { Inter, Manrope } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import { WebSocketProvider } from "@/contexts/WebSocketContext";
+import { SSEProvider } from "@/contexts/SSEContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 
 const inter = Inter({
@@ -35,10 +36,12 @@ export default function RootLayout({
         className={`${inter.variable} ${manrope.variable} font-sans antialiased overflow-x-hidden`}
       >
         <AuthProvider>
-          <WebSocketProvider>
-            {children}
-            <Toaster />
-          </WebSocketProvider>
+          <SSEProvider>
+            <WebSocketProvider>
+              {children}
+              <Toaster />
+            </WebSocketProvider>
+          </SSEProvider>
         </AuthProvider>
       </body>
     </html>

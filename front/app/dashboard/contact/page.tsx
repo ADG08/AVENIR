@@ -159,6 +159,7 @@ export default function ContactPage() {
       id: chatPayload.id || message.chatId,
       clientId: chatPayload.clientId,
       clientName: chatPayload.clientName,
+      isMyClient: chatPayload.isMyClient || false,
       advisorId: chatPayload.advisorId,
       advisorName: chatPayload.advisorName,
       status: chatPayload.status,
@@ -307,32 +308,19 @@ export default function ContactPage() {
 
   // Ouvrir automatiquement le chat si un chatId est stocké dans sessionStorage
   useEffect(() => {
-    // Vérifier si un chatId est stocké (venant de la page clients)
     const storedChatId = sessionStorage.getItem('openChatId');
 
-    // Si pas de chatId stocké, ne rien faire
     if (!storedChatId) return;
-
-    // Si les chats ne sont pas encore chargés, attendre
     if (isLoadingChats) return;
-
-    // Si pas de chats, ne rien faire
     if (chats.length === 0) return;
 
-    // Chercher le chat correspondant
     const chatToOpen = chats.find((chat) => chat.id === storedChatId);
-
     if (chatToOpen) {
-      // Si le chat n'est pas déjà sélectionné, le sélectionner
       if (!selectedChat || selectedChat.id !== storedChatId) {
-        console.log('[ContactPage] Opening chat from storage:', storedChatId);
         setSelectedChat(chatToOpen);
-        // Nettoyer le sessionStorage après utilisation
         sessionStorage.removeItem('openChatId');
       }
     } else {
-      // Le chat n'existe pas ou n'est pas accessible
-      console.warn('[ContactPage] Chat not found or not accessible:', storedChatId);
       sessionStorage.removeItem('openChatId');
       toast({
         title: t('chat.errors.title'),

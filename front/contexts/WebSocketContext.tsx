@@ -38,30 +38,6 @@ export interface PongPayload {
     timestamp: string;
 }
 
-export interface NewsCreatedPayload {
-    id: string;
-    title: string;
-    description: string;
-    authorId: string;
-    authorName: string;
-    createdAt: string;
-}
-
-export interface NewsDeletedPayload {
-    newsId: string;
-}
-
-export interface NotificationCreatedPayload {
-    id: string;
-    userId: string;
-    title: string;
-    message: string;
-    type: string;
-    advisorName: string | null;
-    read: boolean;
-    createdAt: string;
-}
-
 export type WebSocketMessage =
     | { type: WebSocketMessageType.CONNECTED; chatId?: string; payload?: ConnectedPayload }
     | { type: WebSocketMessageType.NEW_MESSAGE; chatId: string; payload: MessageApiDto }
@@ -69,9 +45,6 @@ export type WebSocketMessage =
     | { type: WebSocketMessageType.CHAT_ASSIGNED; chatId: string; payload?: ChatAssignedPayload }
     | { type: WebSocketMessageType.CHAT_TRANSFERRED; chatId: string; payload?: ChatTransferredPayload }
     | { type: WebSocketMessageType.CHAT_CLOSED; chatId: string; payload?: ChatClosedPayload }
-    | { type: WebSocketMessageType.NEWS_CREATED; chatId?: string; payload: NewsCreatedPayload }
-    | { type: WebSocketMessageType.NEWS_DELETED; chatId?: string; payload: NewsDeletedPayload }
-    | { type: WebSocketMessageType.NOTIFICATION_CREATED; chatId?: string; payload: NotificationCreatedPayload }
     | { type: WebSocketMessageType.PONG; chatId?: string; payload?: PongPayload }
     | { type: string; chatId?: string; payload?: unknown };
 

@@ -29,6 +29,7 @@ export interface Chat {
   id: string;
   clientId: string;
   client?: User;
+  isMyClient: boolean;
   advisorId: string | null;
   advisor?: User | null;
   status: ChatStatus;

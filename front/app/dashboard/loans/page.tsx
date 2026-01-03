@@ -11,14 +11,14 @@ import { useAuth } from '@/contexts/AuthContext';
 import { getClientLoans } from '@/lib/api/loan.api';
 import { useToast } from '@/hooks/use-toast';
 import { mapLoansApiResponseToClientLoans } from '@/lib/mapping/loan.mapping';
-import { useWebSocket } from '@/contexts/WebSocketContext';
-import type { LoanApiResponse } from '@/lib/api/loan.api';
+import { useSSE, SSEEventType, isLoanCreatedPayload } from '@/contexts/SSEContext';
+import { mapSSELoanToLoanApiResponse } from '@/lib/mapping/sse.mapping';
 
 export default function LoansPage() {
   const { t } = useTranslation();
   const { user: currentUser } = useAuth();
   const { toast } = useToast();
-  const { subscribe } = useWebSocket();
+  const { subscribe } = useSSE();
   const [activeTab, setActiveTab] = useState('loans');
   const [loans, setLoans] = useState<ClientLoan[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -45,11 +45,11 @@ export default function LoansPage() {
 
     loadLoans();
 
-    // Écouter les événements WebSocket pour les nouveaux crédits
-    const unsubscribe = subscribe((message) => {
-      if (message.type === 'loan_created' && currentUser) {
+    // Écouter les événements SSE pour les nouveaux crédits
+    const unsubscribe = subscribe((event) => {
+      if (event.type === SSEEventType.LOAN_CREATED && currentUser && isLoanCreatedPayload(event.data)) {
         try {
-          const loanPayload = message.payload as LoanApiResponse;
+          const loanPayload = mapSSELoanToLoanApiResponse(event.data);
           const newLoan = mapLoansApiResponseToClientLoans([loanPayload], currentUser.id)[0];
           setLoans(prevLoans => [newLoan, ...prevLoans]);
           toast({

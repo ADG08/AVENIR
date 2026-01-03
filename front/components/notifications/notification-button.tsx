@@ -6,7 +6,8 @@ import { Bell, X, TrendingUp, Info, CheckCircle, AlertTriangle, Newspaper } from
 import { Notification } from '@/types/notification';
 import { NotificationType } from '@avenir/shared/enums';
 import { useAuth } from '@/contexts/AuthContext';
-import { useWebSocket, WebSocketMessageType } from '@/contexts/WebSocketContext';
+import { useSSE, SSEEventType, isNotificationCreatedPayload } from '@/contexts/SSEContext';
+import { mapSSENotificationToNotification } from '@/lib/mapping/sse.mapping';
 import { useToast } from '@/hooks/use-toast';
 import { NotificationDetailModal } from './notification-detail-modal';
 import {
@@ -19,7 +20,7 @@ import {useTranslation} from "react-i18next";
 
 export const NotificationButton = () => {
   const { user: currentUser } = useAuth();
-  const { subscribe } = useWebSocket();
+  const { subscribe } = useSSE();
   const { toast } = useToast();
   const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
@@ -47,29 +48,10 @@ export const NotificationButton = () => {
   }, [currentUser]);
 
   useEffect(() => {
-    const unsubscribe = subscribe((message) => {
-      if (message.type === WebSocketMessageType.NOTIFICATION_CREATED && message.payload) {
-        const notifPayload = message.payload as {
-          id: string;
-          title: string;
-          message: string;
-          type: string;
-          advisorName: string | null;
-          read: boolean;
-          createdAt: string;
-          newsId?: string | null;
-        };
+    const unsubscribe = subscribe((event) => {
 
-        const newNotification: Notification = {
-          id: notifPayload.id,
-          title: notifPayload.title,
-          message: notifPayload.message,
-          type: notifPayload.type as NotificationType,
-          advisorName: notifPayload.advisorName ?? undefined,
-          read: notifPayload.read,
-          createdAt: new Date(notifPayload.createdAt),
-          newsId: notifPayload.newsId ?? undefined,
-        };
+      if (event.type === SSEEventType.NOTIFICATION_CREATED && isNotificationCreatedPayload(event.data)) {
+        const newNotification = mapSSENotificationToNotification(event.data);
 
         setNotifications((prev) => {
           // Vérifier si la notification n'existe pas déjà

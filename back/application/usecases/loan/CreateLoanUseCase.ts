@@ -9,7 +9,7 @@ import { UserNotFoundError } from '@avenir/domain/errors';
 import { UserRole, NotificationType, LoanStatus } from '@avenir/shared/enums';
 import { Notification } from '@avenir/domain/entities/Notification';
 import { NotificationResponse } from '../../responses/NotificationResponse';
-import { webSocketService } from '@avenir/infrastructure/adapters/services/WebSocketService';
+import { SSEService } from '@avenir/infrastructure/adapters/services/SSEService';
 import { LoanCalculationService } from '@avenir/domain/services/LoanCalculationService';
 
 export class CreateLoanUseCase {
@@ -17,6 +17,7 @@ export class CreateLoanUseCase {
     private readonly loanRepository: LoanRepository,
     private readonly userRepository: UserRepository,
     private readonly notificationRepository: NotificationRepository,
+    private readonly sseService: SSEService,
   ) {}
 
   async execute(request: CreateLoanRequest): Promise<LoanResponse> {
@@ -78,11 +79,11 @@ export class CreateLoanUseCase {
     const createdNotification = await this.notificationRepository.addNotification(notification);
 
     const notificationResponse = NotificationResponse.fromNotification(createdNotification);
-    webSocketService.notifyNotificationCreated(client.id, notificationResponse.toWebSocketPayload());
+    this.sseService.notifyNotificationCreated(client.id, notificationResponse.toWebSocketPayload());
 
     // Envoyer un événement loan_created au client pour mise à jour en temps réel
     const loanResponse = LoanResponse.fromLoan(createdLoan);
-    webSocketService.notifyLoanCreated(client.id, loanResponse);
+    this.sseService.notifyLoanCreated(client.id, loanResponse);
 
     return loanResponse;
   }

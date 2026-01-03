@@ -216,9 +216,7 @@
       "bestBid": "Meilleur achat",
       "bestAsk": "Meilleure vente",
       "cancelOrder": "Annuler l'ordre",
-      "total": "Total",
       "sell": "Vendre",
-      "buy": "Acheter",
       "selling": "Vente en cours...",
       "currentPriceLabel": "Prix actuel",
       "available": "Disponible",
@@ -513,6 +511,7 @@
       "closedDiscussion": "Conversation fermée",
       "active": "Actif",
       "closed": "Fermé",
+      "myClient": "Mon client",
       "conversationClosed": "Cette conversation est fermée",
       "advisorWillRespond": "Un conseiller vous répondra dans les plus brefs délais"
     },

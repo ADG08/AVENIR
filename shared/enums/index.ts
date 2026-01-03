@@ -5,3 +5,4 @@ export { WebSocketMessageType } from './WebSocketMessageType';
 export { MessageType } from './MessageType';
 export { LoanStatus } from './LoanStatus';
 export { NotificationType, CustomNotificationType } from './NotificationType';
+export { SSEEventType } from './SSEEventType';

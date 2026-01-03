@@ -3,11 +3,13 @@ import { UserRepository } from '@avenir/domain/repositories/UserRepository';
 import { DeleteNewsRequest } from '../../requests/DeleteNewsRequest';
 import { UserRole } from '@avenir/domain/enumerations/UserRole';
 import {NewsNotFoundError, UnauthorizedNewsAccessError, UserNotFoundError} from "../../../domain/errors";
+import { SSEService } from '@avenir/infrastructure/adapters/services/SSEService';
 
 export class DeleteNewsUseCase {
   constructor(
     private readonly newsRepository: NewsRepository,
-    private readonly userRepository: UserRepository
+    private readonly userRepository: UserRepository,
+    private readonly sseService: SSEService
   ) {}
 
   async execute(request: DeleteNewsRequest): Promise<void> {
@@ -26,5 +28,7 @@ export class DeleteNewsUseCase {
     }
 
     await this.newsRepository.removeNews(request.newsId);
+
+    this.sseService.notifyNewsDeleted(request.newsId);
   }
 }

@@ -9,6 +9,7 @@ import { chatRoutes } from './routes/chat';
 import { messageRoutes } from './routes/message';
 import { newsRoutes } from './routes/news';
 import { websocketRoutes } from './routes/websocket';
+import { sseRoutes } from './routes/sse';
 import { investmentRoutes } from './routes/investment';
 import { UserController } from './controllers/UserController';
 import { InvestmentController } from './controllers/InvestmentController';
@@ -50,12 +51,16 @@ import { GetChatByIdUseCase } from "@avenir/application/usecases/chat/GetChatByI
 import { MarkMessageAsReadUseCase } from "@avenir/application/usecases/chat/MarkMessageAsReadUseCase";
 import { MarkChatMessagesAsReadUseCase } from "@avenir/application/usecases/chat/MarkChatMessagesAsReadUseCase";
 import { OrderMatchingService } from '@avenir/application/services/OrderMatchingService';
+import { SSEService } from '../services/SSEService';
 
 const fastify = Fastify({
     logger: true
 });
 
 const dbContext = RepositoryFactory.createDatabaseContext();
+
+// Services
+const sseService = new SSEService();
 
 // Repositories
 const userRepository = dbContext.userRepository;
@@ -113,14 +118,14 @@ const orderMatchingService = new OrderMatchingService(orderBookRepository, trade
 const investmentController = new InvestmentController(stockRepository, portfolioRepository, tradeRepository, accountRepository, userRepository, orderBookRepository, orderMatchingService);
 
 // News
-const createNewsUseCase = new CreateNewsUseCase(newsRepository, userRepository, notificationRepository);
+const createNewsUseCase = new CreateNewsUseCase(newsRepository, userRepository, notificationRepository, sseService);
 const getAllNewsUseCase = new GetAllNewsUseCase(newsRepository);
 const getNewsByIdUseCase = new GetNewsByIdUseCase(newsRepository);
-const deleteNewsUseCase = new DeleteNewsUseCase(newsRepository, userRepository);
+const deleteNewsUseCase = new DeleteNewsUseCase(newsRepository, userRepository, sseService);
 const newsController = new NewsController(createNewsUseCase, getAllNewsUseCase, getNewsByIdUseCase, deleteNewsUseCase);
 
 // Notifications
-const createNotificationUseCase = new CreateNotificationUseCase(notificationRepository);
+const createNotificationUseCase = new CreateNotificationUseCase(notificationRepository, sseService);
 const getNotificationsUseCase = new GetNotificationsUseCase(notificationRepository);
 const markNotificationAsReadUseCase = new MarkNotificationAsReadUseCase(notificationRepository);
 const markAllNotificationsAsReadUseCase = new MarkAllNotificationsAsReadUseCase(notificationRepository);
@@ -134,7 +139,7 @@ const notificationController = new NotificationController(
 );
 
 // Loans
-const createLoanUseCase = new CreateLoanUseCase(loanRepository, userRepository, notificationRepository);
+const createLoanUseCase = new CreateLoanUseCase(loanRepository, userRepository, notificationRepository, sseService);
 const getClientLoansUseCase = new GetClientLoansUseCase(loanRepository);
 const loanController = new LoanController(createLoanUseCase, getClientLoansUseCase);
 
@@ -159,6 +164,7 @@ async function setupRoutes() {
     await fastify.register(loanRoutes, { prefix: '/api', loanController });
     await fastify.register(websocketRoutes, { prefix: '/api' });
     await fastify.register(investmentRoutes, { prefix: '/api/investment', investmentController, userRepository });
+    await fastify.register(sseRoutes, { prefix: '/api', sseService });
 }
 
 const start = async () => {
