@@ -2,6 +2,26 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 export function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+
+  // Check if user has auth token (accessToken cookie in camelCase)
+  const accessToken = request.cookies.get('accessToken')?.value;
+  const isAuthenticated = !!accessToken;
+
+  // Define route categories
+  const isAuthPage = pathname === '/login' || pathname === '/register';
+  const isProtectedPage = pathname.startsWith('/dashboard');
+
+  // Redirect authenticated users away from auth pages
+  if (isAuthenticated && isAuthPage) {
+    return NextResponse.redirect(new URL('/dashboard', request.url));
+  }
+
+  // Redirect unauthenticated users away from protected pages
+  if (!isAuthenticated && isProtectedPage) {
+    return NextResponse.redirect(new URL('/login', request.url));
+  }
+
   return NextResponse.next();
 }
 
