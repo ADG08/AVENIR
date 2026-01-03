@@ -1,17 +1,18 @@
 import mysql, { RowDataPacket } from 'mysql2/promise';
 import { Account } from '../../../../domain/entities/Account';
 import { AccountRepository } from '../../../../domain/repositories/AccountRepository';
-import { AccountType } from '../../../../domain/enumerations/AccountType';
+import { AccountType } from '@avenir/shared/enums/AccountType';
+import { SavingType } from '@avenir/shared/enums/SavingType';
 
 export class MySQLAccountRepository implements AccountRepository {
     constructor(private pool: mysql.Pool) { }
 
-    async create(account: Account): Promise<Account> {
+    async add(account: Account): Promise<Account> {
         const query = `
             INSERT INTO accounts (
                 id, user_id, iban, name, type, balance, currency,
                 card_number, card_holder_name, card_expiry_date, card_cvv,
-                saving_rate_id, created_at
+                saving_type, created_at
             )
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `;
@@ -29,18 +30,18 @@ export class MySQLAccountRepository implements AccountRepository {
                 account.cardHolderName,
                 account.cardExpiryDate,
                 account.cardCvv,
-                account.savingRate?.id || null,
+                account.savingType,
                 account.createdAt
             ]);
 
             return account;
         } catch (error) {
-            console.error('MySQL error creating account:', error);
+            console.error('MySQL error adding account:', error);
             throw error;
         }
     }
 
-    async findById(id: string): Promise<Account | null> {
+    async getById(id: string): Promise<Account | null> {
         const query = 'SELECT * FROM accounts WHERE id = ?';
 
         try {
@@ -51,12 +52,12 @@ export class MySQLAccountRepository implements AccountRepository {
 
             return this.mapRowToAccount(accounts[0]);
         } catch (error) {
-            console.error('MySQL error finding account:', error);
+            console.error('MySQL error getting account:', error);
             throw error;
         }
     }
 
-    async findByUserId(userId: string): Promise<Account[]> {
+    async getByUserId(userId: string): Promise<Account[]> {
         const query = 'SELECT * FROM accounts WHERE user_id = ? ORDER BY created_at DESC';
 
         try {
@@ -65,12 +66,12 @@ export class MySQLAccountRepository implements AccountRepository {
 
             return accounts.map(row => this.mapRowToAccount(row));
         } catch (error) {
-            console.error('MySQL error finding accounts by user:', error);
+            console.error('MySQL error getting accounts by user:', error);
             throw error;
         }
     }
 
-    async findByIban(iban: string): Promise<Account | null> {
+    async getByIban(iban: string): Promise<Account | null> {
         const query = 'SELECT * FROM accounts WHERE iban = ?';
 
         try {
@@ -81,12 +82,12 @@ export class MySQLAccountRepository implements AccountRepository {
 
             return this.mapRowToAccount(accounts[0]);
         } catch (error) {
-            console.error('MySQL error finding account by IBAN:', error);
+            console.error('MySQL error getting account by IBAN:', error);
             throw error;
         }
     }
 
-    async findByCardNumber(cardNumber: string): Promise<Account | null> {
+    async getByCardNumber(cardNumber: string): Promise<Account | null> {
         const query = 'SELECT * FROM accounts WHERE card_number = ?';
 
         try {
@@ -97,7 +98,7 @@ export class MySQLAccountRepository implements AccountRepository {
 
             return this.mapRowToAccount(accounts[0]);
         } catch (error) {
-            console.error('MySQL error finding account by card number:', error);
+            console.error('MySQL error getting account by card number:', error);
             throw error;
         }
     }
@@ -107,7 +108,7 @@ export class MySQLAccountRepository implements AccountRepository {
             UPDATE accounts
             SET iban = ?, name = ?, type = ?, balance = ?, currency = ?,
                 card_number = ?, card_holder_name = ?, card_expiry_date = ?,
-                card_cvv = ?, saving_rate_id = ?
+                card_cvv = ?, saving_type = ?
             WHERE id = ?
         `;
 
@@ -122,7 +123,7 @@ export class MySQLAccountRepository implements AccountRepository {
                 account.cardHolderName,
                 account.cardExpiryDate,
                 account.cardCvv,
-                account.savingRate?.id || null,
+                account.savingType,
                 account.id
             ]);
 
@@ -133,11 +134,11 @@ export class MySQLAccountRepository implements AccountRepository {
         }
     }
 
-    async delete(id: string): Promise<void> {
+    async remove(id: string): Promise<void> {
         try {
             await this.pool.execute('DELETE FROM accounts WHERE id = ?', [id]);
         } catch (error) {
-            console.error('MySQL error deleting account:', error);
+            console.error('MySQL error removing account:', error);
             throw error;
         }
     }
@@ -149,13 +150,13 @@ export class MySQLAccountRepository implements AccountRepository {
             row.iban,
             row.name,
             row.type as AccountType,
-            parseFloat(row.balance),
+            parseFloat(String(row.balance)),
             row.currency,
             row.card_number,
             row.card_holder_name,
             row.card_expiry_date,
             row.card_cvv,
-            null,
+            row.saving_type as SavingType | null,
             [],
             new Date(row.created_at)
         );

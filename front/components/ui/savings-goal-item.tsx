@@ -57,30 +57,40 @@ export const SavingsGoalItem = ({
         </span>
       </div>
 
-      <div className="relative h-8 overflow-hidden rounded-xl">
+      <div className="relative h-8 overflow-hidden rounded-xl bg-gray-100">
         <div className="flex h-full w-full">
-          <motion.div
-            initial={{ width: 0 }}
-            animate={{ width: `${progress}%` }}
-            transition={{ duration: 0.6, ease: 'easeOut' }}
-            className="relative h-full rounded-l-xl flex items-center px-3"
-            style={{ backgroundColor: colors.progress }}
-          >
-            <span className="text-sm font-bold text-white">{progress}%</span>
-          </motion.div>
-          <div
-            className="h-full flex-1 rounded-r-xl"
-            style={{
-              backgroundImage: `repeating-linear-gradient(
-                -45deg,
-                transparent,
-                transparent 1.5px,
-                ${colors.stripe} 1.5px,
-                ${colors.stripe} 3px
-              )`,
-              backgroundColor: 'rgba(255, 255, 255, 0.3)',
-            }}
-          />
+          {progress > 0 ? (
+            <>
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: `${progress}%` }}
+                transition={{ duration: 0.6, ease: 'easeOut' }}
+                className="relative h-full rounded-l-xl flex items-center px-3"
+                style={{ backgroundColor: colors.progress }}
+              >
+                <span className="text-sm font-bold text-white">{progress}%</span>
+              </motion.div>
+              {progress < 100 && (
+                <div
+                  className="h-full flex-1 rounded-r-xl"
+                  style={{
+                    backgroundImage: `repeating-linear-gradient(
+                      -45deg,
+                      transparent,
+                      transparent 1.5px,
+                      ${colors.stripe} 1.5px,
+                      ${colors.stripe} 3px
+                    )`,
+                    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+                  }}
+                />
+              )}
+            </>
+          ) : (
+            <div className="flex items-center justify-center w-full h-full">
+              <span className="text-sm font-medium text-gray-500">{progress}%</span>
+            </div>
+          )}
         </div>
       </div>
     </motion.div>

@@ -9,9 +9,22 @@ export const pool = new Pool({
     password: databaseConfig.password,
     max: 20,
     idleTimeoutMillis: 30000,
-    connectionTimeoutMillis: 2000,
+    connectionTimeoutMillis: 10000, // Increased from 2000ms to 10000ms
+    keepAlive: true,
+    keepAliveInitialDelayMillis: 10000,
+    allowExitOnIdle: false,
 });
 
 pool.on('error', (err) => {
     console.error('✗ PostgreSQL erreur:', err);
+    // Don't exit the process on pool errors, let the application handle it
 });
+
+// Test connection on startup
+pool.query('SELECT NOW()')
+    .then(() => {
+        console.log('✓ PostgreSQL connection test successful');
+    })
+    .catch((err) => {
+        console.error('✗ PostgreSQL connection test failed:', err);
+    });

@@ -1,1 +1,1 @@
-export { ChatStatus, UserRole, UserState, MessageType, LoanStatus } from '@avenir/shared/enums';
+export { ChatStatus, UserRole, UserState, MessageType, LoanStatus, AccountType, SavingType, SavingTypeMaxAmount } from '@avenir/shared/enums';

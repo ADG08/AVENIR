@@ -21,15 +21,21 @@ import { News } from '@/types/news';
 import { getAllNews } from '@/lib/api/news.api';
 import { Search, ArrowUp, ArrowDown, Plus, ChevronLeft, ChevronRight, Trash2, List } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { useLanguage } from '@/hooks/use-language';
+import { accountApi, Account } from '@/lib/api/account.api';
 import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
+import { AccountType } from '@/types/enums';
+import { formatCurrency } from '@/lib/format';
+import { calculateSavingsProgress } from '@/lib/savings';
 import { useSSE, SSEEventType, isNewsCreatedPayload, isNewsDeletedPayload } from '@/contexts/SSEContext';
 import { mapSSENewsToNews } from '@/lib/mapping/sse.mapping';
 
 export default function Home() {
     const { t } = useLanguage();
-    const { user: currentUser } = useAuth();
+    const { user, isLoading: isAuthLoading } = useAuth();
+    const { toast } = useToast();
     const { subscribe } = useSSE();
     const [period, setPeriod] = useState('yearly');
     const [activeTab, setActiveTab] = useState('overview');
@@ -39,8 +45,12 @@ export default function Home() {
     const [addAccountModalOpen, setAddAccountModalOpen] = useState(false);
     const [addSavingsModalOpen, setAddSavingsModalOpen] = useState(false);
     const [deleteAccountModalOpen, setDeleteAccountModalOpen] = useState(false);
+    const [deleteAccountType, setDeleteAccountType] = useState<AccountType | undefined>(undefined);
     const [editAccountNameModalOpen, setEditAccountNameModalOpen] = useState(false);
     const [sendMoneyModalOpen, setSendMoneyModalOpen] = useState(false);
+    const [accounts, setAccounts] = useState<Account[]>([]);
+    const [isLoadingAccounts, setIsLoadingAccounts] = useState(true);
+    const [selectedAccountForEdit, setSelectedAccountForEdit] = useState<Account | null>(null);
     const [news, setNews] = useState<News[]>([]);
     const [isLoadingNews, setIsLoadingNews] = useState(false);
     const [activeFilters, setActiveFilters] = useState<{
@@ -55,9 +65,35 @@ export default function Home() {
     const filterRef = useRef<HTMLDivElement>(null);
     const transactionsRef = useRef<HTMLDivElement>(null);
 
+    const loadAccounts = useCallback(async () => {
+        if (!user?.id) {
+            setIsLoadingAccounts(false);
+            return;
+        }
+
+        try {
+            setIsLoadingAccounts(true);
+            const loadedAccounts = await accountApi.getAccounts();
+            setAccounts(loadedAccounts);
+        } catch (error) {
+            console.error('Error loading accounts:', error);
+            toast({
+                title: t('common.error'),
+                description: 'Erreur lors du chargement des comptes',
+                variant: 'destructive',
+            });
+        } finally {
+            setIsLoadingAccounts(false);
+        }
+    }, [user?.id, toast, t]);
+
+    useEffect(() => {
+        loadAccounts();
+    }, [loadAccounts]);
+
     useEffect(() => {
         const loadNews = async () => {
-            if (!currentUser) return;
+            if (!user) return;
 
             try {
                 setIsLoadingNews(true);
@@ -71,7 +107,7 @@ export default function Home() {
         };
 
         loadNews();
-    }, [currentUser]);
+    }, [user]);
 
     useEffect(() => {
         const unsubscribe = subscribe((event) => {
@@ -104,26 +140,19 @@ export default function Home() {
         };
     }, [filterOpen]);
 
-    const cards = [
-        {
-            cardNumber: '****4329',
-            cardType: 'VISA',
-            expiryDate: '09/28',
-            firstName: 'Jean',
-            lastName: 'Dupont',
-            accountName: 'Compte Principal',
-            cvv: '123'
-        },
-        {
-            cardNumber: '****8765',
-            cardType: 'Mastercard',
-            expiryDate: '12/26',
-            firstName: 'Jean',
-            lastName: 'Dupont',
-            accountName: 'Compte Secondaire',
-            cvv: '456'
-        },
-    ];
+    const cards = accounts
+        .filter((account) => account.type === AccountType.CURRENT)
+        .map((account) => ({
+            id: account.id,
+            cardNumber: account.cardNumber ? `****${account.cardNumber.slice(-4)}` : '****0000',
+            cardType: account.cardNumber ? 'VISA' : 'N/A',
+            expiryDate: account.cardExpiryDate || '00/00',
+            firstName: user?.firstName || '',
+            lastName: user?.lastName || '',
+            accountName: account.name || account.iban,
+            cvv: '***',
+            account: account,
+        }));
 
     const nextCard = () => {
         setCardDirection(1);
@@ -206,6 +235,16 @@ export default function Home() {
     const handleViewAllTransactions = () => {
         transactionsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     };
+
+    if (isAuthLoading) {
+        return (
+            <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
+                <div className="text-center">
+                    <div className="text-lg text-gray-600">{t('common.loading')}...</div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-linear-to-br from-gray-50 to-gray-100">
@@ -391,15 +430,33 @@ export default function Home() {
                             <div className="mb-4 flex items-center justify-between">
                                 <h3 className="text-xl font-semibold text-gray-900">{t('dashboard.myCards')}</h3>
                                 <div className="flex items-center gap-2">
-                                    <motion.button
-                                        onClick={() => setDeleteAccountModalOpen(true)}
-                                        whileHover={{ scale: 1.05 }}
-                                        whileTap={{ scale: 0.95 }}
-                                        className="flex cursor-pointer items-center justify-center rounded-full bg-red-100 p-2 transition-all hover:bg-red-200"
-                                        aria-label="Delete account"
-                                    >
-                                        <Trash2 className="h-4 w-4 text-red-600" />
-                                    </motion.button>
+                                    {(() => {
+                                        const currentAccountsCount = accounts.filter(acc => acc.type === AccountType.CURRENT).length;
+                                        const isDeleteDisabled = currentAccountsCount <= 1;
+                                        const handleDeleteClick = () => {
+                                            if (!isDeleteDisabled) {
+                                                setDeleteAccountType(AccountType.CURRENT);
+                                                setDeleteAccountModalOpen(true);
+                                            }
+                                        };
+                                        return (
+                                            <motion.button
+                                                onClick={handleDeleteClick}
+                                                whileHover={!isDeleteDisabled ? { scale: 1.05 } : {}}
+                                                whileTap={!isDeleteDisabled ? { scale: 0.95 } : {}}
+                                                disabled={isDeleteDisabled}
+                                                className={`flex items-center justify-center rounded-full p-2 transition-all ${
+                                                    isDeleteDisabled
+                                                        ? 'bg-gray-100 cursor-not-allowed opacity-50'
+                                                        : 'bg-red-100 cursor-pointer hover:bg-red-200'
+                                                }`}
+                                                aria-label="Delete account"
+                                                title={isDeleteDisabled ? t('dashboard.deleteAccountModal.cannotDeleteLastCurrentTooltip') : t('dashboard.deleteAccountModal.deleteAccountTooltip')}
+                                            >
+                                                <Trash2 className={`h-4 w-4 ${isDeleteDisabled ? 'text-gray-400' : 'text-red-600'}`} />
+                                            </motion.button>
+                                        );
+                                    })()}
                                     <motion.button
                                         onClick={() => setAddAccountModalOpen(true)}
                                         whileHover={{ scale: 1.05 }}
@@ -443,16 +500,35 @@ export default function Home() {
                                         }}
                                         className="flex-1 cursor-grab active:cursor-grabbing"
                                     >
-                                        <CreditCard
-                                            cardNumber={cards[currentCardIndex].cardNumber}
-                                            cardType={cards[currentCardIndex].cardType}
-                                            expiryDate={cards[currentCardIndex].expiryDate}
-                                            firstName={cards[currentCardIndex].firstName}
-                                            lastName={cards[currentCardIndex].lastName}
-                                            accountName={cards[currentCardIndex].accountName}
-                                            cvv={cards[currentCardIndex].cvv}
-                                            onEditAccountName={() => setEditAccountNameModalOpen(true)}
-                                        />
+                                        {cards.length > 0 && cards[currentCardIndex] && (
+                                            <CreditCard
+                                                cardNumber={cards[currentCardIndex].cardNumber}
+                                                cardType={cards[currentCardIndex].cardType}
+                                                expiryDate={cards[currentCardIndex].expiryDate}
+                                                firstName={cards[currentCardIndex].firstName}
+                                                lastName={cards[currentCardIndex].lastName}
+                                                accountName={cards[currentCardIndex].accountName}
+                                                cvv={cards[currentCardIndex].cvv}
+                                                onEditAccountName={
+                                                    cards[currentCardIndex]?.account?.type === AccountType.CURRENT
+                                                        ? () => {
+                                                              setSelectedAccountForEdit(cards[currentCardIndex]?.account || null);
+                                                              setEditAccountNameModalOpen(true);
+                                                          }
+                                                        : undefined
+                                                }
+                                            />
+                                        )}
+                                        {cards.length === 0 && !isLoadingAccounts && (
+                                            <div className="py-12 text-center text-gray-500">
+                                                Aucun compte disponible
+                                            </div>
+                                        )}
+                                        {isLoadingAccounts && (
+                                            <div className="py-12 text-center text-gray-500">
+                                                {t('common.loading')}...
+                                            </div>
+                                        )}
                                     </motion.div>
 
                                     {cards.length > 1 && (
@@ -514,32 +590,73 @@ export default function Home() {
                         >
                             <div className="mb-4 flex items-center justify-between">
                                 <h3 className="text-xl font-semibold text-gray-900">{t('dashboard.savingsGoals')}</h3>
-                                <motion.button
-                                    onClick={() => setAddSavingsModalOpen(true)}
-                                    whileHover={{ scale: 1.05 }}
-                                    whileTap={{ scale: 0.95 }}
-                                    className="flex cursor-pointer items-center gap-2 rounded-full bg-gray-100 px-5 py-2 text-sm font-medium text-gray-900 transition-all hover:bg-gray-200"
-                                >
-                                    <Plus className="h-4 w-4" />
-                                    {t('dashboard.addAccount')}
-                                </motion.button>
+                                <div className="flex items-center gap-2">
+                                    {(() => {
+                                        const savingsAccountsCount = accounts.filter(acc => acc.type === AccountType.SAVINGS).length;
+                                        const hasSavingsAccounts = savingsAccountsCount > 0;
+                                        const handleSavingsDeleteClick = () => {
+                                            setDeleteAccountType(AccountType.SAVINGS);
+                                            setDeleteAccountModalOpen(true);
+                                        };
+                                        return (
+                                            <>
+                                                {hasSavingsAccounts && (
+                                                    <motion.button
+                                                        onClick={handleSavingsDeleteClick}
+                                                        whileHover={{ scale: 1.05 }}
+                                                        whileTap={{ scale: 0.95 }}
+                                                        className="flex items-center justify-center rounded-full p-2 bg-red-100 cursor-pointer hover:bg-red-200 transition-all"
+                                                        aria-label="Delete savings account"
+                                                        title={t('dashboard.deleteAccountModal.deleteAccountTooltip')}
+                                                    >
+                                                        <Trash2 className="h-4 w-4 text-red-600" />
+                                                    </motion.button>
+                                                )}
+                                                <motion.button
+                                                    onClick={() => setAddSavingsModalOpen(true)}
+                                                    whileHover={{ scale: 1.05 }}
+                                                    whileTap={{ scale: 0.95 }}
+                                                    className="flex cursor-pointer items-center gap-2 rounded-full bg-gray-100 px-5 py-2 text-sm font-medium text-gray-900 transition-all hover:bg-gray-200"
+                                                >
+                                                    <Plus className="h-4 w-4" />
+                                                    {t('dashboard.addAccount')}
+                                                </motion.button>
+                                            </>
+                                        );
+                                    })()}
+                                </div>
                             </div>
 
                             <div className="space-y-3">
-                                <SavingsGoalItem
-                                    name={t('dashboard.livretA')}
-                                    currentAmount="15 420,00 €"
-                                    targetAmount={`22 950,00 € (${t('dashboard.plafond')})`}
-                                    progress={67}
-                                    variant="blue"
-                                />
-                                <SavingsGoalItem
-                                    name={t('dashboard.livretJeune')}
-                                    currentAmount="1 280,00 €"
-                                    targetAmount={`1 600,00 € (${t('dashboard.plafond')})`}
-                                    progress={80}
-                                    variant="yellow"
-                                />
+                                {(() => {
+                                    const savingsAccounts = accounts.filter(acc => acc.type === AccountType.SAVINGS);
+                                    const variants: Array<'blue' | 'yellow' | 'orange'> = ['blue', 'yellow', 'orange'];
+                                    
+                                    if (savingsAccounts.length === 0) {
+                                        return (
+                                            <div className="py-8 text-center text-gray-500">
+                                                {t('dashboard.noSavingsAccounts')}
+                                            </div>
+                                        );
+                                    }
+                                    
+                                    return savingsAccounts.map((account, index) => {
+                                        const formattedBalance = formatCurrency(account.balance, account.currency || 'EUR');
+                                        const { progress, targetAmount } = calculateSavingsProgress(account, t);
+                                        const variant = variants[index % variants.length];
+                                        
+                                        return (
+                                            <SavingsGoalItem
+                                                key={account.id}
+                                                name={account.name || account.iban}
+                                                currentAmount={formattedBalance}
+                                                targetAmount={targetAmount}
+                                                progress={progress}
+                                                variant={variant}
+                                            />
+                                        );
+                                    });
+                                })()}
                             </div>
                         </motion.div>
 
@@ -558,13 +675,35 @@ export default function Home() {
                 </div>
             </main>
 
-            <AddAccountModal open={addAccountModalOpen} onOpenChange={setAddAccountModalOpen} />
-            <AddSavingsModal open={addSavingsModalOpen} onOpenChange={setAddSavingsModalOpen} />
-            <DeleteAccountModal open={deleteAccountModalOpen} onOpenChange={setDeleteAccountModalOpen} />
+            <AddAccountModal 
+                open={addAccountModalOpen} 
+                onOpenChange={setAddAccountModalOpen}
+                onSuccess={loadAccounts}
+            />
+            <AddSavingsModal 
+                open={addSavingsModalOpen} 
+                onOpenChange={setAddSavingsModalOpen}
+                accounts={accounts}
+                onSuccess={loadAccounts}
+            />
+            <DeleteAccountModal 
+                open={deleteAccountModalOpen} 
+                onOpenChange={(open) => {
+                    setDeleteAccountModalOpen(open);
+                    if (!open) {
+                        setDeleteAccountType(undefined);
+                    }
+                }}
+                accounts={accounts}
+                accountType={deleteAccountType}
+                onSuccess={loadAccounts}
+            />
             <EditAccountNameModal
                 open={editAccountNameModalOpen}
                 onOpenChange={setEditAccountNameModalOpen}
-                currentName={cards[currentCardIndex]?.accountName || ''}
+                accountId={selectedAccountForEdit?.id || ''}
+                currentName={selectedAccountForEdit?.name || ''}
+                onSuccess={loadAccounts}
             />
             <SendMoneyModal open={sendMoneyModalOpen} onOpenChange={setSendMoneyModalOpen} />
         </div>
