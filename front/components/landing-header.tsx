@@ -68,13 +68,10 @@ export const LandingHeader = () => {
                 </nav>
 
                 <div className="flex items-center gap-4">
-                    {!isLoading && (
-                        <>
-                            {isAuthenticated ? (
+                    {isLoading ? (
+                        <div className="h-10 w-32 animate-pulse rounded-full bg-gray-200"></div>
+                    ) : isAuthenticated ? (
                                 <motion.div
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    transition={{ duration: 0.3 }}
                                     whileHover={{ scale: 1.02 }}
                                     whileTap={{ scale: 0.98 }}
                                 >
@@ -87,11 +84,7 @@ export const LandingHeader = () => {
                                 </motion.div>
                             ) : (
                                 <>
-                                    <motion.div
-                                        initial={{ opacity: 0 }}
-                                        animate={{ opacity: 1 }}
-                                        transition={{ duration: 0.3 }}
-                                    >
+                                    <motion.div>
                                         <Link
                                             href="/login"
                                             className="hidden text-sm font-light text-gray-700 transition-colors hover:text-gray-900 md:block"
@@ -100,9 +93,6 @@ export const LandingHeader = () => {
                                         </Link>
                                     </motion.div>
                                     <motion.div
-                                        initial={{ opacity: 0 }}
-                                        animate={{ opacity: 1 }}
-                                        transition={{ duration: 0.3 }}
                                         whileHover={{ scale: 1.02 }}
                                         whileTap={{ scale: 0.98 }}
                                     >
@@ -115,8 +105,6 @@ export const LandingHeader = () => {
                                     </motion.div>
                                 </>
                             )}
-                        </>
-                    )}
                 </div>
             </div>
         </header>

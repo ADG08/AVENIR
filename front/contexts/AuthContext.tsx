@@ -25,43 +25,22 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const PUBLIC_PATHS = ['/', '/login', '/register', '/verify-email'];
-const NO_AUTH_CHECK_PATHS = ['/login', '/register'];
-
-const isPublicPath = (pathname: string): boolean => PUBLIC_PATHS.includes(pathname);
-const shouldSkipAuthCheck = (pathname: string): boolean => NO_AUTH_CHECK_PATHS.includes(pathname);
-
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
   const refreshAuth = useCallback(async () => {
-    const currentPath = typeof window !== 'undefined' ? window.location.pathname : '';
-
-    // Skip auth check only on login/register pages to avoid unnecessary 401
-    if (shouldSkipAuthCheck(currentPath)) {
-      setUser(null);
-      setIsLoading(false);
-      return;
-    }
-
     try {
       const userData = await api.getCurrentUser();
       setUser(userData?.user || null);
     } catch (error: any) {
       setUser(null);
-      // Clear cookies on authentication failure
       api.clearCookies();
-
-      // Only redirect if on a protected page
-      if (error?.status === 401 && !isPublicPath(window.location.pathname)) {
-        router.push('/login');
-      }
     } finally {
       setIsLoading(false);
     }
-  }, [router]);
+  }, []);
 
   useEffect(() => {
     refreshAuth();
