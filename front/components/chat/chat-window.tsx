@@ -17,6 +17,7 @@ interface ChatWindowProps {
   onClose?: () => void;
   onTransfer?: () => void;
   onAssign?: () => void;
+  onClientClick?: (clientId: string) => void;
   isLoading?: boolean;
 }
 
@@ -30,6 +31,7 @@ export const ChatWindow = ({
   onClose,
   onTransfer,
   onAssign,
+  onClientClick,
   isLoading,
 }: ChatWindowProps) => {
   const { t } = useTranslation();
@@ -54,6 +56,7 @@ export const ChatWindow = ({
         onClose={onClose}
         onTransfer={onTransfer}
         onAssign={onAssign}
+        onClientClick={onClientClick}
       />
 
       <div className="flex-1 overflow-y-auto p-6 bg-gray-50">

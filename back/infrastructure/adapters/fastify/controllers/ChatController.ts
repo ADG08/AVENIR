@@ -12,15 +12,14 @@ import { TransferChatRequest } from '@avenir/application/requests';
 import { ChatNotFoundError } from '@avenir/domain/errors';
 import { UnauthorizedChatAccessError } from '@avenir/domain/errors';
 import { ValidationError } from '@avenir/application/errors';
-import { UserRole } from '@avenir/domain/enumerations/UserRole';
 import { ChatRepository } from '@avenir/domain/repositories/ChatRepository';
 import { MessageRepository } from '@avenir/domain/repositories/MessageRepository';
+import { UserRepository } from '@avenir/domain/repositories/UserRepository';
 import { webSocketService } from '../../services/WebSocketService';
 import {
     createChatSchema,
-    getChatsSchema,
     getChatByIdSchema,
-    closeChatSchema,
+    closeChatSchema, UserRole,
 } from '@avenir/shared/schemas/chat.schema';
 import { ZodError } from 'zod';
 
@@ -34,13 +33,25 @@ export class ChatController {
         private readonly transferChatUseCase: TransferChatUseCase,
         private readonly closeChatUseCase: CloseChatUseCase,
         private readonly chatRepository: ChatRepository,
-        private readonly messageRepository: MessageRepository
+        private readonly messageRepository: MessageRepository,
+        private readonly userRepository: UserRepository
     ) {}
 
-    async createChat(request: FastifyRequest<{ Body: CreateChatRequest }>, reply: FastifyReply) {
+    async createChat(request: FastifyRequest<{ Body: { initialMessage: string } }>, reply: FastifyReply) {
         try {
+            if (!request.user) {
+                return reply.code(401).send({
+                    error: 'Unauthorized',
+                    message: 'User not authenticated',
+                });
+            }
+
             const validatedData = createChatSchema.parse(request.body);
-            const createChatRequest: CreateChatRequest = validatedData as CreateChatRequest;
+            const createChatRequest = new CreateChatRequest(
+                validatedData.initialMessage,
+                request.user.userId
+            );
+
             const response = await this.createChatUseCase.execute(createChatRequest);
 
             // Envoyer les notifications WebSocket après la création
@@ -95,15 +106,27 @@ export class ChatController {
         }
     }
 
-    async getChats(request: FastifyRequest<{ Querystring: { userId: string; userRole: string } }>, reply: FastifyReply) {
+    async getChats(request: FastifyRequest, reply: FastifyReply) {
         try {
-            const validatedData = getChatsSchema.parse({
-                userId: request.query.userId,
-                userRole: request.query.userRole,
-            });
+            if (!request.user) {
+                return reply.code(401).send({
+                    error: 'Unauthorized',
+                    message: 'User not authenticated',
+                });
+            }
+
+            const user = await this.userRepository.getById(request.user.userId);
+
+            if (!user) {
+                return reply.code(404).send({
+                    error: 'User not found',
+                    message: 'User not found',
+                });
+            }
+
             const getChatsRequest: GetChatsRequest = {
-                userId: validatedData.userId,
-                userRole: validatedData.userRole as UserRole,
+                userId: request.user.userId,
+                userRole: user.role,
             };
 
             const response = await this.getChatsUseCase.execute(getChatsRequest);
@@ -131,18 +154,34 @@ export class ChatController {
     }
 
     async getChatById(
-        request: FastifyRequest<{ Params: { chatId: string }; Querystring: { userId: string; userRole: string } }>,
+        request: FastifyRequest<{ Params: { chatId: string } }>,
         reply: FastifyReply
     ) {
         try {
+            if (!request.user) {
+                return reply.code(401).send({
+                    error: 'Unauthorized',
+                    message: 'User not authenticated',
+                });
+            }
+
             const validatedData = getChatByIdSchema.parse({
                 chatId: request.params.chatId,
-                userId: request.query.userId,
             });
+
+            const user = await this.userRepository.getById(request.user.userId);
+
+            if (!user) {
+                return reply.code(404).send({
+                    error: 'User not found',
+                    message: 'User not found',
+                });
+            }
+
             const response = await this.getChatByIdUseCase.execute({
                 chatId: validatedData.chatId,
-                userId: validatedData.userId,
-                userRole: request.query.userRole as UserRole,
+                userId: request.user.userId,
+                userRole: user.role,
             });
 
             return reply.code(200).send(response);
@@ -175,10 +214,17 @@ export class ChatController {
         }
     }
 
-    async getChatMessages(request: FastifyRequest<{ Params: { chatId: string }; Querystring: { userId: string } }>, reply: FastifyReply) {
+    async getChatMessages(request: FastifyRequest<{ Params: { chatId: string } }>, reply: FastifyReply) {
         try {
+            if (!request.user) {
+                return reply.code(401).send({
+                    error: 'Unauthorized',
+                    message: 'User not authenticated',
+                });
+            }
+
             const { chatId } = request.params;
-            const { userId } = request.query;
+            const userId = request.user.userId;
 
             const response = await this.getChatMessagesUseCase.execute(chatId, userId);
             return reply.code(200).send(response);
@@ -207,19 +253,46 @@ export class ChatController {
     async assignOrTransferChat(
         request: FastifyRequest<{
             Params: { chatId: string };
-            Body: { advisorId: string; currentUserId?: string }
+            Body: { newAdvisorId?: string; advisorId?: string; currentUserId?: string }
         }>,
         reply: FastifyReply
     ) {
         try {
+            if (!request.user) {
+                return reply.code(401).send({
+                    error: 'Unauthorized',
+                    message: 'User not authenticated',
+                });
+            }
+
+            const targetAdvisorId = request.body.newAdvisorId || request.body.advisorId;
+
+            if (!targetAdvisorId) {
+                return reply.code(400).send({
+                    error: 'Bad Request',
+                    message: 'newAdvisorId or advisorId is required',
+                });
+            }
+
             const chatBefore = await this.chatRepository.getById(request.params.chatId);
             const oldAdvisorId = chatBefore?.advisor?.id;
             const isTransfer = !!oldAdvisorId;
 
+            const currentUser = await this.userRepository.getById(request.user.userId);
+
+            if (!currentUser) {
+                return reply.code(404).send({
+                    error: 'User not found',
+                    message: 'User not found',
+                });
+            }
+
+            const currentAdvisorId = currentUser.role === UserRole.ADVISOR ? request.user.userId : undefined;
+
             const transferChatRequest = new TransferChatRequest(
                 request.params.chatId,
-                request.body.currentUserId,
-                request.body.advisorId
+                currentAdvisorId,
+                targetAdvisorId
             );
 
             const response = await this.transferChatUseCase.execute(transferChatRequest);
@@ -231,14 +304,14 @@ export class ChatController {
                 if (chatAfter.client?.id) {
                     participantIds.add(chatAfter.client.id);
                 }
-                if (oldAdvisorId && oldAdvisorId !== request.body.advisorId) {
+                if (oldAdvisorId && oldAdvisorId !== targetAdvisorId) {
                     participantIds.add(oldAdvisorId);
                 }
-                if (request.body.advisorId) {
-                    participantIds.add(request.body.advisorId);
+                if (targetAdvisorId) {
+                    participantIds.add(targetAdvisorId);
                 }
-                if (request.body.currentUserId) {
-                    participantIds.add(request.body.currentUserId);
+                if (request.user.userId) {
+                    participantIds.add(request.user.userId);
                 }
                 const connectedDirectors = webSocketService.getConnectedDirectors();
                 connectedDirectors.forEach(directorId => {
@@ -253,7 +326,7 @@ export class ChatController {
                         request.params.chatId,
                         finalParticipantIds,
                         {
-                            newAdvisorId: request.body.advisorId,
+                            newAdvisorId: targetAdvisorId,
                             newAdvisorName: newAdvisor ? `${newAdvisor.firstName} ${newAdvisor.lastName}` : ''
                         }
                     );
@@ -285,7 +358,7 @@ export class ChatController {
                     webSocketService.notifyChatAssigned(
                         request.params.chatId,
                         clientId,
-                        request.body.advisorId
+                        targetAdvisorId
                     );
                 }
             }
@@ -324,13 +397,22 @@ export class ChatController {
     }
 
     async markChatMessagesAsRead(
-        request: FastifyRequest<{ Params: { chatId: string }; Querystring: { userId: string } }>,
+        request: FastifyRequest<{ Params: { chatId: string } }>,
         reply: FastifyReply
     ) {
         try {
+            if (!request.user) {
+                return reply.code(401).send({
+                    error: 'Unauthorized',
+                    message: 'User not authenticated',
+                });
+            }
+
+            const userId = request.user.userId;
+
             await this.markChatMessagesAsReadUseCase.execute(
                 request.params.chatId,
-                request.query.userId
+                userId
             );
             return reply.code(200).send({ success: true });
         } catch (error) {
@@ -356,17 +438,19 @@ export class ChatController {
     }
 
     async closeChat(
-        request: FastifyRequest<{
-            Params: { chatId: string };
-            Body: { userId: string; userRole?: string }
-        }>,
+        request: FastifyRequest<{ Params: { chatId: string } }>,
         reply: FastifyReply
     ) {
         try {
+            if (!request.user) {
+                return reply.code(401).send({
+                    error: 'Unauthorized',
+                    message: 'User not authenticated',
+                });
+            }
+
             const validatedData = closeChatSchema.parse({
                 chatId: request.params.chatId,
-                userId: request.body.userId,
-                userRole: request.body.userRole || 'ADVISOR',
             });
 
             const chat = await this.chatRepository.getById(validatedData.chatId);
@@ -379,10 +463,20 @@ export class ChatController {
                 return;
             }
 
+            const user = await this.userRepository.getById(request.user.userId);
+
+            if (!user) {
+                reply.code(404).send({
+                    error: 'User not found',
+                    message: 'User not found',
+                });
+                return;
+            }
+
             await this.closeChatUseCase.execute({
                 chatId: validatedData.chatId,
-                userId: validatedData.userId,
-                userRole: validatedData.userRole,
+                userId: request.user.userId,
+                userRole: user.role,
             });
 
             const participantIds: string[] = [];

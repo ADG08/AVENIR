@@ -3,19 +3,21 @@
 import { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
+import { UserRole } from '@/types/enums';
 
 interface User {
   id: string;
   firstName: string;
   lastName: string;
   email: string;
-  role: string;
+  role: UserRole;
 }
 
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  isDirector: boolean;
   login: (user: User) => void;
   logout: () => Promise<void>;
   refreshAuth: () => Promise<void>;
@@ -94,12 +96,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     router.push('/login');
   }, [router]);
 
+  const isDirector = user?.role === 'DIRECTOR';
+
   return (
     <AuthContext.Provider
       value={{
         user,
         isAuthenticated: !!user,
         isLoading,
+        isDirector,
         login,
         logout,
         refreshAuth,

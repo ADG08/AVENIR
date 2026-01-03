@@ -26,23 +26,12 @@ export const NewsCard = ({ news }: NewsCardProps) => {
     setTimeout(() => setSelectedNews(null), 300);
   };
 
-  const formatDate = (date: Date) => {
-    return new Date(date).toLocaleDateString('fr-FR', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric',
-    });
-  };
-
   const formatTime = (date: Date) => {
     return new Date(date).toLocaleDateString('fr-FR', {
       day: 'numeric',
       month: 'short',
     });
   };
-
-  // Afficher les 3 dernières actualités
-  const latestNews = news.slice(0, 3);
 
   return (
     <motion.div
@@ -59,24 +48,23 @@ export const NewsCard = ({ news }: NewsCardProps) => {
           </div>
           <h3 className="text-lg font-bold text-gray-900">{t('news.title')}</h3>
         </div>
-        {news.length > 3 && (
-          <button className="flex items-center gap-1 text-sm font-medium text-blue-600 transition-colors hover:text-blue-700">
-            {t('news.viewAll')}
-            <ChevronRight className="h-4 w-4" />
-          </button>
+        {news.length > 0 && (
+          <span className="text-sm font-medium text-gray-500">
+            {news.length} {news.length > 1 ? 'actualités' : 'actualité'}
+          </span>
         )}
       </div>
 
-      {/* News List */}
-      {latestNews.length === 0 ? (
+      {/* News List with scroll */}
+      {news.length === 0 ? (
         <div className="py-8 text-center">
           <Newspaper className="mx-auto h-12 w-12 text-gray-300" />
           <p className="mt-3 text-sm font-medium text-gray-900">{t('news.noNews')}</p>
           <p className="mt-1 text-xs text-gray-500">{t('news.noNewsDescription')}</p>
         </div>
       ) : (
-        <div className="space-y-4">
-          {latestNews.map((item, index) => (
+        <div className="max-h-125 space-y-4 overflow-y-auto pr-2">
+          {news.map((item, index) => (
             <motion.div
               key={item.id}
               initial={{ opacity: 0, x: -20 }}

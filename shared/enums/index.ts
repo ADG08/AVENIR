@@ -6,3 +6,5 @@ export { MessageType } from './MessageType';
 export { LoanStatus } from './LoanStatus';
 export { AccountType } from './AccountType';
 export { SavingType, SavingTypeMaxAmount } from './SavingType';
+export { NotificationType, CustomNotificationType } from './NotificationType';
+export { SSEEventType } from './SSEEventType';

@@ -2,9 +2,10 @@ import { User } from "../../../domain/entities/User";
 import { UserRepository } from "../../../domain/repositories/UserRepository";
 import { randomUUID } from "crypto";
 import { UserState } from "../../../domain/enumerations/UserState";
-import { AddUserRequest } from "../../requests/AddUserRequest";
-import { AddUserResponse, AddUserResponseMapper } from "../../responses/AddUserResponse";
-import { UserAlreadyExistsError } from "../../../domain/errors/UserAlreadyExistsError";   
+import { UserRole } from "../../../domain/enumerations/UserRole";
+import { AddUserRequest } from "../../requests";
+import { AddUserResponse, AddUserResponseMapper } from "../../responses";
+import { UserAlreadyExistsError } from "../../../domain/errors";
 
 export class AddUserUseCase {
     constructor(private readonly userRepository: UserRepository) {}
@@ -14,6 +15,12 @@ export class AddUserUseCase {
         const existingUser = await this.userRepository.getByEmail(request.email);
         if (existingUser) {
             throw new UserAlreadyExistsError(request.email);
+        }
+
+        let advisorId: string | undefined;
+        if (request.role === UserRole.CLIENT) {
+            const randomAdvisor = await this.userRepository.getRandomAdvisor();
+            advisorId = randomAdvisor?.id;
         }
 
         // Créer l'utilisateur
@@ -29,7 +36,10 @@ export class AddUserUseCase {
             [],
             [],
             [],
-            new Date()
+            new Date(),
+            undefined,
+            undefined,
+            advisorId
         );
 
         const savedUser = await this.userRepository.add(user);

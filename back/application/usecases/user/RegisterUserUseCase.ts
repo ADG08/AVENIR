@@ -8,8 +8,8 @@ import * as bcrypt from "bcrypt";
 import { UserState } from "@avenir/shared/enums/UserState";
 import { UserRole } from "@avenir/shared/enums/UserRole";
 import { RegisterUserRequest } from "../../requests/RegisterUserRequest";
-import { RegisterUserResponse, RegisterUserResponseMapper } from "../../responses/RegisterUserResponse";
-import { UserAlreadyExistsError } from "../../../domain/errors/UserAlreadyExistsError";
+import { RegisterUserResponse, RegisterUserResponseMapper } from "../../responses";
+import { UserAlreadyExistsError } from "../../../domain/errors";
 import { AccountType } from "@avenir/shared/enums/AccountType";
 
 export class RegisterUserUseCase {
@@ -33,6 +33,7 @@ export class RegisterUserUseCase {
         const identityNumber = this.generateIdentityNumber();
         const hashedPasscode = await bcrypt.hash(request.passcode, this.SALT_ROUNDS);
         const verificationToken = this.generateVerificationToken();
+        const randomAdvisor = await this.userRepository.getRandomAdvisor();
 
         const user = new User(
             randomUUID(),
@@ -48,7 +49,8 @@ export class RegisterUserUseCase {
             [],
             new Date(),
             verificationToken,
-            undefined
+            undefined,
+            randomAdvisor?.id
         );
 
         await this.userRepository.add(user);

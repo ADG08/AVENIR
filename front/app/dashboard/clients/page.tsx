@@ -1,20 +1,27 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { DashboardHeader } from '@/components/dashboard-header';
 import { ClientCard } from '@/components/clients/client-card';
 import { ClientDetailsModal } from '@/components/clients/client-details-modal';
 import { SendNotificationModal } from '@/components/clients/send-notification-modal';
 import { GrantLoanModal, LoanCalculation } from '@/components/clients/grant-loan-modal';
-import { ClientWithDetails, MOCK_CLIENTS } from '@/types/client';
+import { ClientWithDetails } from '@/types/client';
 import { motion } from 'framer-motion';
 import { Users, Search } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from 'react-i18next';
+import { useAuth } from '@/contexts/AuthContext';
+import { getAdvisorClients } from '@/lib/api/advisor.api';
+import { createNotification } from '@/lib/api/notification.api';
+import {createLoan} from '@/lib/api/loan.api';
+import { mapAdvisorClientsToClientDetails } from '@/lib/mapping/client.mapping';
+import { CustomNotificationType } from '@avenir/shared/enums';
 
 export default function ClientsPage() {
   const { t } = useTranslation();
   const { toast } = useToast();
+  const { user: currentUser } = useAuth();
   const [activeTab, setActiveTab] = useState('clients');
   const [searchQuery, setSearchQuery] = useState('');
   const [clients, setClients] = useState<ClientWithDetails[]>([]);
@@ -26,62 +33,57 @@ export default function ClientsPage() {
   const [isLoadingLoan, setIsLoadingLoan] = useState(false);
   const [isLoadingClients, setIsLoadingClients] = useState(true);
 
-  // Charger les clients (mock pour l'instant - sera remplacé par l'API quand le back sera prêt)
-  useEffect(() => {
-    // Simuler un petit délai de chargement pour l'UX
-    const loadMockClients = async () => {
+  const loadClients = useCallback(async () => {
+    if (!currentUser) return;
+
+    try {
       setIsLoadingClients(true);
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      setClients(MOCK_CLIENTS);
+
+      const advisorClients = await getAdvisorClients(currentUser.id);
+      const clientsList = mapAdvisorClientsToClientDetails(advisorClients, currentUser.id);
+
+      setClients(clientsList);
+      const clientIdFromStorage = sessionStorage.getItem('openClientId');
+      if (clientIdFromStorage && clientsList.length > 0) {
+        const clientToOpen = clientsList.find(c => c.id === clientIdFromStorage);
+        if (clientToOpen) {
+          setSelectedClient(clientToOpen);
+          setIsDetailsModalOpen(true);
+          sessionStorage.removeItem('openClientId');
+        }
+      }
+    } catch {
+      toast({
+        title: t('clients.errors.loadingClients'),
+        variant: 'destructive',
+      });
+    } finally {
       setIsLoadingClients(false);
-    };
+    }
+  }, [currentUser, toast, t]);
 
-    loadMockClients();
-  }, []);
-
-  // TODO: Quand le back sera prêt, remplacer par cette logique :
-  // useEffect(() => {
-  //   const loadClientsFromChats = async () => {
-  //     if (!currentUser) return;
-  //     try {
-  //       setIsLoadingClients(true);
-  //       const chatsResponse = await chatApi.getChats({
-  //         userId: currentUser.id,
-  //         userRole: currentUser.role,
-  //       });
-  //       if (!chatsResponse || !chatsResponse.data) {
-  //         setClients([]);
-  //         return;
-  //       }
-  //       const allChats = mapChatsFromApi(chatsResponse.data);
-  //       // ... logique de groupement et création des ClientWithDetails
-  //       setClients(clientsList);
-  //     } catch (error) {
-  //       console.error('Error loading clients:', error);
-  //       toast({
-  //         title: t('clients.errors.loadingClients'),
-  //         variant: 'destructive',
-  //       });
-  //     } finally {
-  //       setIsLoadingClients(false);
-  //     }
-  //   };
-  //   loadClientsFromChats();
-  // }, [currentUser, toast, t]);
+  useEffect(() => {
+    loadClients();
+  }, [loadClients]);
 
   const handleClientClick = (client: ClientWithDetails) => {
     setSelectedClient(client);
     setIsDetailsModalOpen(true);
   };
 
-  const handleSendNotification = async (_title: string, _message: string) => {
-    if (!selectedClient) return;
+  const handleSendNotification = async (title: string, message: string, type: CustomNotificationType) => {
+    if (!selectedClient || !currentUser) return;
 
     try {
       setIsLoadingNotification(true);
 
-      // TODO: Remplacer par un vrai appel API
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      await createNotification({
+        userId: selectedClient.id,
+        title,
+        message,
+        type,
+        advisorName: `${currentUser.firstName} ${currentUser.lastName}`,
+      });
 
       toast({
         title: t('clients.notification.success'),
@@ -106,41 +108,14 @@ export default function ClientsPage() {
     try {
       setIsLoadingLoan(true);
 
-      // TODO: Remplacer par un vrai appel API
-      // Simuler l'appel au back qui calcule et retourne les montants
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-
-      // Simuler la réponse du back avec les calculs
-      // Le back utilisera la formule du crédit amortissable
-      const principal = loanData.amount;
-      const months = loanData.duration;
-      const annualRate = loanData.interestRate / 100;
-      const insuranceRateDecimal = loanData.insuranceRate / 100;
-
-      // Taux mensuel
-      const monthlyRate = annualRate / 12;
-
-      // Calcul de la mensualité (formule du crédit amortissable)
-      const monthlyPaymentWithoutInsurance =
-        principal * (monthlyRate / (1 - Math.pow(1 + monthlyRate, -months)));
-
-      // Coût total de l'assurance
-      const insuranceCost = principal * insuranceRateDecimal;
-      const monthlyInsurance = insuranceCost / months;
-
-      // Mensualité totale
-      const monthlyPayment = monthlyPaymentWithoutInsurance + monthlyInsurance;
-      const totalCost = monthlyPayment * months;
-      const totalInterest = totalCost - principal - insuranceCost;
-
-      // Le back retournera ces valeurs calculées
-      const calculatedLoan: LoanCalculation = {
-        ...loanData,
-        monthlyPayment: Math.round(monthlyPayment * 100) / 100,
-        totalCost: Math.round(totalCost * 100) / 100,
-        totalInterest: Math.round(totalInterest * 100) / 100,
-        insuranceCost: Math.round(insuranceCost * 100) / 100,
-      };
+      const createdLoan = await createLoan({
+        name: loanData.name,
+        clientId: selectedClient.id,
+        amount: loanData.amount,
+        duration: loanData.duration,
+        interestRate: loanData.interestRate,
+        insuranceRate: loanData.insuranceRate,
+      });
 
       const formatCurrency = (value: number) =>
         new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(value);
@@ -150,25 +125,25 @@ export default function ClientsPage() {
         description: (
           <div className="mt-2 space-y-1">
             <p className="font-semibold">
-              {t('clients.loan.monthlyPayment')}: {formatCurrency(calculatedLoan.monthlyPayment)}
+              {t('clients.loan.monthlyPayment')}: {formatCurrency(createdLoan.monthlyPayment)}
             </p>
             <p className="text-sm">
-              {t('clients.loan.totalCost')}: {formatCurrency(calculatedLoan.totalCost)}
+              {t('clients.loan.totalCost')}: {formatCurrency(createdLoan.totalCost)}
             </p>
             <p className="text-sm">
-              {t('clients.loan.totalInterest')}: {formatCurrency(calculatedLoan.totalInterest)}
+              {t('clients.loan.totalInterest')}: {formatCurrency(createdLoan.totalInterest)}
             </p>
             <p className="text-sm">
-              {t('clients.loan.insuranceCost')}: {formatCurrency(calculatedLoan.insuranceCost)}
+              {t('clients.loan.insuranceCost')}: {formatCurrency(createdLoan.insuranceCost)}
             </p>
           </div>
         ),
       });
 
+      await loadClients();
       setIsLoanModalOpen(false);
       setIsDetailsModalOpen(false);
-    } catch (error) {
-      console.error('Error granting loan:', error);
+    } catch {
       toast({
         title: t('clients.loan.error'),
         variant: 'destructive',
@@ -193,7 +168,7 @@ export default function ClientsPage() {
     <div className="min-h-screen bg-linear-to-br from-gray-50 to-gray-100">
       <DashboardHeader activeTab={activeTab} setActiveTab={setActiveTab} />
 
-      <main className="mx-auto max-w-[1800px] p-6">
+      <main className="mx-auto max-w-450 p-6">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}

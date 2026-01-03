@@ -1,10 +1,9 @@
 import type { Metadata } from "next";
 import { Inter, Manrope } from "next/font/google";
 import "./globals.css";
-import { TRPCProvider } from "@/lib/trpc/Provider";
 import { Toaster } from "@/components/ui/toaster";
-import ClientProviders from "@/components/client-providers";
 import { WebSocketProvider } from "@/contexts/WebSocketContext";
+import { SSEProvider } from "@/contexts/SSEContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 
 const inter = Inter({
@@ -36,15 +35,14 @@ export default function RootLayout({
       <body
         className={`${inter.variable} ${manrope.variable} font-sans antialiased overflow-x-hidden`}
       >
-        <TRPCProvider>
-          <AuthProvider>
+        <AuthProvider>
+          <SSEProvider>
             <WebSocketProvider>
               {children}
               <Toaster />
-              <ClientProviders />
             </WebSocketProvider>
-          </AuthProvider>
-        </TRPCProvider>
+          </SSEProvider>
+        </AuthProvider>
       </body>
     </html>
   );

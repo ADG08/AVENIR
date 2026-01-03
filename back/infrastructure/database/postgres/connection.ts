@@ -15,10 +15,6 @@ export const pool = new Pool({
     allowExitOnIdle: false,
 });
 
-pool.on('connect', () => {
-    console.log('✓ PostgreSQL connecté');
-});
-
 pool.on('error', (err) => {
     console.error('✗ PostgreSQL erreur:', err);
     // Don't exit the process on pool errors, let the application handle it

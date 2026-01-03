@@ -9,4 +9,7 @@ export interface UserRepository {
     getByIdentityNumber(identityNumber: string): Promise<User | null>;
     getByVerificationToken(token: string): Promise<User | null>;
     getAll(): Promise<User[]>;
+    getClientsByAdvisorId(advisorId: string): Promise<User[]>;
+    getRandomAdvisor(): Promise<User | null>;
+    isClientManagedByAdvisor(clientId: string, advisorId: string): Promise<boolean>;
 }

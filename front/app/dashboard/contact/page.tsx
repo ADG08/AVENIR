@@ -1,19 +1,22 @@
 'use client';
 
 import {useCallback, useEffect, useState} from 'react';
-import {useCurrentMockUser} from '@/components/dev-user-switcher';
+import {useAuth} from '@/contexts/AuthContext';
 import {ChatListItem} from '@/components/chat/chat-list-item';
 import {ChatWindow} from '@/components/chat/chat-window';
 import {NewChatModal} from '@/components/chat/new-chat-modal';
 import {TransferChatModal} from '@/components/chat/transfer-chat-modal';
 import {AssignAdvisorModal} from '@/components/chat/assign-advisor-modal';
-import {Chat, Message, UserRole} from '@/types/chat';
+import {Chat, Message} from '@/types/chat';
+import { UserRole } from '@/types/enums';
 import {motion} from 'framer-motion';
 import {MessageCircle, Plus, Search, X} from 'lucide-react';
 import {DashboardHeader} from '@/components/dashboard-header';
 import {chatApi} from '@/lib/api/chat.api';
 import {useToast} from '@/hooks/use-toast';
 import {useWebSocket, WebSocketMessage} from '@/contexts/WebSocketContext';
+import { checkClientAdvisor } from '@/lib/api/client-check.api';
+import { useRouter } from 'next/navigation';
 import {
   ChatApiDto,
   mapChatFromApi,
@@ -27,9 +30,10 @@ import {useTranslation} from 'react-i18next';
 
 export default function ContactPage() {
   const { t } = useTranslation();
-  const currentUser = useCurrentMockUser();
+  const { user: currentUser } = useAuth();
   const { toast } = useToast();
   const { subscribe } = useWebSocket();
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState('contact');
   const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -45,15 +49,40 @@ export default function ContactPage() {
   const [isTransferring, setIsTransferring] = useState(false);
   const [isAssigning, setIsAssigning] = useState(false);
 
+  // Gestion de la redirection vers les détails du client
+  const handleClientClick = useCallback(async (clientId: string) => {
+    if (!currentUser || currentUser.role !== UserRole.ADVISOR) return;
+
+    try {
+      const result = await checkClientAdvisor(clientId, currentUser.id);
+
+      if (result.isManaged) {
+        sessionStorage.setItem('openClientId', clientId);
+        router.push('/dashboard/clients');
+      } else {
+        toast({
+          title: 'Client non géré',
+          description: result.advisorName
+            ? `Ce client est géré par ${result.advisorName}`
+            : 'Ce client n\'est pas sous votre gestion',
+          variant: 'destructive',
+        });
+      }
+    } catch {
+      toast({
+        title: t('common.error'),
+        description: 'Erreur lors de la vérification du client',
+        variant: 'destructive',
+      });
+    }
+  }, [currentUser, router, toast, t]);
+
   const loadChats = useCallback(async () => {
     if (!currentUser) return;
 
     try {
       setIsLoadingChats(true);
-      const response = await chatApi.getChats({
-        userId: currentUser.id,
-        userRole: currentUser.role,
-      });
+      const response = await chatApi.getChats();
 
       const mappedChats = Array.isArray(response) ? mapChatsFromApi(response) : [];
       setChats(mappedChats);
@@ -74,7 +103,7 @@ export default function ContactPage() {
 
     try {
       setIsLoadingMessages(true);
-      const response = await chatApi.getChatMessages(chatId, currentUser.id);
+      const response = await chatApi.getChatMessages(chatId);
 
       const mappedMessages = Array.isArray(response) ? mapMessagesFromApi(response) : [];
       setChatMessages((prev) => ({
@@ -114,13 +143,13 @@ export default function ContactPage() {
 
     loadChats();
 
-    if (newMessage.senderId !== currentUser?.id) {
+    if (newMessage.sender && currentUser && newMessage.sender.role !== currentUser.role) {
       toast({
         title: t('chat.message.newMessage'),
         description: t('chat.message.newMessageFrom', { name: newMessage.sender?.firstName || 'Un utilisateur' }),
       });
     }
-  }, [currentUser?.id, loadChats, toast, t]);
+  }, [currentUser, loadChats, toast, t]);
 
   const handleChatCreated = useCallback((message: WebSocketMessage) => {
     if (message.type !== WebSocketMessageType.CHAT_CREATED || !message.chatId || !message.payload) return;
@@ -130,6 +159,7 @@ export default function ContactPage() {
       id: chatPayload.id || message.chatId,
       clientId: chatPayload.clientId,
       clientName: chatPayload.clientName,
+      isMyClient: chatPayload.isMyClient || false,
       advisorId: chatPayload.advisorId,
       advisorName: chatPayload.advisorName,
       status: chatPayload.status,
@@ -188,10 +218,7 @@ export default function ContactPage() {
     if (message.type !== WebSocketMessageType.CHAT_TRANSFERRED || !message.chatId) return;
 
     if (currentUser?.role === UserRole.ADVISOR) {
-      chatApi.getChats({
-        userId: currentUser.id,
-        userRole: currentUser.role,
-      }).then((updatedChats) => {
+      chatApi.getChats().then((updatedChats) => {
         const mappedChats = Array.isArray(updatedChats) ? mapChatsFromApi(updatedChats) : [];
         const stillHasAccess = mappedChats.some((c: Chat) => c.id === message.chatId);
 
@@ -216,7 +243,7 @@ export default function ContactPage() {
       loadChats();
 
       if (currentUser?.role === UserRole.DIRECTOR && selectedChat?.id === message.chatId) {
-        chatApi.getChatById(message.chatId, currentUser.id, currentUser.role)
+        chatApi.getChatById(message.chatId)
           .then((updatedChatData) => {
             const updatedChat = mapChatFromApi(updatedChatData);
             setSelectedChat(updatedChat);
@@ -226,7 +253,7 @@ export default function ContactPage() {
           });
       }
     }
-  }, [currentUser?.id, currentUser?.role, loadChats, selectedChat?.id, toast, t]);
+  }, [currentUser, loadChats, selectedChat?.id, toast, t]);
 
   useEffect(() => {
     if (!currentUser) return;
@@ -281,32 +308,19 @@ export default function ContactPage() {
 
   // Ouvrir automatiquement le chat si un chatId est stocké dans sessionStorage
   useEffect(() => {
-    // Vérifier si un chatId est stocké (venant de la page clients)
     const storedChatId = sessionStorage.getItem('openChatId');
 
-    // Si pas de chatId stocké, ne rien faire
     if (!storedChatId) return;
-
-    // Si les chats ne sont pas encore chargés, attendre
     if (isLoadingChats) return;
-
-    // Si pas de chats, ne rien faire
     if (chats.length === 0) return;
 
-    // Chercher le chat correspondant
     const chatToOpen = chats.find((chat) => chat.id === storedChatId);
-
     if (chatToOpen) {
-      // Si le chat n'est pas déjà sélectionné, le sélectionner
       if (!selectedChat || selectedChat.id !== storedChatId) {
-        console.log('[ContactPage] Opening chat from storage:', storedChatId);
         setSelectedChat(chatToOpen);
-        // Nettoyer le sessionStorage après utilisation
         sessionStorage.removeItem('openChatId');
       }
     } else {
-      // Le chat n'existe pas ou n'est pas accessible
-      console.warn('[ContactPage] Chat not found or not accessible:', storedChatId);
       sessionStorage.removeItem('openChatId');
       toast({
         title: t('chat.errors.title'),
@@ -322,7 +336,6 @@ export default function ContactPage() {
     try {
       await chatApi.sendMessage({
         chatId: selectedChat.id,
-        senderId: currentUser.id,
         content,
       });
     } catch (error) {
@@ -342,7 +355,6 @@ export default function ContactPage() {
       setIsCreatingChat(true);
 
       const response = await chatApi.createChat({
-        clientId: currentUser.id,
         initialMessage,
       });
 
@@ -377,8 +389,6 @@ export default function ContactPage() {
     try {
       await chatApi.closeChat({
         chatId: selectedChat.id,
-        userId: currentUser.id,
-        userRole: currentUser.role,
       });
 
       setChats((prev) =>
@@ -411,7 +421,6 @@ export default function ContactPage() {
       const response = await chatApi.transferChat({
         chatId: selectedChat.id,
         newAdvisorId,
-        currentUserId: currentUser.id,
       });
 
       await loadChats();
@@ -544,7 +553,7 @@ export default function ContactPage() {
     <div className="min-h-screen bg-linear-to-br from-gray-50 to-gray-100">
       <DashboardHeader activeTab={activeTab} setActiveTab={setActiveTab} />
 
-      <main className="mx-auto max-w-[1800px] p-6">
+      <main className="mx-auto max-w-450 p-6">
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
           <div className="space-y-4 lg:col-span-4">
             <motion.div
@@ -667,7 +676,8 @@ export default function ContactPage() {
                       chat={chat}
                       isActive={selectedChat?.id === chat.id}
                       onClick={() => setSelectedChat(chat)}
-                      currentUserRole={currentUser.role}
+                      currentUserRole={currentUser.role as UserRole}
+                      onClientClick={handleClientClick}
                     />
                   ))
                 )}
@@ -685,13 +695,14 @@ export default function ContactPage() {
                 <ChatWindow
                   chat={selectedChat}
                   messages={currentMessages}
-                  currentUserId={currentUser.id}
-                  currentUserRole={currentUser.role}
+                  currentUserId={currentUser!.id}
+                  currentUserRole={currentUser.role as UserRole}
                   onBack={() => setSelectedChat(null)}
                   onSendMessage={handleSendMessage}
                   onClose={currentUser.role === UserRole.ADVISOR ? handleCloseChat : undefined}
                   onTransfer={currentUser.role === UserRole.ADVISOR ? () => setIsTransferModalOpen(true) : undefined}
                   onAssign={currentUser.role === UserRole.DIRECTOR ? () => setIsAssignModalOpen(true) : undefined}
+                  onClientClick={handleClientClick}
                   isLoading={isLoadingMessages}
                 />
               </motion.div>
@@ -730,7 +741,7 @@ export default function ContactPage() {
         onClose={() => setIsTransferModalOpen(false)}
         onSubmit={handleTransferChat}
         isLoading={isTransferring}
-        currentAdvisorId={currentUser.id}
+        currentAdvisorId={currentUser!.id}
       />
 
       {/* Modal d'assignation de conseiller */}

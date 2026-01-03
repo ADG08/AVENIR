@@ -17,11 +17,23 @@ export class MessageController {
     ) {}
 
     async sendMessage(
-        request: FastifyRequest<{ Body: SendMessageRequest }>,
+        request: FastifyRequest<{ Body: { chatId: string; content: string } }>,
         reply: FastifyReply
     ) {
         try {
-            const sendMessageRequest: SendMessageRequest = request.body;
+            if (!request.user) {
+                return reply.code(401).send({
+                    error: 'Unauthorized',
+                    message: 'User not authenticated',
+                });
+            }
+
+            const sendMessageRequest = new SendMessageRequest(
+                request.body.chatId,
+                request.user.userId,
+                request.body.content
+            );
+
             const response = await this.sendMessageUseCase.execute(sendMessageRequest);
 
             const chat = await this.chatRepository.getById(sendMessageRequest.chatId);
@@ -33,6 +45,13 @@ export class MessageController {
             if (chat?.advisor?.id) {
                 participantIds.push(chat.advisor.id);
             }
+
+            const connectedDirectors = webSocketService.getConnectedDirectors();
+            connectedDirectors.forEach(directorId => {
+                if (!participantIds.includes(directorId)) {
+                    participantIds.push(directorId);
+                }
+            });
 
             webSocketService.notifyNewMessage(
                 sendMessageRequest.chatId,

@@ -12,3 +12,5 @@ export { MessageNotFoundError } from "./MessageNotFoundError";
 export { AccountNotFoundError } from "./AccountNotFoundError";
 export { UnauthorizedAccountAccessError } from "./UnauthorizedAccountAccessError";
 export { DuplicateSavingTypeError } from "./DuplicateSavingTypeError";
+export { NewsNotFoundError } from "./NewsNotFoundError";
+export { UnauthorizedNewsAccessError } from "./UnauthorizedNewsAccessError";

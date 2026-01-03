@@ -1,21 +1,29 @@
 import { ChatRepository } from "@avenir/domain/repositories/ChatRepository";
 import { MessageRepository } from "@avenir/domain/repositories/MessageRepository";
+import { UserRepository } from "@avenir/domain/repositories/UserRepository";
 import { GetChatsRequest } from "../../requests";
 import { ChatResponse } from "../../responses";
 import { Chat } from "@avenir/domain/entities/Chat";
 import { UserRole } from "@avenir/domain/enumerations/UserRole";
 import { ChatStatus } from "@avenir/domain/enumerations/ChatStatus";
+import { UserNotFoundError } from "@avenir/domain/errors";
 
 export class GetChatsUseCase {
     constructor(
         private readonly chatRepository: ChatRepository,
         private readonly messageRepository: MessageRepository,
+        private readonly userRepository: UserRepository
     ) {}
 
     async execute(request: GetChatsRequest): Promise<ChatResponse[]> {
-        let chats: Chat[] = [];
+        const user = await this.userRepository.getById(request.userId);
+        if (!user) {
+            throw new UserNotFoundError(`User with id ${request.userId} not found`);
+        }
 
-        switch (request.userRole) {
+        let chats: Chat[];
+
+        switch (user.role) {
             case UserRole.CLIENT:
                 chats = await this.chatRepository.getByClientId(request.userId);
                 break;
@@ -34,6 +42,12 @@ export class GetChatsUseCase {
                 chats = [];
         }
 
+        let advisorClientIds: Set<string> = new Set();
+        if (user.role === UserRole.ADVISOR) {
+            const advisorClients = await this.userRepository.getClientsByAdvisorId(request.userId);
+            advisorClientIds = new Set(advisorClients.map(client => client.id));
+        }
+
         const chatResponses = await Promise.all(
             chats.map(async (chat: Chat) => {
                 const messages = await this.messageRepository.getByChatId(chat.id);
@@ -42,7 +56,9 @@ export class GetChatsUseCase {
                 ).length;
 
                 chat.messages.push(...messages);
-                return ChatResponse.fromChat(chat, unreadCount);
+
+                const isMyClient = advisorClientIds.has(chat.client.id);
+                return ChatResponse.fromChat(chat, unreadCount, isMyClient);
             })
         );
 

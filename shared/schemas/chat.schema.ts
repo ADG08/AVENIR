@@ -14,24 +14,16 @@ const idSchema = z.string().min(1, 'ID cannot be empty').refine(
 
 // SCHÉMAS DE VALIDATION CHAT
 export const createChatSchema = z.object({
-    clientId: idSchema,
     initialMessage: z.string().min(1, 'Initial message cannot be empty').max(5000, 'Message is too long'),
 });
 
 export const sendMessageSchema = z.object({
     chatId: idSchema,
-    senderId: idSchema,
     content: z.string().min(1, 'Message cannot be empty').max(5000, 'Message is too long'),
-});
-
-export const getChatsSchema = z.object({
-    userId: idSchema,
-    userRole: z.enum(['CLIENT', 'ADVISOR', 'DIRECTOR']),
 });
 
 export const getChatByIdSchema = z.object({
     chatId: idSchema,
-    userId: idSchema,
 });
 
 export const transferChatSchema = z.object({
@@ -45,19 +37,15 @@ export const markMessageAsReadSchema = z.object({
 
 export const markChatMessagesAsReadSchema = z.object({
     chatId: idSchema,
-    userId: idSchema,
 });
 
 export const closeChatSchema = z.object({
     chatId: idSchema,
-    userId: idSchema,
-    userRole: z.enum(UserRole),
 });
 
 
 export type CreateChatInput = z.infer<typeof createChatSchema>;
 export type SendMessageInput = z.infer<typeof sendMessageSchema>;
-export type GetChatsInput = z.infer<typeof getChatsSchema>;
 export type GetChatByIdInput = z.infer<typeof getChatByIdSchema>;
 export type TransferChatInput = z.infer<typeof transferChatSchema>;
 export type MarkMessageAsReadInput = z.infer<typeof markMessageAsReadSchema>;

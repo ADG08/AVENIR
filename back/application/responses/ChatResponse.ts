@@ -5,6 +5,7 @@ export class ChatResponse {
         readonly id: string,
         readonly clientId: string,
         readonly clientName: string,
+        readonly isMyClient: boolean,
         readonly advisorId: string | null,
         readonly advisorName: string | null,
         readonly status: string,
@@ -15,7 +16,7 @@ export class ChatResponse {
         readonly updatedAt: Date,
     ) {}
 
-    static fromChat(chat: Chat, unreadCount: number = 0): ChatResponse {
+    static fromChat(chat: Chat, unreadCount: number = 0, isMyClient: boolean = false): ChatResponse {
         const lastMessage = chat.messages.length > 0
             ? chat.messages[chat.messages.length - 1]
             : null;
@@ -24,6 +25,7 @@ export class ChatResponse {
             chat.id,
             chat.client.id,
             `${chat.client.firstName} ${chat.client.lastName}`,
+            isMyClient,
             chat.advisor?.id || null,
             chat.advisor ? `${chat.advisor.firstName} ${chat.advisor.lastName}` : null,
             chat.status,
