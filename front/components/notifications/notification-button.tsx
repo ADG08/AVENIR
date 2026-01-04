@@ -29,8 +29,23 @@ export const NotificationButton = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedNotification, setSelectedNotification] = useState<Notification | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [openUpwards, setOpenUpwards] = useState(false);
 
   useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+
+    const checkSpace = () => {
+      const windowWidth = window.innerWidth;
+      setOpenUpwards(windowWidth < 768);
+    };
+
+    checkSpace();
+    window.addEventListener('resize', checkSpace);
+
     const loadNotifications = async () => {
       if (!currentUser) return;
 
@@ -46,7 +61,13 @@ export const NotificationButton = () => {
     };
 
     loadNotifications();
-  }, [currentUser]);
+
+    // Cleanup
+    return () => {
+      document.body.style.overflow = '';
+      window.removeEventListener('resize', checkSpace);
+    };
+  }, [isOpen, currentUser]);
 
   useEffect(() => {
     const unsubscribe = subscribe((event) => {
@@ -186,7 +207,10 @@ export const NotificationButton = () => {
   return (
     <div className="relative">
       <button
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={(e) => {
+          e.stopPropagation();
+          setIsOpen(!isOpen);
+        }}
         className="relative flex h-10 w-10 items-center justify-center rounded-full transition-colors hover:bg-gray-100"
         aria-label="Notifications"
       >
@@ -215,7 +239,9 @@ export const NotificationButton = () => {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 10, scale: 0.95 }}
               transition={{ duration: 0.2 }}
-              className="absolute right-0 top-full z-60 mt-2 w-96 rounded-2xl border border-gray-200 bg-white shadow-2xl"
+              className={`fixed md:absolute left-4 right-4 md:left-auto md:right-0 z-60 mt-2 md:w-96 rounded-2xl border border-gray-200 bg-white shadow-2xl max-w-md mx-auto md:mx-0 ${
+                openUpwards ? 'bottom-16 md:bottom-auto md:top-full' : 'top-16 md:top-full'
+              }`}
             >
               <div className="border-b border-gray-200 p-4">
                 <div className="flex items-center justify-between">

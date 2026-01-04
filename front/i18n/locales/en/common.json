@@ -500,7 +500,9 @@
       "publishing": "Publishing...",
       "cancel": "Cancel",
       "success": "News published successfully",
-      "error": "Error publishing news"
+      "successDescription": "News \"{{title}}\" published successfully",
+      "error": "Error publishing news",
+      "errorDescription": "Error during creation"
     },
     "delete": {
       "title": "Delete news",
@@ -509,7 +511,20 @@
       "warning": "This action is irreversible.",
       "confirm": "Delete",
       "deleting": "Deleting...",
-      "success": "News deleted successfully"
+      "success": "News deleted successfully",
+      "successDescription": "\"{{title}}\" has been deleted",
+      "error": "Unable to delete news",
+      "errorTitle": "Error"
+    },
+    "errors": {
+      "loadingNews": "Unable to load news",
+      "loadingError": "Error"
+    },
+    "toast": {
+      "newNewsCreated": "New news",
+      "newNewsCreatedDescription": "{{authorName}} published a new news article",
+      "newsDeleted": "News deleted",
+      "newsDeletedDescription": "A news article has been deleted"
     }
   },
   "chat": {

@@ -500,7 +500,9 @@
       "publishing": "Publication...",
       "cancel": "Annuler",
       "success": "Actualité publiée avec succès",
-      "error": "Erreur lors de la publication"
+      "successDescription": "Actualité \"{{title}}\" publiée avec succès",
+      "error": "Erreur lors de la publication",
+      "errorDescription": "Erreur lors de la création"
     },
     "delete": {
       "title": "Supprimer l'actualité",
@@ -509,7 +511,20 @@
       "warning": "Cette action est irréversible.",
       "confirm": "Supprimer",
       "deleting": "Suppression...",
-      "success": "Actualité supprimée avec succès"
+      "success": "Actualité supprimée avec succès",
+      "successDescription": "\"{{title}}\" a été supprimée",
+      "error": "Impossible de supprimer l'actualité",
+      "errorTitle": "Erreur"
+    },
+    "errors": {
+      "loadingNews": "Impossible de charger les actualités",
+      "loadingError": "Erreur"
+    },
+    "toast": {
+      "newNewsCreated": "Nouvelle actualité",
+      "newNewsCreatedDescription": "{{authorName}} a publié une nouvelle actualité",
+      "newsDeleted": "Actualité supprimée",
+      "newsDeletedDescription": "Une actualité a été supprimée"
     }
   },
   "chat": {

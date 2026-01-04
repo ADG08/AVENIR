@@ -47,15 +47,6 @@ export default function ClientsPage() {
       const clientsList = mapAdvisorClientsToClientDetails(advisorClients, currentUser.id);
 
       setClients(clientsList);
-      const clientIdFromStorage = sessionStorage.getItem('openClientId');
-      if (clientIdFromStorage && clientsList.length > 0) {
-        const clientToOpen = clientsList.find(c => c.id === clientIdFromStorage);
-        if (clientToOpen) {
-          setSelectedClient(clientToOpen);
-          setIsDetailsModalOpen(true);
-          sessionStorage.removeItem('openClientId');
-        }
-      }
     } catch {
       toast({
         title: t('clients.errors.loadingClients'),
@@ -68,8 +59,23 @@ export default function ClientsPage() {
 
   useEffect(() => {
     void loadClients();
+  }, [loadClients]);
 
-    // Écouter les événements SSE pour les mises à jour de crédits
+  // Gestion de l'ouverture automatique d'un client depuis sessionStorage
+  useEffect(() => {
+    const clientIdFromStorage = sessionStorage.getItem('openClientId');
+    if (clientIdFromStorage && clients.length > 0) {
+      const clientToOpen = clients.find(c => c.id === clientIdFromStorage);
+      if (clientToOpen) {
+        setSelectedClient(clientToOpen);
+        setIsDetailsModalOpen(true);
+        sessionStorage.removeItem('openClientId');
+      }
+    }
+  }, [clients]);
+
+  // Écoute des événements SSE pour les mises à jour de crédits en temps réel
+  useEffect(() => {
     const unsubscribeFromSSE = subscribe((event) => {
       if (event.type === SSEEventType.LOAN_CREATED && currentUser && isLoanCreatedPayload(event.data)) {
         try {
@@ -128,7 +134,7 @@ export default function ClientsPage() {
     });
 
     return () => unsubscribeFromSSE();
-  }, [loadClients, subscribe, currentUser]);
+  }, [subscribe, currentUser]);
 
   const handleClientClick = (client: ClientWithDetails) => {
     setSelectedClient(client);
