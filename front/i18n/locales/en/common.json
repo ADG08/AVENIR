@@ -603,6 +603,15 @@
     "notAvailable": "The notification is no longer available.",
     "errorOpening": "Unable to open notification. Please try again.",
     "upToDate": "You're all caught up!",
+    "time": {
+      "now": "Just now",
+      "minutesAgo_one": "{{count}} minute ago",
+      "minutesAgo_other": "{{count}} minutes ago",
+      "hoursAgo_one": "{{count}} hour ago",
+      "hoursAgo_other": "{{count}} hours ago",
+      "daysAgo_one": "{{count}} day ago",
+      "daysAgo_other": "{{count}} days ago"
+    },
     "type": {
       "info": "Information",
       "warning": "Warning",
@@ -611,12 +620,18 @@
       "loan": "Loan"
     },
     "loan": {
+      "newLoanCreated": "New loan granted",
+      "newLoanCreatedMessage": "Your advisor {{advisorName}} has granted you a new loan \"{{loanName}}\" of €{{amount}}.",
       "delivered": "Loan delivered",
       "deliveredMessage": "The amount of €{{amount}} from your loan \"{{loanName}}\" has been credited to your account.",
       "paymentCollected": "Monthly payment collected",
       "paymentCollectedMessage": "The monthly payment of €{{amount}} for your loan \"{{loanName}}\" has been collected. Remaining balance: €{{remaining}}",
       "paymentRecovered": "Payment recovered",
       "paymentRecoveredMessage": "The payment of €{{amount}} for your loan \"{{loanName}}\" was successfully completed. Your loan is now active again. Remaining balance: €{{remaining}}",
+      "paymentFailed": "Payment failed",
+      "paymentFailedMessage": "The debit of €{{amount}} for your loan \"{{loanName}}\" could not be processed due to insufficient balance. If you do not contact your advisor from the Contact page to rectify the situation, a new debit attempt will automatically be made on the next scheduled due date.",
+      "manualProcessing": "Manual processing initiated",
+      "manualProcessingMessage": "Your advisor {{advisorName}} has initiated manual processing for your loan \"{{loanName}}\".",
       "completed": "Loan repaid",
       "completedMessage": "Congratulations! Your loan \"{{loanName}}\" is fully repaid."
     }

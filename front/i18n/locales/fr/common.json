@@ -604,6 +604,15 @@
     "notAvailable": "La notification n'est plus disponible.",
     "errorOpening": "Impossible d'ouvrir la notification. Veuillez réessayer.",
     "upToDate": "Vous êtes à jour !",
+    "time": {
+      "now": "À l'instant",
+      "minutesAgo_one": "Il y a {{count}} minute",
+      "minutesAgo_other": "Il y a {{count}} minutes",
+      "hoursAgo_one": "Il y a {{count}} heure",
+      "hoursAgo_other": "Il y a {{count}} heures",
+      "daysAgo_one": "Il y a {{count}} jour",
+      "daysAgo_other": "Il y a {{count}} jours"
+    },
     "type": {
       "info": "Information",
       "warning": "Avertissement",
@@ -612,12 +621,18 @@
       "loan": "Crédit"
     },
     "loan": {
+      "newLoanCreated": "Nouveau crédit accordé",
+      "newLoanCreatedMessage": "Votre conseiller {{advisorName}} vous a accordé un nouveau crédit \"{{loanName}}\" de {{amount}}€.",
       "delivered": "Crédit versé",
       "deliveredMessage": "Le montant de {{amount}}€ de votre crédit \"{{loanName}}\" a été crédité sur votre compte.",
       "paymentCollected": "Mensualité prélevée",
       "paymentCollectedMessage": "La mensualité de {{amount}}€ pour votre crédit \"{{loanName}}\" a été prélevée. Reste à payer : {{remaining}}€",
       "paymentRecovered": "Paiement rattrapé",
       "paymentRecoveredMessage": "Le paiement de {{amount}}€ pour votre crédit \"{{loanName}}\" a été effectué avec succès. Votre crédit est de nouveau actif. Reste à payer : {{remaining}}€",
+      "paymentFailed": "Échéance impayée",
+      "paymentFailedMessage": "Le prélèvement de {{amount}}€ pour votre crédit \"{{loanName}}\" n'a pas pu être effectué en raison d'un solde insuffisant. Si vous ne contactez pas votre conseiller depuis la page Contact pour régulariser votre situation, un nouvel essai de prélèvement sera automatiquement effectué à la prochaine date d'échéance prévue.",
+      "manualProcessing": "Traitement manuel lancé",
+      "manualProcessingMessage": "Votre conseiller {{advisorName}} a lancé un traitement manuel pour votre crédit \"{{loanName}}\".",
       "completed": "Crédit remboursé",
       "completedMessage": "Félicitations ! Votre crédit \"{{loanName}}\" est entièrement remboursé."
     }

@@ -27,7 +27,6 @@ export class LoanResponse {
   ) {}
 
   static fromLoan(loan: Loan): LoanResponse {
-    // TODO : Calculer la date de fin : disbursedAt + duration + 1 mois (car première mensualité à 30 jours)
     let endDate: Date | undefined;
     if (loan.deliveredAt) {
       endDate = new Date(loan.deliveredAt);

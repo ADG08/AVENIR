@@ -9,6 +9,7 @@ import { News } from '@/types/news';
 import { NotificationType } from '@avenir/shared/enums';
 import { useTranslation } from 'react-i18next';
 import { getNewsById } from '@/lib/api/news.api';
+import { translateNotification } from '@/lib/notification-translator';
 
 interface NotificationDetailModalProps {
   isOpen: boolean;
@@ -64,6 +65,8 @@ export const NotificationDetailModal = ({
   }, [notification?.newsId, isOpen, onNewsNotFound, onClose]);
 
   if (!notification) return null;
+
+  const translatedNotification = translateNotification(notification.title, notification.message, t);
 
   const getNotificationIcon = (type: NotificationType) => {
     switch (type) {
@@ -130,7 +133,7 @@ export const NotificationDetailModal = ({
                   </div>
                   <div className="min-w-0 flex-1">
                     <h2 className="text-xl font-bold text-gray-900">
-                      {news ? news.title : notification.title}
+                      {news ? news.title : translatedNotification.title}
                     </h2>
                     {(news?.authorName || notification.advisorName) && (
                       <p className="mt-1 text-sm text-gray-600">
@@ -169,7 +172,7 @@ export const NotificationDetailModal = ({
                   </div>
                 ) : (
                   <p className="whitespace-pre-wrap text-gray-700">
-                    {notification.message}
+                    {translatedNotification.message}
                   </p>
                 )}
               </div>

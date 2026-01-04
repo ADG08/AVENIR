@@ -42,17 +42,11 @@ export class CreateLoanUseCase {
     const now = new Date();
     const paidAmount = 0;
 
-    // MODE TEST (actuellement actif)
-    // La première échéance est dans 2 minutes pour faciliter les tests
+    // La première échéance : 1er du mois suivant à 10h00
     const nextPayment = new Date(now);
-    nextPayment.setMinutes(nextPayment.getMinutes() + 2);
-
-    // TODO : A faire pour la vraie version
-    // La première échéance sera le 1er du mois suivant la création du crédit
-    // const nextPayment = new Date(now);
-    // nextPayment.setMonth(nextPayment.getMonth() + 1);
-    // nextPayment.setDate(1);
-    // nextPayment.setHours(0, 0, 0, 0);
+    nextPayment.setMonth(nextPayment.getMonth() + 1);
+    nextPayment.setDate(1);
+    nextPayment.setHours(10, 0, 0, 0);
 
     const loan = new Loan(
       randomUUID(),

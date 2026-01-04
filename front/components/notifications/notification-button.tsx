@@ -16,7 +16,8 @@ import {
   markAllNotificationsAsRead,
   deleteNotification as deleteNotificationApi,
 } from '@/lib/api/notification.api';
-import {useTranslation} from "react-i18next";
+import { useTranslation } from "react-i18next";
+import { translateNotification } from '@/lib/notification-translator';
 
 export const NotificationButton = () => {
   const { user: currentUser } = useAuth();
@@ -168,14 +169,18 @@ export const NotificationButton = () => {
         month: 'short',
       });
     } else if (days > 0) {
-      return `Il y a ${days} jour${days > 1 ? 's' : ''}`;
+      return (t('notifications.time.daysAgo', { count: days }));
     } else if (hours > 0) {
-      return `Il y a ${hours} heure${hours > 1 ? 's' : ''}`;
+      return (t('notifications.time.hoursAgo', { count: hours }));
     } else if (minutes > 0) {
-      return `Il y a ${minutes} minute${minutes > 1 ? 's' : ''}`;
+      return (t('notifications.time.minutesAgo', { count: minutes }));
     } else {
-      return "À l'instant";
+      return t('notifications.time.now');
     }
+  };
+
+  const getTranslatedNotification = (notification: Notification) => {
+    return translateNotification(notification.title, notification.message, t);
   };
 
   return (
@@ -245,7 +250,9 @@ export const NotificationButton = () => {
                   </div>
                 ) : (
                   <div className="divide-y divide-gray-100">
-                    {notifications.map((notification) => (
+                    {notifications.map((notification) => {
+                      const translated = getTranslatedNotification(notification);
+                      return (
                       <motion.div
                         key={notification.id}
                         initial={{ opacity: 0, x: -20 }}
@@ -265,7 +272,7 @@ export const NotificationButton = () => {
                           <div className="min-w-0 flex-1">
                             <div className="flex items-start justify-between gap-2">
                               <h4 className="line-clamp-1 text-sm font-semibold text-gray-900">
-                                {notification.title}
+                                {translated.title}
                               </h4>
                               <button
                                 onClick={(e) => {
@@ -278,7 +285,7 @@ export const NotificationButton = () => {
                               </button>
                             </div>
                             <p className="mt-1 line-clamp-2 text-sm text-gray-600">
-                              {notification.message}
+                              {translated.message}
                             </p>
                             {notification.advisorName && (
                               <p className="mt-1 text-xs text-gray-500">
@@ -295,7 +302,7 @@ export const NotificationButton = () => {
                           )}
                         </div>
                       </motion.div>
-                    ))}
+                    );})}
                   </div>
                 )}
               </div>

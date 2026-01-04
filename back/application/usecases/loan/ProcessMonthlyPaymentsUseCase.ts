@@ -1,12 +1,12 @@
-import {LoanRepository} from '../../../domain/repositories/LoanRepository';
-import {AccountRepository} from '../../../domain/repositories/AccountRepository';
-import {CreateNotificationUseCase} from '../notification/CreateNotificationUseCase';
-import {NotificationType} from '@avenir/shared/enums/NotificationType';
-import {Loan} from '../../../domain/entities/Loan';
-import {Account} from '../../../domain/entities/Account';
-import {SSEService} from '../../../infrastructure/adapters/services/SSEService';
-import {LoanResponse} from '../../responses/LoanResponse';
-import {LoanStatus} from "@avenir/shared/enums/LoanStatus";
+import { LoanRepository } from '../../../domain/repositories/LoanRepository';
+import { AccountRepository } from '../../../domain/repositories/AccountRepository';
+import { CreateNotificationUseCase } from '../notification/CreateNotificationUseCase';
+import { NotificationType } from '@avenir/shared/enums/NotificationType';
+import { Loan } from '../../../domain/entities/Loan';
+import { Account } from '../../../domain/entities/Account';
+import { SSEService } from '../../../infrastructure/adapters/services/SSEService';
+import { LoanResponse } from '../../responses/LoanResponse';
+import { LoanStatus } from "@avenir/shared/enums/LoanStatus";
 import {AccountType} from "@avenir/shared/enums/AccountType";
 
 export class ProcessMonthlyPaymentsUseCase {
@@ -121,22 +121,15 @@ export class ProcessMonthlyPaymentsUseCase {
         const newPaidAmount = loan.paidAmount + loan.monthlyPayment;
         const isCompleted = newPaidAmount >= loan.totalCost;
 
+        // Configuration de la prochaine échéance au 1er du mois à 10h00
         let nextPayment: Date | undefined;
         if (!isCompleted) {
-            // MODE TEST (actuellement actif)
-            // La prochaine échéance est dans 2 minutes pour faciliter les tests
             nextPayment = new Date();
-            nextPayment.setMinutes(nextPayment.getMinutes() + 2);
-
-            // TODO : A faire après
-            // La prochaine échéance sera le 1er du mois suivant
-            // nextPayment = new Date();
-            // nextPayment.setMonth(nextPayment.getMonth() + 1);
-            // nextPayment.setDate(1);
-            // nextPayment.setHours(0, 0, 0, 0);
+            nextPayment.setMonth(nextPayment.getMonth() + 1);
+            nextPayment.setDate(1);
+            nextPayment.setHours(10, 0, 0, 0);
         }
 
-        // Déterminer le statut
         const newStatus = isCompleted ? LoanStatus.COMPLETED : LoanStatus.ACTIVE;
 
         // Mettre à jour le crédit
