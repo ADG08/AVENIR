@@ -180,7 +180,7 @@ VALUES
 -- =========================================
 
 -- Comptes pour Clement Tine
-INSERT INTO accounts (id, user_id, iban, name, type, balance, currency, card_number, card_holder_name, card_expiry_date, card_cvv, saving_rate_id, created_at)
+INSERT INTO accounts (id, user_id, iban, name, type, balance, currency, card_number, card_holder_name, card_expiry_date, card_cvv, created_at)
 VALUES
 (
     'e3f6a7b5-9c2d-48e3-bf4a-1d5c9e6a2b7c',
@@ -194,7 +194,6 @@ VALUES
     'CLEMENT TINE',
     '12/29',
     '321',
-    NULL,
     NOW() - INTERVAL '6 months'
 ),
 (
@@ -209,12 +208,11 @@ VALUES
     NULL,
     NULL,
     NULL,
-    NULL,
     NOW() - INTERVAL '6 months'
 ) ON CONFLICT (id) DO NOTHING;
 
 -- Comptes pour Jean Dupont
-INSERT INTO accounts (id, user_id, iban, name, type, balance, currency, card_number, card_holder_name, card_expiry_date, card_cvv, saving_rate_id, created_at)
+INSERT INTO accounts (id, user_id, iban, name, type, balance, currency, card_number, card_holder_name, card_expiry_date, card_cvv, created_at)
 VALUES
 (
     'a5b8c9d7-1e4f-0a5b-2c6d-3f7e1a8b4c9e',
@@ -228,12 +226,11 @@ VALUES
     'JEAN DUPONT',
     '03/30',
     '654',
-    NULL,
     NOW() - INTERVAL '3 months'
 ) ON CONFLICT (id) DO NOTHING;
 
 -- Comptes pour Emma Leroy
-INSERT INTO accounts (id, user_id, iban, name, type, balance, currency, card_number, card_holder_name, card_expiry_date, card_cvv, saving_rate_id, created_at)
+INSERT INTO accounts (id, user_id, iban, name, type, balance, currency, card_number, card_holder_name, card_expiry_date, card_cvv, created_at)
 VALUES
 (
     'b6c9d0e8-2f5a-1b6c-3d7e-4a8f2b9c5d0f',
@@ -247,7 +244,6 @@ VALUES
     'EMMA LEROY',
     '07/29',
     '987',
-    NULL,
     NOW() - INTERVAL '2 months'
 ),
 (
@@ -262,12 +258,11 @@ VALUES
     NULL,
     NULL,
     NULL,
-    NULL,
     NOW() - INTERVAL '2 months'
 ) ON CONFLICT (id) DO NOTHING;
 
 -- Compte pour Hugo Laurent
-INSERT INTO accounts (id, user_id, iban, name, type, balance, currency, card_number, card_holder_name, card_expiry_date, card_cvv, saving_rate_id, created_at)
+INSERT INTO accounts (id, user_id, iban, name, type, balance, currency, card_number, card_holder_name, card_expiry_date, card_cvv, created_at)
 VALUES
 (
     'd8e1f2a0-4b7c-3d8e-5f9a-6c0d4e7b1f3a',
@@ -281,7 +276,6 @@ VALUES
     'HUGO LAURENT',
     '09/30',
     '456',
-    NULL,
     NOW() - INTERVAL '1 week'
 ) ON CONFLICT (id) DO NOTHING;
 

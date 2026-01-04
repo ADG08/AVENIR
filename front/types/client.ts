@@ -18,6 +18,7 @@ export interface ClientLoan {
   monthsPaid?: number;
   startDate: Date;
   endDate: Date;
+  nextPaymentDate?: Date;
   status: LoanStatus;
   createdAt: Date;
 }

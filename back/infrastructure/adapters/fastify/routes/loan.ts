@@ -23,4 +23,12 @@ export async function loanRoutes(
       return loanController.getClientLoans(request as any, reply);
     }
   );
+
+  fastify.post(
+  '/loans/process-payments',
+    { preHandler: authMiddleware },
+    async (request: FastifyRequest, reply: FastifyReply) => {
+      return loanController.processManualPayment(request, reply);
+    }
+  );
 }

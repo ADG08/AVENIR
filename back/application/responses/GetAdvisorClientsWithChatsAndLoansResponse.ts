@@ -3,6 +3,10 @@ export interface ClientChatResponse {
     status: string;
     createdAt: Date;
     updatedAt: Date;
+    firstMessage?: {
+        id: string;
+        content: string;
+    };
 }
 
 export interface ClientLoanResponse {
@@ -21,6 +25,9 @@ export interface ClientLoanResponse {
     progressPercentage: number;
     monthsPaid: number;
     status: string;
+    startDate: Date;
+    endDate: Date;
+    nextPaymentDate?: Date;
     createdAt: Date;
     updatedAt: Date;
 }

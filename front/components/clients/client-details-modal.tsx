@@ -1,12 +1,17 @@
 'use client';
 
+import React, {useState, useEffect} from 'react';
 import {ClientWithDetails} from '@/types/client';
 import {AnimatePresence, motion} from 'framer-motion';
-import {Bell, Calendar, ChevronDown, MessageCircle, TrendingUp, X} from 'lucide-react';
+import {Bell, Calendar, ChevronDown, MessageCircle, TrendingUp, X, RefreshCw} from 'lucide-react';
 import {useTranslation} from 'react-i18next';
 import {useRouter} from 'next/navigation';
-import {useState} from 'react';
-import {ChatStatus, LoanStatus} from "@avenir/shared/enums";
+import {ChatStatus, LoanStatus, UserState} from "@avenir/shared/enums";
+import {useSSE, SSEEventType, isLoanCreatedPayload} from '@/contexts/SSEContext';
+import {mapSSELoanToLoanApiResponse} from '@/lib/mapping/sse.mapping';
+import {mapLoansApiResponseToClientLoans} from '@/lib/mapping/loan.mapping';
+import {processManualPayment} from '@/lib/api/loan.api';
+import {useToast} from '@/hooks/use-toast';
 
 interface ClientDetailsModalProps {
   isOpen: boolean;
@@ -14,6 +19,7 @@ interface ClientDetailsModalProps {
   client: ClientWithDetails | null;
   onSendNotification: () => void;
   onGrantLoan: () => void;
+  onClientUpdate?: (updatedClient: ClientWithDetails) => void;
 }
 
 export const ClientDetailsModal = ({
@@ -22,13 +28,105 @@ export const ClientDetailsModal = ({
   client,
   onSendNotification,
   onGrantLoan,
+  onClientUpdate,
 }: ClientDetailsModalProps) => {
   const { t } = useTranslation();
   const router = useRouter();
+  const { subscribe } = useSSE();
+  const { toast } = useToast();
   const [isLoansOpen, setIsLoansOpen] = useState(true);
   const [isChatsOpen, setIsChatsOpen] = useState(true);
+  const [showCompletedLoans, setShowCompletedLoans] = useState(false);
+  const [showClosedChats, setShowClosedChats] = useState(false);
+  const [loanSearchQuery, setLoanSearchQuery] = useState('');
+  const [displayedClient, setDisplayedClient] = useState<ClientWithDetails | null>(client);
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
 
-  if (!client) return null;
+  const handleManualPayment = async () => {
+    try {
+      setIsProcessingPayment(true);
+      await processManualPayment();
+
+      toast({
+        title: t('clients.loan.manualPaymentSuccess'),
+        description: t('clients.loan.manualPaymentSuccessDescription'),
+      });
+    } catch (error) {
+      toast({
+        title: t('clients.loan.manualPaymentError'),
+        description: error instanceof Error ? error.message : t('clients.loan.manualPaymentErrorDescription'),
+        variant: 'destructive',
+      });
+    } finally {
+      setIsProcessingPayment(false);
+    }
+  };
+
+  useEffect(() => {
+    // Synchroniser avec la prop client
+    if (client) {
+      queueMicrotask(() => {
+        setDisplayedClient(client);
+      });
+    }
+
+    if (!client?.id) {
+      return;
+    }
+
+    const clientId = client.id;
+
+    const callback = (event: any) => {
+      if (event.type === SSEEventType.LOAN_CREATED && isLoanCreatedPayload(event.data)) {
+        const loanPayload = mapSSELoanToLoanApiResponse(event.data);
+
+        if (loanPayload.clientId !== clientId) {
+          return;
+        }
+
+        const updatedLoan = mapLoansApiResponseToClientLoans([loanPayload], clientId)[0];
+        setDisplayedClient(prevClient => {
+          if (!prevClient) {
+            return null;
+          }
+
+          const existingLoanIndex = prevClient.loans.findIndex(loan => loan.id === updatedLoan.id);
+          let updatedLoans;
+
+          if (existingLoanIndex >= 0) {
+            updatedLoans = [...prevClient.loans];
+            updatedLoans[existingLoanIndex] = updatedLoan;
+          } else {
+            updatedLoans = [updatedLoan, ...prevClient.loans];
+          }
+
+          // Trier par date de création
+          updatedLoans.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+          const updatedClient = {
+            ...prevClient,
+            loans: updatedLoans
+          };
+
+          if (onClientUpdate) {
+            queueMicrotask(() => {
+              onClientUpdate(updatedClient);
+            });
+          }
+
+          return updatedClient;
+        });
+      }
+    };
+
+    const unsubscribe = subscribe(callback);
+    return () => {
+      unsubscribe();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [client?.id, subscribe]);
+
+  if (!displayedClient) return null;
 
   const formatDate = (date: Date) => {
     return new Date(date).toLocaleDateString('fr-FR', {
@@ -80,20 +178,38 @@ export const ClientDetailsModal = ({
                     {/* Avatar */}
                     <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-blue-500 to-blue-600 text-white shadow-lg">
                       <span className="text-2xl font-bold">
-                        {client.firstName[0]}
-                        {client.lastName[0]}
+                        {displayedClient.firstName[0]}
+                        {displayedClient.lastName[0]}
                       </span>
                     </div>
 
                     {/* Informations */}
                     <div>
-                      <h2 className="text-2xl font-bold text-gray-900">
-                        {client.firstName} {client.lastName}
-                      </h2>
-                      <p className="mt-1 text-sm text-gray-500">{client.email}</p>
+                      <div className="flex items-center gap-2">
+                        <h2 className="text-2xl font-bold text-gray-900">
+                          {displayedClient.firstName} {displayedClient.lastName}
+                        </h2>
+                        {/* Badge d'état du client */}
+                        <span
+                          className={`rounded-full px-3 py-1 text-xs font-medium ${
+                            displayedClient.state === UserState.ACTIVE
+                              ? 'bg-green-100 text-green-700'
+                              : displayedClient.state === UserState.INACTIVE
+                              ? 'bg-orange-100 text-orange-700'
+                              : 'bg-red-100 text-red-700'
+                          }`}
+                        >
+                          {displayedClient.state === UserState.ACTIVE
+                            ? t('clients.state.active')
+                            : displayedClient.state === UserState.INACTIVE
+                            ? t('clients.state.inactive')
+                            : t('clients.state.banned')}
+                        </span>
+                      </div>
+                      <p className="mt-1 text-sm text-gray-500">{displayedClient.email}</p>
                       <p className="mt-1 flex items-center gap-1 text-xs text-gray-400">
                         <Calendar className="h-3 w-3" />
-                        {t('clients.clientSince')} {formatDate(client.clientSince)}
+                        {t('clients.clientSince')} {formatDate(displayedClient.clientSince)}
                       </p>
                     </div>
                   </div>
@@ -129,27 +245,43 @@ export const ClientDetailsModal = ({
               <div className="p-6 space-y-6">
                 {/* Section Crédits */}
                 <div>
-                  <button
-                    onClick={() => setIsLoansOpen(!isLoansOpen)}
-                    className="mb-4 flex w-full items-center justify-between rounded-lg p-2 transition-colors hover:bg-gray-50"
-                  >
-                    <div className="flex items-center gap-3">
+                  <div className="mb-4 flex items-center justify-between">
+                    <button
+                      onClick={() => setIsLoansOpen(!isLoansOpen)}
+                      className="flex items-center gap-3 rounded-lg p-2 transition-colors hover:bg-gray-50"
+                    >
                       <h3 className="text-lg font-semibold text-gray-900">
                         {t('clients.loansTitle')}
                       </h3>
-                      {client.loans.length > 0 && (
+                      {displayedClient.loans.filter(loan => showCompletedLoans || loan.status !== LoanStatus.COMPLETED).length > 0 && (
                         <span className="rounded-full bg-blue-100 px-3 py-1 text-sm font-medium text-blue-700">
-                          {client.loans.length} {client.loans.length > 1 ? t('clients.loanPlural') : t('clients.loanSingular')}
+                          {displayedClient.loans.filter(loan => showCompletedLoans || loan.status !== LoanStatus.COMPLETED).length}{' '}
+                          {displayedClient.loans.filter(loan => showCompletedLoans || loan.status !== LoanStatus.COMPLETED).length > 1
+                            ? t('clients.loanPlural')
+                            : t('clients.loanSingular')}
                         </span>
                       )}
-                    </div>
-                    <motion.div
-                      animate={{ rotate: isLoansOpen ? 180 : 0 }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      <ChevronDown className="h-5 w-5 text-gray-500" />
-                    </motion.div>
-                  </button>
+                      <motion.div
+                        animate={{ rotate: isLoansOpen ? 180 : 0 }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        <ChevronDown className="h-5 w-5 text-gray-500" />
+                      </motion.div>
+                    </button>
+
+                    {/* Checkbox pour afficher les crédits terminés */}
+                    {displayedClient.loans.some(loan => loan.status === LoanStatus.COMPLETED) && (
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={showCompletedLoans}
+                          onChange={(e) => setShowCompletedLoans(e.target.checked)}
+                          className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500"
+                        />
+                        <span className="text-sm text-gray-600">{t('clients.loan.showCompleted')}</span>
+                      </label>
+                    )}
+                  </div>
 
                   <AnimatePresence>
                     {isLoansOpen && (
@@ -160,8 +292,20 @@ export const ClientDetailsModal = ({
                         transition={{ duration: 0.3 }}
                         style={{ overflow: 'hidden' }}
                       >
+                        {/* Search bar pour filtrer les crédits */}
+                        {displayedClient.loans.length > 0 && (
+                          <div className="mb-4">
+                            <input
+                              type="text"
+                              placeholder={t('clients.loan.searchPlaceholder')}
+                              value={loanSearchQuery}
+                              onChange={(e) => setLoanSearchQuery(e.target.value)}
+                              className="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            />
+                          </div>
+                        )}
 
-                  {client.loans.length === 0 ? (
+                  {displayedClient.loans.filter(loan => showCompletedLoans || loan.status !== LoanStatus.COMPLETED).length === 0 ? (
                     <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50 p-8 text-center">
                       <TrendingUp className="mx-auto h-12 w-12 text-gray-300" />
                       <p className="mt-3 text-sm font-medium text-gray-900">
@@ -173,7 +317,16 @@ export const ClientDetailsModal = ({
                     </div>
                   ) : (
                     <div className="space-y-4">
-                      {client.loans.map((loan) => {
+                      {displayedClient.loans
+                        .filter(loan => showCompletedLoans || loan.status !== LoanStatus.COMPLETED)
+                        .filter(loan => loan.name.toLowerCase().includes(loanSearchQuery.toLowerCase()))
+                        .sort((a, b) => {
+                          // Trier avec COMPLETED en dernier
+                          if (a.status === LoanStatus.COMPLETED && b.status !== LoanStatus.COMPLETED) return 1;
+                          if (a.status !== LoanStatus.COMPLETED && b.status === LoanStatus.COMPLETED) return -1;
+                          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+                        })
+                        .map((loan) => {
                         const progress = loan.progressPercentage || 0;
                         return (
                           <motion.div
@@ -208,12 +361,6 @@ export const ClientDetailsModal = ({
                                   </div>
                                   <p className="mt-1 text-sm text-gray-600">
                                     {t('clients.since')} {formatDate(loan.startDate)}
-                                  </p>
-                                </div>
-                                <div className="text-right">
-                                  <p className="text-xs text-gray-500">{t('clients.loan.monthlyPayment')}</p>
-                                  <p className="text-2xl font-bold text-gray-900">
-                                    {formatCurrency(loan.monthlyPayment)}
                                   </p>
                                 </div>
                               </div>
@@ -264,9 +411,39 @@ export const ClientDetailsModal = ({
                                     initial={{ width: 0 }}
                                     animate={{ width: `${progress}%` }}
                                     transition={{ duration: 1, ease: 'easeOut' }}
-                                    className="h-full rounded-full bg-linear-to-r from-green-500 to-emerald-500"
+                                    className={`h-full rounded-full ${
+                                      loan.status === LoanStatus.COMPLETED
+                                        ? 'bg-linear-to-r from-blue-500 to-blue-600'
+                                        : loan.status === LoanStatus.DEFAULTED
+                                        ? 'bg-linear-to-r from-red-500 to-red-600'
+                                        : 'bg-linear-to-r from-green-500 to-emerald-500'
+                                    }`}
                                   />
                                 </div>
+
+                                {/* Prochaine échéance */}
+                                {loan.nextPaymentDate && loan.status !== LoanStatus.COMPLETED && (
+                                  <div className={`mt-3 rounded-lg border p-3 ${
+                                    loan.status === LoanStatus.DEFAULTED 
+                                      ? 'border-red-200 bg-red-50' 
+                                      : 'border-blue-200 bg-blue-50'
+                                  }`}>
+                                    <p className={`text-xs ${
+                                      loan.status === LoanStatus.DEFAULTED 
+                                        ? 'text-red-600' 
+                                        : 'text-blue-600'
+                                    }`}>
+                                      {t('clients.loan.nextPaymentDate')}
+                                    </p>
+                                    <p className={`mt-1 text-sm font-semibold ${
+                                      loan.status === LoanStatus.DEFAULTED 
+                                        ? 'text-red-900' 
+                                        : 'text-blue-900'
+                                    }`}>
+                                      {formatDate(loan.nextPaymentDate)}
+                                    </p>
+                                  </div>
+                                )}
                               </div>
 
                               {/* Détails supplémentaires */}
@@ -289,6 +466,25 @@ export const ClientDetailsModal = ({
                                   {t('clients.end')}: {new Date(loan.endDate).toLocaleDateString('fr-FR', { month: 'short', year: 'numeric' })}
                                 </div>
                               </div>
+
+                              {/* Bouton de prélèvement manuel pour les crédits en défaut */}
+                              {loan.status === LoanStatus.DEFAULTED && (
+                                <div className="mt-3">
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleManualPayment();
+                                    }}
+                                    disabled={isProcessingPayment}
+                                    className="w-full flex items-center justify-center gap-2 rounded-lg bg-orange-600 px-4 py-2.5 text-sm font-medium text-white transition-all hover:bg-orange-700 disabled:cursor-not-allowed disabled:opacity-50"
+                                  >
+                                    <RefreshCw className={`h-4 w-4 ${isProcessingPayment ? 'animate-spin' : ''}`} />
+                                    {isProcessingPayment
+                                      ? t('clients.loan.processingPayment')
+                                      : t('clients.loan.processManualPayment')}
+                                  </button>
+                                </div>
+                              )}
                             </div>
                           </motion.div>
                         );
@@ -302,27 +498,43 @@ export const ClientDetailsModal = ({
 
                 {/* Discussions actives */}
                 <div>
-                  <button
-                    onClick={() => setIsChatsOpen(!isChatsOpen)}
-                    className="mb-4 flex w-full items-center justify-between rounded-lg p-2 transition-colors hover:bg-gray-50"
-                  >
-                    <div className="flex items-center gap-3">
+                  <div className="mb-4 flex items-center justify-between">
+                    <button
+                      onClick={() => setIsChatsOpen(!isChatsOpen)}
+                      className="flex items-center gap-3 rounded-lg p-2 transition-colors hover:bg-gray-50"
+                    >
                       <h3 className="text-lg font-semibold text-gray-900">
                         {t('clients.activeChats')}
                       </h3>
-                      {client.activeChats.length > 0 && (
+                      {displayedClient.activeChats.filter(chat => showClosedChats || chat.status !== ChatStatus.CLOSED).length > 0 && (
                         <span className="rounded-full bg-purple-100 px-3 py-1 text-sm font-medium text-purple-700">
-                          {client.activeChats.length} {client.activeChats.length > 1 ? t('clients.chatPlural') : t('clients.chatSingular')}
+                          {displayedClient.activeChats.filter(chat => showClosedChats || chat.status !== ChatStatus.CLOSED).length}{' '}
+                          {displayedClient.activeChats.filter(chat => showClosedChats || chat.status !== ChatStatus.CLOSED).length > 1
+                            ? t('clients.chatPlural')
+                            : t('clients.chatSingular')}
                         </span>
                       )}
-                    </div>
-                    <motion.div
-                      animate={{ rotate: isChatsOpen ? 180 : 0 }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      <ChevronDown className="h-5 w-5 text-gray-500" />
-                    </motion.div>
-                  </button>
+                      <motion.div
+                        animate={{ rotate: isChatsOpen ? 180 : 0 }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        <ChevronDown className="h-5 w-5 text-gray-500" />
+                      </motion.div>
+                    </button>
+
+                    {/* Checkbox pour afficher les chats fermés */}
+                    {displayedClient.activeChats.some(chat => chat.status === ChatStatus.CLOSED) && (
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={showClosedChats}
+                          onChange={(e) => setShowClosedChats(e.target.checked)}
+                          className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500"
+                        />
+                        <span className="text-sm text-gray-600">{t('chat.showClosed')}</span>
+                      </label>
+                    )}
+                  </div>
 
                   <AnimatePresence>
                     {isChatsOpen && (
@@ -333,7 +545,7 @@ export const ClientDetailsModal = ({
                         transition={{ duration: 0.3 }}
                         style={{ overflow: 'hidden' }}
                       >
-                  {client.activeChats.length === 0 ? (
+                  {displayedClient.activeChats.filter(chat => showClosedChats || chat.status !== ChatStatus.CLOSED).length === 0 ? (
                     <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50 p-8 text-center">
                       <MessageCircle className="mx-auto h-12 w-12 text-gray-300" />
                       <p className="mt-3 text-sm text-gray-500">
@@ -342,7 +554,9 @@ export const ClientDetailsModal = ({
                     </div>
                   ) : (
                     <div className="space-y-3">
-                      {client.activeChats.map((chat) => (
+                      {displayedClient.activeChats
+                        .filter(chat => showClosedChats || chat.status !== ChatStatus.CLOSED)
+                        .map((chat) => (
                         <motion.div
                           key={chat.id}
                           whileHover={{ scale: 1.01 }}
@@ -350,14 +564,16 @@ export const ClientDetailsModal = ({
                           className="group cursor-pointer rounded-xl border border-gray-200 bg-white p-4 transition-all hover:border-blue-300 hover:shadow-md"
                         >
                           <div className="flex items-start justify-between">
-                            <div className="flex-1">
+                            <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2">
-                                <MessageCircle className="h-5 w-5 text-blue-600" />
-                                <span className="text-sm font-medium text-gray-900">
-                                  {t('clients.conversation')}
-                                </span>
+                                <MessageCircle className="h-5 w-5 text-blue-600 shrink-0" />
+                                <div className="flex-1 min-w-0">
+                                  <span className="text-sm font-medium text-gray-900 block truncate">
+                                    {chat.firstMessage?.content || t('clients.conversation')}
+                                  </span>
+                                </div>
                                 <span
-                                  className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+                                  className={`rounded-full px-2 py-0.5 text-xs font-medium shrink-0 ml-2 ${
                                     chat.status === ChatStatus.PENDING
                                       ? 'bg-amber-100 text-amber-700'
                                       : chat.status === ChatStatus.ACTIVE
@@ -372,13 +588,8 @@ export const ClientDetailsModal = ({
                                     : t('chat.status.closed')}
                                 </span>
                               </div>
-                              {chat.lastMessage && (
-                                <p className="mt-2 text-sm text-gray-600 line-clamp-2">
-                                  {chat.lastMessage.content}
-                                </p>
-                              )}
                             </div>
-                            <div className="ml-4 text-sm text-blue-600 opacity-0 transition-opacity group-hover:opacity-100">
+                            <div className="ml-4 text-sm text-blue-600 opacity-0 transition-opacity group-hover:opacity-100 shrink-0">
                               {t('clients.openChat')} →
                             </div>
                           </div>

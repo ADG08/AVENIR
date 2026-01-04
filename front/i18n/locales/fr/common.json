@@ -394,6 +394,11 @@
     "conversation": "Conversation",
     "chatSingular": "discussion",
     "chatPlural": "discussions",
+    "state": {
+      "active": "Actif",
+      "inactive": "Inactif",
+      "banned": "Banni"
+    },
     "notification": {
       "title": "Envoyer une notification",
       "titlePlaceholder": "Titre de la notification",
@@ -429,6 +434,8 @@
       "progressTitle": "Progression du remboursement",
       "monthsPaid": "mensualités payées",
       "end": "Fin",
+      "nextPayment": "Prochaine échéance",
+      "nextPaymentDate": "Prochaine échéance de remboursement",
       "financialDetails": "Détails financiers",
       "insurance": "Assurance",
       "noLoans": "Aucun crédit en cours",
@@ -453,7 +460,17 @@
       "error": "Erreur lors de l'octroi du crédit",
       "calculate": "Calculer",
       "summary": "Récapitulatif du crédit",
-      "newLoanCreated": "Nouveau crédit octroyé"
+      "newLoanCreated": "Nouveau crédit octroyé",
+      "showCompleted": "Afficher les crédits terminés",
+      "searchPlaceholder": "Rechercher un crédit par nom...",
+      "noResults": "Aucun résultat",
+      "noResultsDescription": "Aucun crédit ne correspond à votre recherche",
+      "processManualPayment": "Tenter un prélèvement",
+      "processingPayment": "Prélèvement en cours...",
+      "manualPaymentSuccess": "Prélèvement effectué",
+      "manualPaymentSuccessDescription": "Le traitement des paiements a été lancé avec succès",
+      "manualPaymentError": "Erreur de prélèvement",
+      "manualPaymentErrorDescription": "Impossible de traiter les paiements"
     },
     "errors": {
       "loadingClients": "Erreur lors du chargement des clients",
@@ -511,8 +528,11 @@
     "noAdvisorAvailable": "En attente d'un conseiller",
     "alreadyAssigned": "Déjà assigné",
     "showClosedConversations": "Afficher les conversations fermées",
+    "showClosed": "Afficher les chats fermés",
     "searchPlaceholder": "Rechercher par nom...",
     "viewClientDetails": "Voir les détails du client",
+    "client": "Client",
+    "you": "Vous",
     "message": {
       "yourMessage": "Votre message",
       "typeYourMessage": "Décrivez votre demande...",
@@ -583,6 +603,23 @@
     "from": "De",
     "notAvailable": "La notification n'est plus disponible.",
     "errorOpening": "Impossible d'ouvrir la notification. Veuillez réessayer.",
-    "upToDate": "Vous êtes à jour !"
+    "upToDate": "Vous êtes à jour !",
+    "type": {
+      "info": "Information",
+      "warning": "Avertissement",
+      "success": "Succès",
+      "news": "Actualité",
+      "loan": "Crédit"
+    },
+    "loan": {
+      "delivered": "Crédit versé",
+      "deliveredMessage": "Le montant de {{amount}}€ de votre crédit \"{{loanName}}\" a été crédité sur votre compte.",
+      "paymentCollected": "Mensualité prélevée",
+      "paymentCollectedMessage": "La mensualité de {{amount}}€ pour votre crédit \"{{loanName}}\" a été prélevée. Reste à payer : {{remaining}}€",
+      "paymentRecovered": "Paiement rattrapé",
+      "paymentRecoveredMessage": "Le paiement de {{amount}}€ pour votre crédit \"{{loanName}}\" a été effectué avec succès. Votre crédit est de nouveau actif. Reste à payer : {{remaining}}€",
+      "completed": "Crédit remboursé",
+      "completedMessage": "Félicitations ! Votre crédit \"{{loanName}}\" est entièrement remboursé."
+    }
   }
 }

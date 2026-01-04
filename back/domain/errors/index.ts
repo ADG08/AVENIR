@@ -14,3 +14,5 @@ export { UnauthorizedAccountAccessError } from "./UnauthorizedAccountAccessError
 export { DuplicateSavingTypeError } from "./DuplicateSavingTypeError";
 export { NewsNotFoundError } from "./NewsNotFoundError";
 export { UnauthorizedNewsAccessError } from "./UnauthorizedNewsAccessError";
+export { LoanNotFoundError } from "./LoanNotFoundError";
+export { ClientHasNoAccountError } from "./ClientHasNoAccountError";

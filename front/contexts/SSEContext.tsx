@@ -46,6 +46,7 @@ export interface SSELoanCreatedPayload {
     insuranceCost: number;
     paidAmount: number;
     status: string;
+    nextPaymentDate?: string;
     createdAt: string;
     updatedAt: string;
 }
@@ -142,7 +143,15 @@ export const SSEProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                         const sseEvent: SSEEvent = { type: eventType, data };
                         console.log(`[SSE] Événement reçu: ${eventType}`, data);
 
-                        subscribersRef.current.forEach(callback => callback(sseEvent));
+                        let callbackIndex = 0;
+                        subscribersRef.current.forEach(callback => {
+                            try {
+                                callback(sseEvent);
+                            } catch (error) {
+                                console.error(`[SSE] Error in subscriber callback #${callbackIndex}:`, error);
+                            }
+                            callbackIndex++;
+                        });
                     } catch (error) {
                         console.error(`[SSE] Erreur lors du parsing de l'événement ${eventType}:`, error);
                     }

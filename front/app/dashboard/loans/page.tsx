@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { DashboardHeader } from '@/components/dashboard-header';
 import { ClientLoan } from '@/types/client';
 import { motion } from 'framer-motion';
@@ -22,6 +22,9 @@ export default function LoansPage() {
   const [activeTab, setActiveTab] = useState('loans');
   const [loans, setLoans] = useState<ClientLoan[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [showCompletedLoans, setShowCompletedLoans] = useState(false);
+  const [loanSearchQuery, setLoanSearchQuery] = useState('');
+  const loansIdsRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     const loadLoans = async () => {
@@ -31,7 +34,10 @@ export default function LoansPage() {
       try {
         const clientLoans = await getClientLoans(currentUser.id);
         const mappedLoans = mapLoansApiResponseToClientLoans(clientLoans, currentUser.id);
-        setLoans(mappedLoans);
+        // Trier par date de création
+        const sortedLoans = mappedLoans.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        setLoans(sortedLoans);
+        loansIdsRef.current = new Set(sortedLoans.map(loan => loan.id));
       } catch {
         toast({
           title: t('clients.loan.error'),
@@ -45,17 +51,25 @@ export default function LoansPage() {
 
     loadLoans();
 
-    // Écouter les événements SSE pour les nouveaux crédits
+    // Écouter les événements SSE pour les nouveaux/mise à jour crédits
     const unsubscribe = subscribe((event) => {
       if (event.type === SSEEventType.LOAN_CREATED && currentUser && isLoanCreatedPayload(event.data)) {
         try {
           const loanPayload = mapSSELoanToLoanApiResponse(event.data);
-          const newLoan = mapLoansApiResponseToClientLoans([loanPayload], currentUser.id)[0];
-          setLoans(prevLoans => [newLoan, ...prevLoans]);
-          toast({
-            title: t('clients.loan.newLoanCreated'),
-            description: `Le crédit "${loanPayload.name}" a été ajouté à votre compte`,
-            variant: 'default',
+          const updatedLoan = mapLoansApiResponseToClientLoans([loanPayload], currentUser.id)[0];
+
+          setLoans(prevLoans => {
+            const existingIndex = prevLoans.findIndex(loan => loan.id === updatedLoan.id);
+
+            if (existingIndex >= 0) {
+              // Mettre à jour le prêt existant
+              const newLoans = [...prevLoans];
+              newLoans[existingIndex] = updatedLoan;
+              return newLoans.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+            } else {
+              loansIdsRef.current.add(updatedLoan.id);
+              return [updatedLoan, ...prevLoans].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+            }
           });
         } catch (error) {
           console.error('Erreur lors du traitement du nouveau crédit:', error);
@@ -126,19 +140,51 @@ export default function LoansPage() {
           animate={{ opacity: 1, y: 0 }}
           className="mb-8"
         >
-          <div className="flex items-center gap-3">
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-linear-to-br from-blue-500 to-indigo-600 shadow-lg">
-              <TrendingUp className="h-7 w-7 text-white" />
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-linear-to-br from-blue-500 to-indigo-600 shadow-lg">
+                <TrendingUp className="h-7 w-7 text-white" />
+              </div>
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900">
+                  {t('dashboard.loans')}
+                </h1>
+                <p className="mt-1 text-gray-600">
+                  {loans.filter(l => l.status !== LoanStatus.COMPLETED).length}{' '}
+                  {loans.filter(l => l.status !== LoanStatus.COMPLETED).length > 1
+                    ? t('clients.loan.loansCountPlural')
+                    : t('clients.loan.loansCount')}{' '}
+                  {t('clients.loan.inProgress')}
+                </p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">
-                {t('dashboard.loans')}
-              </h1>
-              <p className="mt-1 text-gray-600">
-                {loans.length} {loans.length > 1 ? t('clients.loan.loansCountPlural') : t('clients.loan.loansCount')} {t('clients.loan.inProgress')}
-              </p>
-            </div>
+
+            {/* Checkbox pour afficher les crédits terminés */}
+            {loans.some(l => l.status === LoanStatus.COMPLETED) && (
+              <label className="flex items-center gap-2 cursor-pointer rounded-lg bg-white px-4 py-2.5 shadow-sm border border-gray-200 hover:bg-gray-50 transition-colors">
+                <input
+                  type="checkbox"
+                  checked={showCompletedLoans}
+                  onChange={(e) => setShowCompletedLoans(e.target.checked)}
+                  className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500"
+                />
+                <span className="text-sm text-gray-600">{t('clients.loan.showCompleted')}</span>
+              </label>
+            )}
           </div>
+
+          {/* Search bar pour filtrer les crédits */}
+          {loans.length > 0 && (
+            <div className="mt-6">
+              <input
+                type="text"
+                placeholder={t('clients.loan.searchPlaceholder')}
+                value={loanSearchQuery}
+                onChange={(e) => setLoanSearchQuery(e.target.value)}
+                className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+          )}
         </motion.div>
 
         {/* Liste des crédits */}
@@ -151,7 +197,9 @@ export default function LoansPage() {
             <div className="h-12 w-12 animate-spin rounded-full border-4 border-gray-200 border-t-blue-600"></div>
             <p className="mt-4 text-sm text-gray-600">{t('common.loading')}</p>
           </motion.div>
-        ) : loans.length === 0 ? (
+        ) : loans
+            .filter(loan => showCompletedLoans || loan.status !== LoanStatus.COMPLETED)
+            .filter(loan => loan.name.toLowerCase().includes(loanSearchQuery.toLowerCase())).length === 0 ? (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -159,15 +207,24 @@ export default function LoansPage() {
           >
             <TrendingUp className="h-16 w-16 text-gray-300" />
             <h3 className="mt-4 text-lg font-semibold text-gray-900">
-              {t('clients.loan.noLoans')}
+              {loanSearchQuery ? t('clients.loan.noResults') : t('clients.loan.noLoans')}
             </h3>
             <p className="mt-2 text-sm text-gray-500">
-              {t('clients.loan.noLoansDescription')}
+              {loanSearchQuery ? t('clients.loan.noResultsDescription') : t('clients.loan.noLoansDescription')}
             </p>
           </motion.div>
         ) : (
           <div className="space-y-6">
-            {loans.map((loan, index) => {
+            {loans
+              .filter(loan => showCompletedLoans || loan.status !== LoanStatus.COMPLETED)
+              .filter(loan => loan.name.toLowerCase().includes(loanSearchQuery.toLowerCase()))
+              .sort((a, b) => {
+                // Trier avec COMPLETED en dernier
+                if (a.status === LoanStatus.COMPLETED && b.status !== LoanStatus.COMPLETED) return 1;
+                if (a.status !== LoanStatus.COMPLETED && b.status === LoanStatus.COMPLETED) return -1;
+                return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+              })
+              .map((loan, index) => {
               const progress = loan.progressPercentage || 0;
               const monthsPaid = loan.monthsPaid || 0;
 
@@ -278,6 +335,31 @@ export default function LoansPage() {
                         </span>
                         <span>{t('clients.loan.end')}: {formatMonthYear(loan.endDate)}</span>
                       </div>
+
+                      {/* Prochaine échéance */}
+                      {loan.nextPaymentDate && loan.status !== LoanStatus.COMPLETED && (
+                        <div className={`mt-3 flex items-center gap-2 rounded-lg border p-3 ${
+                          loan.status === LoanStatus.DEFAULTED
+                            ? 'border-red-200 bg-red-50'
+                            : 'border-blue-200 bg-blue-50'
+                        }`}>
+                          <Calendar className={`h-4 w-4 ${
+                            loan.status === LoanStatus.DEFAULTED ? 'text-red-600' : 'text-blue-600'
+                          }`} />
+                          <div className="flex-1">
+                            <p className={`text-xs font-medium ${
+                              loan.status === LoanStatus.DEFAULTED ? 'text-red-600' : 'text-blue-600'
+                            }`}>
+                              {t('clients.loan.nextPaymentDate')}
+                            </p>
+                            <p className={`text-sm font-semibold ${
+                              loan.status === LoanStatus.DEFAULTED ? 'text-red-900' : 'text-blue-900'
+                            }`}>
+                              {formatDate(loan.nextPaymentDate)}
+                            </p>
+                          </div>
+                        </div>
+                      )}
                     </div>
 
                     {/* Détails financiers */}

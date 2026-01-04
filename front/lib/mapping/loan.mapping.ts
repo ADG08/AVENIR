@@ -6,8 +6,11 @@ export const mapLoanApiResponseToClientLoan = (
   loan: LoanApiResponse,
   clientId: string
 ): ClientLoan => {
-  const endDate = new Date(loan.createdAt);
-  endDate.setMonth(endDate.getMonth() + loan.duration);
+  const endDate = loan.endDate ? new Date(loan.endDate) : (() => {
+    const date = new Date(loan.createdAt);
+    date.setMonth(date.getMonth() + loan.duration + 1); // +1 pour la première échéance, 1 mois après la création du crédit
+    return date;
+  })();
 
   return {
     id: loan.id,
@@ -27,6 +30,7 @@ export const mapLoanApiResponseToClientLoan = (
     status: loan.status as LoanStatus,
     startDate: loan.createdAt,
     endDate: endDate,
+    nextPaymentDate: loan.nextPaymentDate ? new Date(loan.nextPaymentDate) : undefined,
     createdAt: loan.createdAt,
   };
 };

@@ -165,7 +165,7 @@ VALUES
 -- =========================================
 
 -- Comptes pour Clement Tine
-INSERT INTO accounts (id, user_id, iban, name, type, balance, currency, card_number, card_holder_name, card_expiry_date, card_cvv, saving_rate_id, created_at, updated_at)
+INSERT INTO accounts (id, user_id, iban, name, type, balance, currency, card_number, card_holder_name, card_expiry_date, card_cvv, created_at, updated_at)
 VALUES
 (
     'acc-clement-tine-1',
@@ -195,13 +195,12 @@ VALUES
     NULL,
     NULL,
     NULL,
-    NULL,
     DATE_SUB(NOW(), INTERVAL 6 MONTH),
     NOW()
 ) ON DUPLICATE KEY UPDATE id = id;
 
 -- Comptes pour Jean Dupont
-INSERT INTO accounts (id, user_id, iban, name, type, balance, currency, card_number, card_holder_name, card_expiry_date, card_cvv, saving_rate_id, created_at, updated_at)
+INSERT INTO accounts (id, user_id, iban, name, type, balance, currency, card_number, card_holder_name, card_expiry_date, card_cvv, created_at, updated_at)
 VALUES
 (
     'acc-client-001-1',
@@ -221,7 +220,7 @@ VALUES
 ) ON DUPLICATE KEY UPDATE id = id;
 
 -- Comptes pour Emma Leroy
-INSERT INTO accounts (id, user_id, iban, name, type, balance, currency, card_number, card_holder_name, card_expiry_date, card_cvv, saving_rate_id, created_at, updated_at)
+INSERT INTO accounts (id, user_id, iban, name, type, balance, currency, card_number, card_holder_name, card_expiry_date, card_cvv, created_at, updated_at)
 VALUES
 (
     'acc-client-002-1',
@@ -251,13 +250,12 @@ VALUES
     NULL,
     NULL,
     NULL,
-    NULL,
     DATE_SUB(NOW(), INTERVAL 2 MONTH),
     NOW()
 ) ON DUPLICATE KEY UPDATE id = id;
 
 -- Compte pour Hugo Laurent
-INSERT INTO accounts (id, user_id, iban, name, type, balance, currency, card_number, card_holder_name, card_expiry_date, card_cvv, saving_rate_id, created_at, updated_at)
+INSERT INTO accounts (id, user_id, iban, name, type, balance, currency, card_number, card_holder_name, card_expiry_date, card_cvv, created_at, updated_at)
 VALUES
 (
     'acc-client-005-1',

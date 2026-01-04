@@ -23,6 +23,7 @@ export function mapSSELoanToLoanApiResponse(data: SSELoanCreatedPayload): LoanAp
     progressPercentage: (data.paidAmount / data.totalCost) * 100,
     monthsPaid: Math.floor(data.paidAmount / data.monthlyPayment),
     status: data.status,
+    nextPaymentDate: data.nextPaymentDate ? new Date(data.nextPaymentDate) : undefined,
     createdAt: new Date(data.createdAt),
     updatedAt: new Date(data.updatedAt),
   };

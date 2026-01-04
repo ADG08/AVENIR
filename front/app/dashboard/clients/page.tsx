@@ -12,16 +12,20 @@ import { Users, Search } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
+import { useSSE, SSEEventType, isLoanCreatedPayload } from '@/contexts/SSEContext';
 import { getAdvisorClients } from '@/lib/api/advisor.api';
 import { createNotification } from '@/lib/api/notification.api';
 import {createLoan} from '@/lib/api/loan.api';
 import { mapAdvisorClientsToClientDetails } from '@/lib/mapping/client.mapping';
 import { CustomNotificationType } from '@avenir/shared/enums';
+import { mapLoansApiResponseToClientLoans } from '@/lib/mapping/loan.mapping';
+import { mapSSELoanToLoanApiResponse } from '@/lib/mapping/sse.mapping';
 
 export default function ClientsPage() {
   const { t } = useTranslation();
   const { toast } = useToast();
   const { user: currentUser } = useAuth();
+  const { subscribe } = useSSE();
   const [activeTab, setActiveTab] = useState('clients');
   const [searchQuery, setSearchQuery] = useState('');
   const [clients, setClients] = useState<ClientWithDetails[]>([]);
@@ -63,8 +67,68 @@ export default function ClientsPage() {
   }, [currentUser, toast, t]);
 
   useEffect(() => {
-    loadClients();
-  }, [loadClients]);
+    void loadClients();
+
+    // Écouter les événements SSE pour les mises à jour de crédits
+    const unsubscribeFromSSE = subscribe((event) => {
+      if (event.type === SSEEventType.LOAN_CREATED && currentUser && isLoanCreatedPayload(event.data)) {
+        try {
+          const loanPayload = mapSSELoanToLoanApiResponse(event.data);
+          const updatedLoan = mapLoansApiResponseToClientLoans([loanPayload], currentUser.id)[0];
+
+          setClients(prevClients => {
+            return prevClients.map(client => {
+              if (client.id === loanPayload.clientId) {
+                const existingLoanIndex = client.loans.findIndex(loan => loan.id === updatedLoan.id);
+
+                if (existingLoanIndex >= 0) {
+                  // Mettre à jour le crédit existant
+                  const updatedLoans = [...client.loans];
+                  updatedLoans[existingLoanIndex] = updatedLoan;
+                  return {
+                    ...client,
+                    loans: updatedLoans.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+                  };
+                } else {
+                  return {
+                    ...client,
+                    loans: [updatedLoan, ...client.loans].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+                  };
+                }
+              }
+              return client;
+            });
+          });
+
+          // Mettre à jour le client sélectionné
+          setSelectedClient(prevSelected => {
+            if (prevSelected && prevSelected.id === loanPayload.clientId) {
+              const existingLoanIndex = prevSelected.loans.findIndex(loan => loan.id === updatedLoan.id);
+
+              if (existingLoanIndex >= 0) {
+                const updatedLoans = [...prevSelected.loans];
+                updatedLoans[existingLoanIndex] = updatedLoan;
+                return {
+                  ...prevSelected,
+                  loans: updatedLoans.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+                };
+              } else {
+                return {
+                  ...prevSelected,
+                  loans: [updatedLoan, ...prevSelected.loans].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+                };
+              }
+            }
+            return prevSelected;
+          });
+        } catch (error) {
+          console.error('Erreur lors du traitement de la mise à jour du crédit:', error);
+        }
+      }
+    });
+
+    return () => unsubscribeFromSSE();
+  }, [loadClients, subscribe, currentUser]);
 
   const handleClientClick = (client: ClientWithDetails) => {
     setSelectedClient(client);
@@ -253,6 +317,12 @@ export default function ClientsPage() {
         client={selectedClient}
         onSendNotification={() => setIsNotificationModalOpen(true)}
         onGrantLoan={() => setIsLoanModalOpen(true)}
+        onClientUpdate={(updatedClient) => {
+          setClients(prevClients =>
+            prevClients.map(c => c.id === updatedClient.id ? updatedClient : c)
+          );
+          setSelectedClient(updatedClient);
+        }}
       />
 
       <SendNotificationModal

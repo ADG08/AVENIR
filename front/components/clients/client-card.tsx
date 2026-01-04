@@ -4,6 +4,7 @@ import { ClientWithDetails } from '@/types/client';
 import { motion } from 'framer-motion';
 import { User, MessageCircle, TrendingUp } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import {ChatStatus, LoanStatus, UserState} from '@avenir/shared/enums';
 
 interface ClientCardProps {
   client: ClientWithDetails;
@@ -20,8 +21,33 @@ export const ClientCard = ({ client, onClick }: ClientCardProps) => {
     });
   };
 
-  const activeLoansCount = client.loans.filter((loan) => loan.status === 'ACTIVE').length;
-  const activeChatsCount = client.activeChats.length;
+  const getStateBadge = (state: string) => {
+    switch (state) {
+      case UserState.ACTIVE:
+        return (
+          <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">
+            {t('clients.state.active')}
+          </span>
+        );
+      case UserState.INACTIVE:
+        return (
+          <span className="rounded-full bg-orange-100 px-2 py-0.5 text-xs font-medium text-orange-700">
+            {t('clients.state.inactive')}
+          </span>
+        );
+      case UserState.BANNED:
+        return (
+          <span className="rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700">
+            {t('clients.state.banned')}
+          </span>
+        );
+      default:
+        return null;
+    }
+  };
+
+  const activeLoansCount = client.loans.filter((loan) => loan.status !== LoanStatus.COMPLETED).length;
+  const activeChatsCount = client.activeChats.filter((chat) => chat.status !== ChatStatus.CLOSED).length;
 
   return (
     <motion.div
@@ -39,9 +65,12 @@ export const ClientCard = ({ client, onClick }: ClientCardProps) => {
 
           {/* Informations principales */}
           <div className="flex-1">
-            <h3 className="text-lg font-bold text-gray-900">
-              {client.firstName} {client.lastName}
-            </h3>
+            <div className="flex items-center gap-2 flex-wrap">
+              <h3 className="text-lg font-bold text-gray-900">
+                {client.firstName} {client.lastName}
+              </h3>
+              {getStateBadge(client.state)}
+            </div>
             <p className="text-sm text-gray-500">{client.email}</p>
             <p className="mt-1 text-xs text-gray-400">
               {t('clients.clientSince')} {formatDate(client.clientSince)}

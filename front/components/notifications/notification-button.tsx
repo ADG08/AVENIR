@@ -157,7 +157,8 @@ export const NotificationButton = () => {
 
   const formatDate = (date: Date) => {
     const now = new Date();
-    const diff = now.getTime() - new Date(date).getTime();
+    const diff = now.getTime() - date.getTime();
+    const minutes = Math.floor(diff / (1000 * 60));
     const hours = Math.floor(diff / (1000 * 60 * 60));
     const days = Math.floor(hours / 24);
 
@@ -170,6 +171,8 @@ export const NotificationButton = () => {
       return `Il y a ${days} jour${days > 1 ? 's' : ''}`;
     } else if (hours > 0) {
       return `Il y a ${hours} heure${hours > 1 ? 's' : ''}`;
+    } else if (minutes > 0) {
+      return `Il y a ${minutes} minute${minutes > 1 ? 's' : ''}`;
     } else {
       return "À l'instant";
     }

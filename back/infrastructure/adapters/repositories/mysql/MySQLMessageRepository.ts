@@ -37,6 +37,23 @@ export class MySQLMessageRepository implements MessageRepository {
         return rows.map((row: any) => this.mapRowToMessage(row));
     }
 
+    async getFirstMessageByChatId(chatId: string): Promise<Message | null> {
+        // Récupère le PREMIER message du chat (celui qui initie la conversation, forcément du client)
+        const query = `
+            SELECT m.*, 
+                   u.id as sender_id, u.first_name, u.last_name, u.email, 
+                   u.identity_number, u.passcode, u.role, u.state, u.created_at as user_created_at
+            FROM messages m
+            INNER JOIN users u ON m.sender_id = u.id
+            WHERE m.chat_id = ?
+            ORDER BY m.created_at ASC
+            LIMIT 1
+        `;
+
+        const [rows]: any = await this.connection.execute(query, [chatId]);
+        return rows.length === 0 ? null : this.mapRowToMessage(rows[0]);
+    }
+
     async add(message: Message): Promise<Message> {
         const query = `
             INSERT INTO messages (id, chat_id, sender_id, content, is_read, type, created_at)

@@ -37,6 +37,22 @@ export class PostgresMessageRepository implements MessageRepository {
         return result.rows.map(row => this.mapRowToMessage(row));
     }
 
+    async getFirstMessageByChatId(chatId: string): Promise<Message | null> {
+        const query = `
+            SELECT m.*, 
+                   u.id as sender_id, u.first_name, u.last_name, u.email, 
+                   u.identity_number, u.passcode, u.role, u.state, u.created_at as user_created_at
+            FROM messages m
+            INNER JOIN users u ON m.sender_id = u.id
+            WHERE m.chat_id = $1
+            ORDER BY m.created_at ASC
+            LIMIT 1
+        `;
+
+        const result = await this.pool.query(query, [chatId]);
+        return result.rows.length === 0 ? null : this.mapRowToMessage(result.rows[0]);
+    }
+
     async add(message: Message): Promise<Message> {
         const query = `
             INSERT INTO messages (id, chat_id, sender_id, content, is_read, type, created_at)

@@ -9,12 +9,14 @@ import {
     GetAdvisorClientsWithChatsAndLoansResponse,
     GetAdvisorClientsWithChatsAndLoansResponseMapper
 } from "../../responses/GetAdvisorClientsWithChatsAndLoansResponse";
+import {MessageRepository} from "../../../domain/repositories/MessageRepository";
 
 export class GetAdvisorClientsWithChatsAndLoansUseCase {
     constructor(
         private readonly userRepository: UserRepository,
         private readonly chatRepository: ChatRepository,
-        private readonly loanRepository: LoanRepository
+        private readonly loanRepository: LoanRepository,
+        private readonly messageRepository: MessageRepository
     ) {}
 
     async execute(request: GetAdvisorClientsWithChatsAndLoansRequest): Promise<GetAdvisorClientsWithChatsAndLoansResponse> {
@@ -46,31 +48,47 @@ export class GetAdvisorClientsWithChatsAndLoansUseCase {
                     identityNumber: client.identityNumber,
                     state: client.state,
                     createdAt: client.createdAt,
-                    chats: clientChats.map(chat => ({
-                        id: chat.id,
-                        status: chat.status,
-                        createdAt: chat.createdAt,
-                        updatedAt: chat.updatedAt,
+                    chats: await Promise.all(clientChats.map(async (chat) => {
+                        const firstMessage = await this.messageRepository.getFirstMessageByChatId(chat.id);
+                        return {
+                            id: chat.id,
+                            status: chat.status,
+                            createdAt: chat.createdAt,
+                            updatedAt: chat.updatedAt,
+                            firstMessage: firstMessage ? {
+                                id: firstMessage.id,
+                                content: firstMessage.content,
+                            } : undefined,
+                        };
                     })),
-                    loans: sortedLoans.map(loan => ({
-                        id: loan.id,
-                        name: loan.name,
-                        amount: loan.amount,
-                        duration: loan.duration,
-                        annualInterestRate: loan.annualInterestRate,
-                        insuranceRate: loan.insuranceRate,
-                        monthlyPayment: loan.monthlyPayment,
-                        totalCost: loan.totalCost,
-                        totalInterest: loan.totalInterest,
-                        insuranceCost: loan.insuranceCost,
-                        remainingPayment: loan.remainingPayment,
-                        paidAmount: loan.paidAmount,
-                        progressPercentage: loan.progressPercentage,
-                        monthsPaid: loan.monthsPaid,
-                        status: loan.status,
-                        createdAt: loan.createdAt,
-                        updatedAt: loan.updatedAt,
-                    }))
+                    loans: sortedLoans.map(loan => {
+                        const startDate = loan.deliveredAt || loan.createdAt;
+                        const endDate = new Date(startDate);
+                        endDate.setMonth(endDate.getMonth() + loan.duration);
+
+                        return {
+                            id: loan.id,
+                            name: loan.name,
+                            amount: loan.amount,
+                            duration: loan.duration,
+                            annualInterestRate: loan.annualInterestRate,
+                            insuranceRate: loan.insuranceRate,
+                            monthlyPayment: loan.monthlyPayment,
+                            totalCost: loan.totalCost,
+                            totalInterest: loan.totalInterest,
+                            insuranceCost: loan.insuranceCost,
+                            remainingPayment: loan.remainingPayment,
+                            paidAmount: loan.paidAmount,
+                            progressPercentage: loan.progressPercentage,
+                            monthsPaid: loan.monthsPaid,
+                            status: loan.status,
+                            startDate: startDate,
+                            endDate: endDate,
+                            nextPaymentDate: loan.nextPaymentDate,
+                            createdAt: loan.createdAt,
+                            updatedAt: loan.updatedAt,
+                        };
+                    })
                 };
             })
         );
