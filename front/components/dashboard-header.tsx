@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { Search, User, Menu, X, UserCircle, LogOut } from 'lucide-react';
+import { Search, User, Menu, X, LogOut } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useRef, useEffect } from 'react';
 import { useLanguage } from '@/hooks/use-language';
@@ -166,7 +166,7 @@ export const DashboardHeader = ({ activeTab, setActiveTab }: DashboardHeaderProp
                         <NotificationButton />
                     )}
 
-                    {/* Profile */}
+                    {/* Menu */}
                     <div ref={userMenuRef} className="relative">
                         <button
                             onMouseEnter={() => setHoveredIcon('user')}
@@ -204,20 +204,6 @@ export const DashboardHeader = ({ activeTab, setActiveTab }: DashboardHeaderProp
                                 className="absolute right-0 top-12 z-50 w-56 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-xl"
                             >
                                 <div className="py-1">
-                                    {/* Profil */}
-                                    {currentUser?.role === UserRole.CLIENT && (
-                                        <>
-                                            <Link
-                                                href="/profile"
-                                                onClick={() => setUserMenuOpen(false)}
-                                                className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 transition-colors hover:bg-gray-50"
-                                            >
-                                                <UserCircle className="h-5 w-5 text-gray-500" />
-                                                <span className="font-medium">{t('nav.profile')}</span>
-                                            </Link>
-                                            <div className="border-t border-gray-100"></div>
-                                        </>
-                                    )}
                                     {/* Déconnexion */}
                                     <button
                                         onClick={() => {
@@ -290,18 +276,6 @@ export const DashboardHeader = ({ activeTab, setActiveTab }: DashboardHeaderProp
                             })}
 
                             <div className="my-2 border-t border-gray-200"></div>
-
-                            {/* Profil */}
-                            {currentUser?.role === UserRole.CLIENT && (
-                                <Link
-                                    href="/profile"
-                                    onClick={() => setMobileMenuOpen(false)}
-                                    className="flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-100"
-                                >
-                                    <UserCircle className="h-5 w-5" />
-                                    <span>{t('nav.profile')}</span>
-                                </Link>
-                            )}
 
                             {/* Déconnexion */}
                             <button
