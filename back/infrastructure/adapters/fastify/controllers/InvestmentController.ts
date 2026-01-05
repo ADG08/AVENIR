@@ -41,12 +41,12 @@ export class InvestmentController {
     private getStartDateByPeriod(period: string | undefined, allTrades: any[]): Date {
         const now = new Date();
 
-        if (period === 'weekly') {
+        if (period === 'week') {
             now.setDate(now.getDate() - 7);
             return now;
         }
 
-        if (period === 'monthly') {
+        if (period === 'month') {
             now.setMonth(now.getMonth() - 1);
             return now;
         }
@@ -178,7 +178,7 @@ export class InvestmentController {
             try {
                 const mockRequest = {
                     user: request.user,
-                    query: { period: 'weekly' }
+                    query: { period: 'week' }
                 } as any;
 
                 const mockReply = {
@@ -728,10 +728,10 @@ export class InvestmentController {
             const allTrades = await this.tradeRepository.getByStockId(stockId);
 
             let startDate: Date | undefined;
-            if (period === 'weekly') {
+            if (period === 'week') {
                 startDate = new Date();
                 startDate.setDate(startDate.getDate() - 7);
-            } else if (period === 'monthly') {
+            } else if (period === 'month') {
                 startDate = new Date();
                 startDate.setMonth(startDate.getMonth() - 1);
             }
@@ -838,7 +838,7 @@ export class InvestmentController {
                 return price || portfolios.find(p => p.stock.id === stockId)?.stock.currentPrice || 0;
             };
 
-            if (period === 'weekly' || period === 'monthly') {
+            if (period === 'week' || period === 'month') {
                 const tradesBeforePeriod = allUserTrades.filter(trade => trade.createdAt < startDate);
                 for (const trade of tradesBeforePeriod) {
                     const isBuy = trade.buyer.id === userId;
