@@ -2,22 +2,23 @@ import { randomUUID } from 'crypto';
 import { Loan } from '@avenir/domain/entities/Loan';
 import { LoanRepository } from '@avenir/domain/repositories/LoanRepository';
 import { UserRepository } from '@avenir/domain/repositories/UserRepository';
-import { NotificationRepository } from '@avenir/domain/repositories/NotificationRepository';
 import { CreateLoanRequest } from '../../requests/CreateLoanRequest';
 import { LoanResponse } from '../../responses/LoanResponse';
-import { UserNotFoundError } from '@avenir/domain/errors';
-import { UserRole, NotificationType, LoanStatus } from '@avenir/shared/enums';
-import { Notification } from '@avenir/domain/entities/Notification';
-import { NotificationResponse } from '../../responses/NotificationResponse';
+import { UserNotFoundError, LoanNotFoundError } from '@avenir/domain/errors';
+import { UserRole, LoanStatus } from '@avenir/shared/enums';
+import { NotificationType } from '@avenir/shared/enums/NotificationType';
 import { SSEService } from '@avenir/infrastructure/adapters/services/SSEService';
 import { LoanCalculationService } from '@avenir/domain/services/LoanCalculationService';
+import { DeliverLoanUseCase } from "./DeliverLoanUseCase";
+import { CreateNotificationUseCase } from '../notification/CreateNotificationUseCase';
 
 export class CreateLoanUseCase {
   constructor(
     private readonly loanRepository: LoanRepository,
     private readonly userRepository: UserRepository,
-    private readonly notificationRepository: NotificationRepository,
     private readonly sseService: SSEService,
+    private readonly deliverLoanUseCase: DeliverLoanUseCase,
+    private readonly createNotificationUseCase: CreateNotificationUseCase,
   ) {}
 
   async execute(request: CreateLoanRequest): Promise<LoanResponse> {
@@ -41,6 +42,12 @@ export class CreateLoanUseCase {
     const now = new Date();
     const paidAmount = 0;
 
+    // La première échéance : 1er du mois suivant à 10h00
+    const nextPayment = new Date(now);
+    nextPayment.setMonth(nextPayment.getMonth() + 1);
+    nextPayment.setDate(1);
+    nextPayment.setHours(10, 0, 0, 0);
+
     const loan = new Loan(
       randomUUID(),
       request.name,
@@ -58,32 +65,33 @@ export class CreateLoanUseCase {
       LoanStatus.ACTIVE,
       now,
       now,
+      nextPayment,
+      now
     );
 
     const createdLoan = await this.loanRepository.createLoan(loan);
 
-    // Créer une notification pour le client
     const advisorName = `${advisor.firstName} ${advisor.lastName}`;
-    const notification = new Notification(
-      randomUUID(),
+    await this.createNotificationUseCase.execute(
       client.id,
-      'Nouveau crédit octroyé',
-      `Le crédit "${request.name}" vous a été octroyé. Mensualité : ${calculation.monthlyPayment}€`,
+      'Nouveau crédit accordé',
+      `Votre conseiller ${advisorName} vous a accordé un nouveau crédit "${request.name}" de ${calculation.amount.toFixed(2)}€.`,
       NotificationType.LOAN,
-      advisorName,
-      false,
-      now,
-      null,
+      advisorName
     );
 
-    const createdNotification = await this.notificationRepository.addNotification(notification);
+    // Créditer le compte du client immédiatement
+    await this.deliverLoanUseCase.execute(createdLoan.id);
 
-    const notificationResponse = NotificationResponse.fromNotification(createdNotification);
-    this.sseService.notifyNotificationCreated(client.id, notificationResponse.toWebSocketPayload());
+    // Récupérer le crédit mis à jour
+    const updatedLoan = await this.loanRepository.getLoanById(createdLoan.id);
+    if (!updatedLoan) {
+      throw new LoanNotFoundError(createdLoan.id);
+    }
 
-    // Envoyer un événement loan_created au client pour mise à jour en temps réel
-    const loanResponse = LoanResponse.fromLoan(createdLoan);
-    this.sseService.notifyLoanCreated(client.id, loanResponse);
+    // Envoyer l'événement au client et à l'advisor
+    const loanResponse = LoanResponse.fromLoan(updatedLoan);
+    this.sseService.notifyLoanCreated(client.id, loanResponse, request.advisorId);
 
     return loanResponse;
   }

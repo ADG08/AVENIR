@@ -3,6 +3,33 @@ import type { NextRequest } from 'next/server';
 import { getDashboardRouteByRole } from './lib/dashboard-routes';
 import type { UserRole } from '@/types/enums';
 
+const ROUTES_WHITELIST: Record<UserRole, string[]> = {
+  CLIENT: [
+    '/dashboard',
+    '/dashboard/investment',
+    '/dashboard/loans',
+    '/dashboard/contact',
+  ],
+  ADVISOR: [
+    '/dashboard/clients',
+    '/dashboard/news',
+    '/dashboard/contact',
+  ],
+  DIRECTOR: [
+    '/dashboard/investment',
+    '/dashboard/contact',
+  ],
+};
+
+const PUBLIC_ROUTES = [
+  '/',
+  '/login',
+  '/register',
+  '/verify-email',
+  '/not-found',
+  '/error',
+];
+
 async function getUserRole(accessToken: string): Promise<UserRole | null> {
   try {
     const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
@@ -23,6 +50,19 @@ async function getUserRole(accessToken: string): Promise<UserRole | null> {
   }
 }
 
+function isRouteAllowed(pathname: string, role: UserRole | null): boolean {
+  if (PUBLIC_ROUTES.includes(pathname)) {
+    return true;
+  }
+
+  if (!role) {
+    return false;
+  }
+
+  const allowedRoutes = ROUTES_WHITELIST[role] || [];
+  return allowedRoutes.includes(pathname);
+}
+
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
@@ -30,7 +70,7 @@ export async function middleware(request: NextRequest) {
   const isAuthenticated = !!accessToken;
 
   const isAuthPage = pathname === '/login' || pathname === '/register';
-  const isProtectedPage = pathname.startsWith('/dashboard');
+  const isPublicRoute = PUBLIC_ROUTES.includes(pathname);
 
   if (isAuthenticated && isAuthPage) {
     const role = await getUserRole(accessToken);
@@ -46,8 +86,17 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  if (!isAuthenticated && isProtectedPage) {
+  if (isPublicRoute) {
+    return NextResponse.next();
+  }
+
+  if (!isAuthenticated) {
     return NextResponse.redirect(new URL('/login', request.url));
+  }
+
+  const role = await getUserRole(accessToken);
+  if (!isRouteAllowed(pathname, role)) {
+    return NextResponse.redirect(new URL('/not-found', request.url));
   }
 
   return NextResponse.next();

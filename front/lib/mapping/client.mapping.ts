@@ -1,6 +1,6 @@
-import { Client } from '@/lib/api/advisor.api';
+import { AdvisorClient } from '@/lib/api/advisor.api';
 import { ClientWithDetails } from '@/types/client';
-import { UserRole, UserState, ChatStatus, LoanStatus } from '@/types/enums';
+import {UserRole, UserState, ChatStatus} from '@/types/enums';
 
 /**
  * Mappe les clients récupérés de l'API advisor vers le format ClientWithDetails utilisé dans l'application frontend.
@@ -10,7 +10,7 @@ import { UserRole, UserState, ChatStatus, LoanStatus } from '@/types/enums';
  * @returns Liste des clients au format ClientWithDetails
  */
 export const mapAdvisorClientsToClientDetails = (
-  clients: Client[],
+  clients: AdvisorClient[],
   advisorId: string
 ): ClientWithDetails[] => {
   return clients.map(client => ({
@@ -22,12 +22,13 @@ export const mapAdvisorClientsToClientDetails = (
     role: UserRole.CLIENT,
     state: client.state as UserState,
     createdAt: client.createdAt,
-    updatedAt: client.createdAt,
+    updatedAt: client.updatedAt,
     activeChats: client.chats.map(chat => ({
       id: chat.id,
       status: chat.status as ChatStatus,
       clientId: client.id,
       advisorId: advisorId,
+      isMyClient: false,
       client: {
         id: client.id,
         firstName: client.firstName,
@@ -37,37 +38,17 @@ export const mapAdvisorClientsToClientDetails = (
         role: UserRole.CLIENT,
         state: client.state as UserState,
         createdAt: client.createdAt,
-        updatedAt: client.createdAt,
+        updatedAt: client.updatedAt,
       },
       createdAt: chat.createdAt,
       updatedAt: chat.updatedAt,
-      messages: [],
+      firstMessage: chat.firstMessage,
     })),
-    loans: client.loans.map(loan => {
-      const endDate = new Date(loan.createdAt);
-      endDate.setMonth(endDate.getMonth() + loan.duration);
-
-      return {
-        id: loan.id,
-        clientId: client.id,
-        name: loan.name,
-        amount: loan.amount,
-        duration: loan.duration,
-        interestRate: loan.annualInterestRate,
-        insuranceRate: loan.insuranceRate,
-        monthlyPayment: loan.monthlyPayment,
-        totalCost: loan.totalCost,
-        totalInterest: loan.totalInterest,
-        insuranceCost: loan.insuranceCost,
-        remainingPayment: loan.remainingPayment,
-        progressPercentage: loan.progressPercentage,
-        monthsPaid: loan.monthsPaid,
-        status: loan.status as LoanStatus,
-        startDate: loan.createdAt,
-        endDate: endDate,
-        createdAt: loan.createdAt,
-      };
-    }),
+    loans: client.loans.map(loan => ({
+      ...loan,
+      clientId: client.id,
+      interestRate: loan.interestRate,
+    })),
     notifications: [],
     clientSince: client.createdAt,
   }));

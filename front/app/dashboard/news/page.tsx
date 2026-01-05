@@ -50,8 +50,8 @@ export default function NewsPage() {
       } catch (error) {
         console.error('Error loading news:', error);
         toast({
-          title: 'Erreur',
-          description: 'Impossible de charger les actualités',
+          title: t('news.errors.loadingError'),
+          description: t('news.errors.loadingNews'),
           variant: 'destructive',
         });
       } finally {
@@ -60,7 +60,7 @@ export default function NewsPage() {
     };
 
     loadNews();
-  }, [toast, user]);
+  }, [toast, user, t]);
 
   useEffect(() => {
     const unsubscribe = subscribe((event) => {
@@ -77,8 +77,8 @@ export default function NewsPage() {
 
         if (event.data.authorId !== user?.id) {
           toast({
-            title: 'Nouvelle actualité',
-            description: `${event.data.authorName} a publié une nouvelle actualité`,
+            title: t('news.toast.newNewsCreated'),
+            description: t('news.toast.newNewsCreatedDescription', { authorName: event.data.authorName }),
           });
         }
       }
@@ -87,14 +87,14 @@ export default function NewsPage() {
         setNews((prev) => prev.filter((n) => n.id !== deletedNewsId));
 
         toast({
-          title: 'Actualité supprimée',
-          description: 'Une actualité a été supprimée',
+          title: t('news.toast.newsDeleted'),
+          description: t('news.toast.newsDeletedDescription'),
         });
       }
     });
 
     return () => unsubscribe();
-  }, [subscribe, toast, user?.id]);
+  }, [subscribe, toast, user?.id, t]);
 
   const handleCreateNews = async (title: string, description: string) => {
     try {
@@ -107,7 +107,7 @@ export default function NewsPage() {
 
       toast({
         title: t('news.modal.success'),
-        description: `Actualité "${title}" publiée avec succès`,
+        description: t('news.modal.successDescription', { title }),
       });
 
       setIsCreateModalOpen(false);
@@ -115,7 +115,7 @@ export default function NewsPage() {
       console.error('Error creating news:', error);
       toast({
         title: t('news.modal.error'),
-        description: error instanceof Error ? error.message : 'Erreur lors de la création',
+        description: error instanceof Error ? error.message : t('news.modal.errorDescription'),
         variant: 'destructive',
       });
     } finally {
@@ -138,7 +138,7 @@ export default function NewsPage() {
 
       toast({
         title: t('news.delete.success'),
-        description: `"${newsToDelete.title}" a été supprimée`,
+        description: t('news.delete.successDescription', { title: newsToDelete.title }),
       });
 
       setIsDeleteModalOpen(false);
@@ -146,8 +146,8 @@ export default function NewsPage() {
     } catch (error) {
       console.error('Error deleting news:', error);
       toast({
-        title: 'Erreur',
-        description: error instanceof Error ? error.message : 'Impossible de supprimer l\'actualité',
+        title: t('news.delete.errorTitle'),
+        description: error instanceof Error ? error.message : t('news.delete.error'),
         variant: 'destructive',
       });
     } finally {

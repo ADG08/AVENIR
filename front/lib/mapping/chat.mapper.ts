@@ -12,6 +12,8 @@ export interface ChatApiDto {
   advisorId: string | null;
   advisorName?: string | null;
   status: ChatStatus;
+  firstMessage?: string;
+  firstMessageAt?: string;
   lastMessage?: string;
   lastMessageAt?: string;
   unreadCount?: number;
@@ -96,6 +98,15 @@ export const mapChatFromApi = (apiChat: ChatApiDto): Chat => {
     advisorId: apiChat.advisorId,
     advisor: advisor,
     status: apiChat.status,
+    firstMessage: apiChat.firstMessage && apiChat.firstMessageAt ? {
+      id: '',
+      chatId: apiChat.id,
+      senderId: apiChat.clientId,
+      content: apiChat.firstMessage,
+      createdAt: new Date(apiChat.firstMessageAt),
+      isRead: true,
+      type: MessageType.NORMAL,
+    } : undefined,
     lastMessage: apiChat.lastMessage && apiChat.lastMessageAt ? {
       id: '',
       chatId: apiChat.id,

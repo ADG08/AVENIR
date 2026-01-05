@@ -129,11 +129,18 @@ export class SSEService {
         });
     }
 
-    notifyLoanCreated(userId: string, loanData: any): void {
-        this.sendMessageToUser(userId, {
+    notifyLoanCreated(clientId: string, loanData: any, advisorId?: string): void {
+        this.sendMessageToUser(clientId, {
             type: SSEEventType.LOAN_CREATED,
             data: loanData,
         });
+
+        if (advisorId && advisorId !== clientId) {
+            this.sendMessageToUser(advisorId, {
+                type: SSEEventType.LOAN_CREATED,
+                data: loanData,
+            });
+        }
     }
 
     getConnectedClientsCount(): number {

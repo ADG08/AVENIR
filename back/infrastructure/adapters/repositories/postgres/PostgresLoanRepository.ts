@@ -12,9 +12,9 @@ export class PostgresLoanRepository implements LoanRepository {
         annual_interest_rate, insurance_rate, monthly_payment,
         total_cost, total_interest, insurance_cost, 
         paid_amount,
-        status, created_at, updated_at
+        status, created_at, updated_at, next_payment_date, delivered_at
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
       RETURNING *
     `;
 
@@ -35,6 +35,8 @@ export class PostgresLoanRepository implements LoanRepository {
       loan.status,
       loan.createdAt,
       loan.updatedAt,
+      loan.nextPaymentDate || null,
+      loan.deliveredAt || null,
     ];
 
     const result = await this.pool.query(query, values);
@@ -70,6 +72,34 @@ export class PostgresLoanRepository implements LoanRepository {
     return result.rows.map(row => this.mapRowToLoan(row));
   }
 
+  async updateLoan(loan: Loan): Promise<Loan> {
+    const query = `
+      UPDATE loans
+      SET paid_amount = $1, status = $2, updated_at = $3, 
+          next_payment_date = $4, delivered_at = $5
+      WHERE id = $6
+      RETURNING *
+    `;
+
+    const values = [
+      loan.paidAmount,
+      loan.status,
+      loan.updatedAt,
+      loan.nextPaymentDate || null,
+      loan.deliveredAt || null,
+      loan.id,
+    ];
+
+    const result = await this.pool.query(query, values);
+    return this.mapRowToLoan(result.rows[0]);
+  }
+
+  async getLoansByStatus(status: string): Promise<Loan[]> {
+    const query = 'SELECT * FROM loans WHERE status = $1 ORDER BY created_at DESC';
+    const result = await this.pool.query(query, [status]);
+    return result.rows.map(row => this.mapRowToLoan(row));
+  }
+
   private mapRowToLoan(row: any): Loan {
     return new Loan(
       row.id,
@@ -88,6 +118,8 @@ export class PostgresLoanRepository implements LoanRepository {
       row.status,
       new Date(row.created_at),
       new Date(row.updated_at),
+      row.delivered_at ? new Date(row.delivered_at) : undefined,
+      row.next_payment_date ? new Date(row.next_payment_date) : undefined,
     );
   }
 }

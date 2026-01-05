@@ -4,7 +4,7 @@ SET timezone = 'UTC';
 TRUNCATE TABLE loans CASCADE;
 -- Insert sample loans
 -- Loan 1: Clement Tine - Crédit immobilier (advisor: Marie Martin)
-INSERT INTO loans (id, name, advisor_id, client_id, amount, duration, annual_interest_rate, insurance_rate, monthly_payment, total_cost, total_interest, insurance_cost, paid_amount, status, created_at, updated_at)
+INSERT INTO loans (id, name, advisor_id, client_id, amount, duration, annual_interest_rate, insurance_rate, monthly_payment, total_cost, total_interest, insurance_cost, paid_amount, status, created_at, updated_at, delivered_at, next_payment_date)
 VALUES (
   'loan-001',
   'Crédit immobilier',
@@ -20,11 +20,13 @@ VALUES (
   720.00,
   0.00,
   'ACTIVE',
-  NOW() - INTERVAL '6 months',
-  NOW() - INTERVAL '6 months'
+  NOW() - INTERVAL '5 minutes',
+  NOW(),
+  NOW() - INTERVAL '5 minutes',
+  NOW() + INTERVAL '2 minutes'
 );
 -- Loan 2: Jean Dupont - Crédit auto (advisor: Marie Martin)
-INSERT INTO loans (id, name, advisor_id, client_id, amount, duration, annual_interest_rate, insurance_rate, monthly_payment, total_cost, total_interest, insurance_cost, paid_amount, status, created_at, updated_at)
+INSERT INTO loans (id, name, advisor_id, client_id, amount, duration, annual_interest_rate, insurance_rate, monthly_payment, total_cost, total_interest, insurance_cost, paid_amount, status, created_at, updated_at, delivered_at, next_payment_date)
 VALUES (
   'loan-002',
   'Crédit automobile',
@@ -40,11 +42,13 @@ VALUES (
   125.00,
   0.00,
   'ACTIVE',
-  NOW() - INTERVAL '3 months',
-  NOW() - INTERVAL '3 months'
+  NOW() - INTERVAL '10 minutes',
+  NOW(),
+  NOW() - INTERVAL '10 minutes',
+  NOW() + INTERVAL '3 minutes'
 );
 -- Loan 3: Emma Leroy - Crédit travaux (advisor: Thomas Bernard)
-INSERT INTO loans (id, name, advisor_id, client_id, amount, duration, annual_interest_rate, insurance_rate, monthly_payment, total_cost, total_interest, insurance_cost, paid_amount, status, created_at, updated_at)
+INSERT INTO loans (id, name, advisor_id, client_id, amount, duration, annual_interest_rate, insurance_rate, monthly_payment, total_cost, total_interest, insurance_cost, paid_amount, status, created_at, updated_at, delivered_at, next_payment_date)
 VALUES (
   'loan-003',
   'Crédit travaux',
@@ -60,11 +64,13 @@ VALUES (
   200.00,
   0.00,
   'ACTIVE',
-  NOW() - INTERVAL '1 month',
-  NOW() - INTERVAL '1 month'
+  NOW() - INTERVAL '15 minutes',
+  NOW(),
+  NOW() - INTERVAL '15 minutes',
+  NOW() + INTERVAL '1 minute'
 );
 -- Loan 4: Lucas Moreau - Crédit personnel (advisor: Thomas Bernard)
-INSERT INTO loans (id, name, advisor_id, client_id, amount, duration, annual_interest_rate, insurance_rate, monthly_payment, total_cost, total_interest, insurance_cost, paid_amount, status, created_at, updated_at)
+INSERT INTO loans (id, name, advisor_id, client_id, amount, duration, annual_interest_rate, insurance_rate, monthly_payment, total_cost, total_interest, insurance_cost, paid_amount, status, created_at, updated_at, delivered_at, next_payment_date)
 VALUES (
   'loan-004',
   'Crédit personnel',
@@ -80,11 +86,13 @@ VALUES (
   67.50,
   0.00,
   'ACTIVE',
-  NOW() - INTERVAL '2 weeks',
-  NOW() - INTERVAL '2 weeks'
+  NOW() - INTERVAL '7 minutes',
+  NOW(),
+  NOW() - INTERVAL '7 minutes',
+  NOW() + INTERVAL '4 minutes'
 );
 -- Loan 5: Léa Simon - Crédit étudiant (advisor: Sophie Dubois)
-INSERT INTO loans (id, name, advisor_id, client_id, amount, duration, annual_interest_rate, insurance_rate, monthly_payment, total_cost, total_interest, insurance_cost, paid_amount, status, created_at, updated_at)
+INSERT INTO loans (id, name, advisor_id, client_id, amount, duration, annual_interest_rate, insurance_rate, monthly_payment, total_cost, total_interest, insurance_cost, paid_amount, status, created_at, updated_at, delivered_at, next_payment_date)
 VALUES (
   'loan-005',
   'Crédit étudiant',
@@ -100,8 +108,10 @@ VALUES (
   30.00,
   0.00,
   'ACTIVE',
-  NOW() - INTERVAL '1 week',
-  NOW() - INTERVAL '1 week'
+  NOW() - INTERVAL '12 minutes',
+  NOW(),
+  NOW() - INTERVAL '12 minutes',
+  NOW() + INTERVAL '5 minutes'
 );
 -- Display summary
 SELECT

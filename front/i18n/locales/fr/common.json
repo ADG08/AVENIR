@@ -32,7 +32,6 @@
   "nav": {
     "home": "Accueil",
     "dashboard": "Tableau de bord",
-    "profile": "Profil",
     "settings": "Paramètres",
     "logout": "Déconnexion"
   },
@@ -394,6 +393,11 @@
     "conversation": "Conversation",
     "chatSingular": "discussion",
     "chatPlural": "discussions",
+    "state": {
+      "active": "Actif",
+      "inactive": "Inactif",
+      "banned": "Banni"
+    },
     "notification": {
       "title": "Envoyer une notification",
       "titlePlaceholder": "Titre de la notification",
@@ -429,6 +433,8 @@
       "progressTitle": "Progression du remboursement",
       "monthsPaid": "mensualités payées",
       "end": "Fin",
+      "nextPayment": "Prochaine échéance",
+      "nextPaymentDate": "Prochaine échéance de remboursement",
       "financialDetails": "Détails financiers",
       "insurance": "Assurance",
       "noLoans": "Aucun crédit en cours",
@@ -453,7 +459,17 @@
       "error": "Erreur lors de l'octroi du crédit",
       "calculate": "Calculer",
       "summary": "Récapitulatif du crédit",
-      "newLoanCreated": "Nouveau crédit octroyé"
+      "newLoanCreated": "Nouveau crédit octroyé",
+      "showCompleted": "Afficher les crédits terminés",
+      "searchPlaceholder": "Rechercher un crédit par nom...",
+      "noResults": "Aucun résultat",
+      "noResultsDescription": "Aucun crédit ne correspond à votre recherche",
+      "processManualPayment": "Tenter un prélèvement",
+      "processingPayment": "Prélèvement en cours...",
+      "manualPaymentSuccess": "Prélèvement effectué",
+      "manualPaymentSuccessDescription": "Le traitement des paiements a été lancé avec succès",
+      "manualPaymentError": "Erreur de prélèvement",
+      "manualPaymentErrorDescription": "Impossible de traiter les paiements"
     },
     "errors": {
       "loadingClients": "Erreur lors du chargement des clients",
@@ -483,7 +499,9 @@
       "publishing": "Publication...",
       "cancel": "Annuler",
       "success": "Actualité publiée avec succès",
-      "error": "Erreur lors de la publication"
+      "successDescription": "Actualité \"{{title}}\" publiée avec succès",
+      "error": "Erreur lors de la publication",
+      "errorDescription": "Erreur lors de la création"
     },
     "delete": {
       "title": "Supprimer l'actualité",
@@ -492,7 +510,20 @@
       "warning": "Cette action est irréversible.",
       "confirm": "Supprimer",
       "deleting": "Suppression...",
-      "success": "Actualité supprimée avec succès"
+      "success": "Actualité supprimée avec succès",
+      "successDescription": "\"{{title}}\" a été supprimée",
+      "error": "Impossible de supprimer l'actualité",
+      "errorTitle": "Erreur"
+    },
+    "errors": {
+      "loadingNews": "Impossible de charger les actualités",
+      "loadingError": "Erreur"
+    },
+    "toast": {
+      "newNewsCreated": "Nouvelle actualité",
+      "newNewsCreatedDescription": "{{authorName}} a publié une nouvelle actualité",
+      "newsDeleted": "Actualité supprimée",
+      "newsDeletedDescription": "Une actualité a été supprimée"
     }
   },
   "chat": {
@@ -511,8 +542,11 @@
     "noAdvisorAvailable": "En attente d'un conseiller",
     "alreadyAssigned": "Déjà assigné",
     "showClosedConversations": "Afficher les conversations fermées",
+    "showClosed": "Afficher les chats fermés",
     "searchPlaceholder": "Rechercher par nom...",
     "viewClientDetails": "Voir les détails du client",
+    "client": "Client",
+    "you": "Vous",
     "message": {
       "yourMessage": "Votre message",
       "typeYourMessage": "Décrivez votre demande...",
@@ -583,6 +617,38 @@
     "from": "De",
     "notAvailable": "La notification n'est plus disponible.",
     "errorOpening": "Impossible d'ouvrir la notification. Veuillez réessayer.",
-    "upToDate": "Vous êtes à jour !"
+    "upToDate": "Vous êtes à jour !",
+    "time": {
+      "now": "À l'instant",
+      "minutesAgo_one": "Il y a {{count}} minute",
+      "minutesAgo_other": "Il y a {{count}} minutes",
+      "hoursAgo_one": "Il y a {{count}} heure",
+      "hoursAgo_other": "Il y a {{count}} heures",
+      "daysAgo_one": "Il y a {{count}} jour",
+      "daysAgo_other": "Il y a {{count}} jours"
+    },
+    "type": {
+      "info": "Information",
+      "warning": "Avertissement",
+      "success": "Succès",
+      "news": "Actualité",
+      "loan": "Crédit"
+    },
+    "loan": {
+      "newLoanCreated": "Nouveau crédit accordé",
+      "newLoanCreatedMessage": "Votre conseiller {{advisorName}} vous a accordé un nouveau crédit \"{{loanName}}\" de {{amount}}€.",
+      "delivered": "Crédit versé",
+      "deliveredMessage": "Le montant de {{amount}}€ de votre crédit \"{{loanName}}\" a été crédité sur votre compte.",
+      "paymentCollected": "Mensualité prélevée",
+      "paymentCollectedMessage": "La mensualité de {{amount}}€ pour votre crédit \"{{loanName}}\" a été prélevée. Reste à payer : {{remaining}}€",
+      "paymentRecovered": "Paiement rattrapé",
+      "paymentRecoveredMessage": "Le paiement de {{amount}}€ pour votre crédit \"{{loanName}}\" a été effectué avec succès. Votre crédit est de nouveau actif. Reste à payer : {{remaining}}€",
+      "paymentFailed": "Échéance impayée",
+      "paymentFailedMessage": "Le prélèvement de {{amount}}€ pour votre crédit \"{{loanName}}\" n'a pas pu être effectué en raison d'un solde insuffisant. Si vous ne contactez pas votre conseiller depuis la page Contact pour régulariser votre situation, un nouvel essai de prélèvement sera automatiquement effectué à la prochaine date d'échéance prévue.",
+      "manualProcessing": "Traitement manuel lancé",
+      "manualProcessingMessage": "Votre conseiller {{advisorName}} a lancé un traitement manuel pour votre crédit \"{{loanName}}\".",
+      "completed": "Crédit remboursé",
+      "completedMessage": "Félicitations ! Votre crédit \"{{loanName}}\" est entièrement remboursé."
+    }
   }
 }

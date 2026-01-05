@@ -1,3 +1,5 @@
+import {Loan} from "../../domain/entities/Loan";
+
 export class LoanResponse {
   constructor(
     public readonly id: string,
@@ -19,9 +21,18 @@ export class LoanResponse {
     public readonly status: string,
     public readonly createdAt: Date,
     public readonly updatedAt: Date,
+    public readonly deliveredAt?: Date,
+    public readonly nextPaymentDate?: Date,
+    public readonly endDate?: Date,
   ) {}
 
-  static fromLoan(loan: any): LoanResponse {
+  static fromLoan(loan: Loan): LoanResponse {
+    let endDate: Date | undefined;
+    if (loan.deliveredAt) {
+      endDate = new Date(loan.deliveredAt);
+      endDate.setMonth(endDate.getMonth() + loan.duration + 1); // +1 mois pour la première échéance
+    }
+
     return new LoanResponse(
       loan.id,
       loan.name,
@@ -42,6 +53,9 @@ export class LoanResponse {
       loan.status,
       loan.createdAt,
       loan.updatedAt,
+      loan.deliveredAt,
+      loan.nextPaymentDate,
+      endDate,
     );
   }
 }

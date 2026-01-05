@@ -45,6 +45,9 @@ import { MarkAllNotificationsAsReadUseCase } from '@avenir/application/usecases/
 import { DeleteNotificationUseCase } from '@avenir/application/usecases/notification/DeleteNotificationUseCase';
 import { CreateLoanUseCase } from '@avenir/application/usecases/loan/CreateLoanUseCase';
 import { GetClientLoansUseCase } from '@avenir/application/usecases/loan/GetClientLoansUseCase';
+import {DeliverLoanUseCase} from "../../../application/usecases/loan/DeliverLoanUseCase";
+import { ProcessMonthlyPaymentsUseCase } from '@avenir/application/usecases/loan/ProcessMonthlyPaymentsUseCase';
+import { LoanPaymentScheduler } from '../schedulers/LoanPaymentScheduler';
 import { NotificationController } from './controllers/NotificationController';
 import { LoanController } from './controllers/LoanController';
 import { notificationRoutes } from './routes/notification';
@@ -86,7 +89,7 @@ const addUserUseCase = new AddUserUseCase(userRepository);
 const registerUserUseCase = new RegisterUserUseCase(userRepository, accountRepository, emailService);
 const verifyEmailUseCase = new VerifyEmailUseCase(userRepository, emailService);
 const loginUserUseCase = new LoginUserUseCase(userRepository);
-const getAdvisorClientsWithChatsAndLoansUseCase = new GetAdvisorClientsWithChatsAndLoansUseCase(userRepository, chatRepository, loanRepository);
+const getAdvisorClientsWithChatsAndLoansUseCase = new GetAdvisorClientsWithChatsAndLoansUseCase(userRepository, chatRepository, loanRepository, messageRepository);
 const checkClientAdvisorUseCase = new CheckClientAdvisorUseCase(userRepository);
 const userController = new UserController(getUserUseCase, getUsersUseCase, addUserUseCase, registerUserUseCase, verifyEmailUseCase, loginUserUseCase, getAdvisorClientsWithChatsAndLoansUseCase, checkClientAdvisorUseCase);
 
@@ -152,9 +155,13 @@ const notificationController = new NotificationController(
 );
 
 // Loans
-const createLoanUseCase = new CreateLoanUseCase(loanRepository, userRepository, notificationRepository, sseService);
+const deliverLoanUseCase = new DeliverLoanUseCase(loanRepository, accountRepository, createNotificationUseCase);
+const processMonthlyPaymentsUseCase = new ProcessMonthlyPaymentsUseCase(loanRepository, accountRepository, createNotificationUseCase, sseService);
+const createLoanUseCase = new CreateLoanUseCase(loanRepository, userRepository, sseService, deliverLoanUseCase, createNotificationUseCase);
 const getClientLoansUseCase = new GetClientLoansUseCase(loanRepository);
-const loanController = new LoanController(createLoanUseCase, getClientLoansUseCase);
+const loanController = new LoanController(createLoanUseCase, getClientLoansUseCase, processMonthlyPaymentsUseCase, userRepository);
+const loanPaymentScheduler = new LoanPaymentScheduler(processMonthlyPaymentsUseCase);
+loanPaymentScheduler.start();
 
 async function setupRoutes() {
     await fastify.register(cors, {
@@ -196,6 +203,7 @@ const start = async () => {
 
 const shutdown = async () => {
     try {
+        loanPaymentScheduler.stop();
         await dbContext.close();
         await fastify.close();
         process.exit(0);

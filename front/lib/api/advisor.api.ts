@@ -1,49 +1,37 @@
+import { ClientLoan } from '@/types/client';
+import { Chat, User } from '@/types/chat';
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
-export interface ClientChat {
-  id: string;
-  status: string;
-  createdAt: Date;
-  updatedAt: Date;
+interface ChatFromAPI extends Omit<Chat, 'createdAt' | 'updatedAt'> {
+  createdAt: string;
+  updatedAt: string;
 }
 
-export interface ClientLoanApi {
-  id: string;
-  name: string;
-  amount: number;
-  duration: number;
-  annualInterestRate: number;
-  insuranceRate: number;
-  monthlyPayment: number;
-  totalCost: number;
-  totalInterest: number;
-  insuranceCost: number;
-  remainingPayment: number;
-  paidAmount: number;
-  progressPercentage: number;
-  monthsPaid: number;
-  status: string;
-  createdAt: Date;
-  updatedAt: Date;
+interface LoanFromAPI extends Omit<ClientLoan, 'createdAt' | 'startDate' | 'endDate' | 'nextPaymentDate'> {
+  createdAt: string;
+  startDate: string;
+  endDate: string;
+  nextPaymentDate?: string;
 }
 
-export interface Client {
-  id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  identityNumber: string;
-  state: string;
-  createdAt: Date;
-  chats: ClientChat[];
-  loans: ClientLoanApi[];
+interface ClientFromAPI extends Omit<User, 'createdAt' | 'updatedAt'> {
+  createdAt: string;
+  updatedAt: string;
+  chats: ChatFromAPI[];
+  loans: LoanFromAPI[];
 }
 
-export interface GetAdvisorClientsResponse {
-  clients: Client[];
+interface GetAdvisorClientsResponse {
+  clients: ClientFromAPI[];
 }
 
-export const getAdvisorClients = async (advisorId: string): Promise<Client[]> => {
+export interface AdvisorClient extends User {
+  chats: Chat[];
+  loans: ClientLoan[];
+}
+
+export const getAdvisorClients = async (advisorId: string): Promise<AdvisorClient[]> => {
   const response = await fetch(`${API_URL}/api/advisors/${advisorId}/clients`, {
     method: 'GET',
     credentials: 'include',
@@ -56,18 +44,28 @@ export const getAdvisorClients = async (advisorId: string): Promise<Client[]> =>
 
   const data: GetAdvisorClientsResponse = await response.json();
 
-  return data.clients.map((client) => ({
+  return data.clients.map((client): AdvisorClient => ({
     ...client,
     createdAt: new Date(client.createdAt),
-    chats: client.chats.map((chat) => ({
+    updatedAt: new Date(client.updatedAt),
+    chats: client.chats.map((chat): Chat => ({
       ...chat,
       createdAt: new Date(chat.createdAt),
       updatedAt: new Date(chat.updatedAt),
     })),
-    loans: client.loans.map((loan) => ({
-      ...loan,
-      createdAt: new Date(loan.createdAt),
-      updatedAt: new Date(loan.updatedAt),
-    })),
+    loans: client.loans.map((loan): ClientLoan => {
+      const loanData = loan as any;
+      const startDate = new Date(loan.startDate);
+      const endDate = new Date(loan.endDate);
+
+      return {
+        ...loan,
+        interestRate: loanData.annualInterestRate || loan.interestRate || 0,
+        createdAt: new Date(loan.createdAt),
+        startDate: startDate,
+        endDate: endDate,
+        nextPaymentDate: loan.nextPaymentDate ? new Date(loan.nextPaymentDate) : undefined,
+      };
+    }),
   }));
 };

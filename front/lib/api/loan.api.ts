@@ -20,6 +20,9 @@ export interface LoanApiResponse {
   status: string;
   createdAt: Date;
   updatedAt: Date;
+  deliveredAt?: Date;
+  nextPaymentDate?: Date;
+  endDate?: Date;
 }
 
 export type LoanData = LoanApiResponse;
@@ -74,5 +77,18 @@ export const getClientLoans = async (clientId: string): Promise<LoanApiResponse[
     ...loan,
     createdAt: new Date(loan.createdAt),
     updatedAt: new Date(loan.updatedAt),
+    nextPaymentDate: loan.nextPaymentDate ? new Date(loan.nextPaymentDate) : undefined,
   }));
+};
+
+export const processManualPayment = async (): Promise<void> => {
+  const response = await fetch(`${API_URL}/api/loans/process-payments`, {
+    method: 'POST',
+    credentials: 'include',
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || error.error || 'Failed to process manual payment');
+  }
 };

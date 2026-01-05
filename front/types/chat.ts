@@ -34,6 +34,7 @@ export interface Chat {
   advisor?: User | null;
   status: ChatStatus;
   messages?: Message[];
+  firstMessage?: Message;
   lastMessage?: Message;
   unreadCount?: number;
   createdAt: Date;
