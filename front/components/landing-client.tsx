@@ -31,7 +31,7 @@ export const LandingClient = () => {
             </div>
 
             <main className="relative z-[1] overflow-hidden bg-white">
-                <section className="relative px-6 pb-32 pt-20 md:pb-20 md:pt-32">
+                <section id="top" className="relative px-6 pb-32 pt-20 md:pb-20 md:pt-32">
                     <div className="mx-auto max-w-[1400px]">
                         <div className="mx-auto max-w-4xl text-center">
                             <motion.h1
@@ -77,7 +77,7 @@ export const LandingClient = () => {
                     <DashboardPreview />
                 </section>
 
-                <section className="relative min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 px-6 py-20 md:py-32">
+                <section id="solution" className="relative min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 px-6 py-20 md:py-32">
                     <div className="mx-auto max-w-[1400px]">
                         <div className="grid items-center gap-12 lg:grid-cols-2">
                             <div className="space-y-8">
@@ -207,6 +207,7 @@ export const LandingClient = () => {
                 </section>
             </main>
 
+            <div id="about" className="h-0"></div>
             <footer className="sticky bottom-0 overflow-hidden bg-gray-900 px-6 py-16 pb-32 text-white md:pb-16">
                 <div className="mx-auto max-w-[1400px]">
                     <div className="mb-16">
@@ -235,16 +236,13 @@ export const LandingClient = () => {
                             className="h-10 w-auto brightness-0 invert"
                         />
                         <nav className="hidden items-center gap-8 md:flex">
-                            <a href="#" className="font-light text-gray-200 transition-colors hover:text-white">
+                            <a href="#top" className="font-light text-gray-200 transition-colors hover:text-white">
                                 {t('landing.product')}
                             </a>
-                            <a href="#" className="font-light text-gray-200 transition-colors hover:text-white">
+                            <a href="#solution" className="font-light text-gray-200 transition-colors hover:text-white">
                                 {t('landing.solution')}
                             </a>
-                            <a href="#" className="font-light text-gray-200 transition-colors hover:text-white">
-                                {t('landing.community')}
-                            </a>
-                            <a href="#" className="font-light text-gray-200 transition-colors hover:text-white">
+                            <a href="#about" className="font-light text-gray-200 transition-colors hover:text-white">
                                 {t('landing.about')}
                             </a>
                         </nav>

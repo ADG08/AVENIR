@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { Package, Grid, Users, Info } from 'lucide-react';
+import { Package, Grid, Info } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useState } from 'react';
 import { useLanguage } from '@/hooks/use-language';
@@ -15,10 +15,9 @@ export const LandingHeader = () => {
     const [activeItem, setActiveItem] = useState<string>('product');
 
     const navItems = [
-        { id: 'product', label: t('landing.product'), href: '#', icon: Package },
-        { id: 'solution', label: t('landing.solution'), href: '#', icon: Grid },
-        { id: 'community', label: t('landing.community'), href: '#', icon: Users },
-        { id: 'about', label: t('landing.about'), href: '#', icon: Info },
+        { id: 'product', label: t('landing.product'), href: '#top', icon: Package },
+        { id: 'solution', label: t('landing.solution'), href: '#solution', icon: Grid },
+        { id: 'about', label: t('landing.about'), href: '#about', icon: Info },
     ];
 
     return (
