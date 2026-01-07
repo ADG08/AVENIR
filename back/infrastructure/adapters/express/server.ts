@@ -11,6 +11,7 @@ import { chatRoutes } from './routes/chat';
 import { messageRoutes } from './routes/message';
 import { accountRoutes } from './routes/account';
 import { newsRoutes } from './routes/news';
+import { transactionRoutes } from './routes/transaction';
 import { websocketRoutes } from './routes/websocket';
 import { sseRoutes } from './routes/sse';
 import { investmentRoutes } from './routes/investment';
@@ -20,6 +21,7 @@ import { ChatController } from './controllers/ChatController';
 import { MessageController } from './controllers/MessageController';
 import { AccountController } from './controllers/AccountController';
 import { NewsController } from './controllers/NewsController';
+import { TransactionController } from './controllers/TransactionController';
 import { GetUserUseCase } from '@avenir/application/usecases/user/GetUserUseCase';
 import { GetUsersUseCase } from '@avenir/application/usecases/user/GetUsersUseCase';
 import { AddUserUseCase } from '@avenir/application/usecases/user/AddUserUseCase';
@@ -61,6 +63,9 @@ import { AddAccountUseCase } from '@avenir/application/usecases/account/AddAccou
 import { DeleteAccountUseCase } from '@avenir/application/usecases/account/DeleteAccountUseCase';
 import { UpdateAccountNameUseCase } from '@avenir/application/usecases/account/UpdateAccountNameUseCase';
 import { GetAccountsUseCase } from '@avenir/application/usecases/account/GetAccountsUseCase';
+import { GetAccountByIbanUseCase } from '@avenir/application/usecases/account/GetAccountByIbanUseCase';
+import { GetTransactionsUseCase } from '@avenir/application/usecases/transaction/GetTransactionsUseCase';
+import { CreateTransactionUseCase } from '@avenir/application/usecases/transaction/CreateTransactionUseCase';
 import { OrderMatchingService } from '@avenir/application/services/OrderMatchingService';
 import { SSEService } from '../services/SSEService';
 
@@ -139,11 +144,13 @@ const addAccountUseCase = new AddAccountUseCase(accountRepository, userRepositor
 const deleteAccountUseCase = new DeleteAccountUseCase(accountRepository);
 const updateAccountNameUseCase = new UpdateAccountNameUseCase(accountRepository);
 const getAccountsUseCase = new GetAccountsUseCase(accountRepository);
+const getAccountByIbanUseCase = new GetAccountByIbanUseCase(accountRepository);
 const accountController = new AccountController(
     addAccountUseCase,
     deleteAccountUseCase,
     updateAccountNameUseCase,
-    getAccountsUseCase
+    getAccountsUseCase,
+    getAccountByIbanUseCase
 );
 
 // Investment
@@ -215,6 +222,12 @@ const loanController = new LoanController(
 const loanPaymentScheduler = new LoanPaymentScheduler(processMonthlyPaymentsUseCase);
 loanPaymentScheduler.start();
 
+// Transaction
+const transactionRepository = dbContext.transactionRepository;
+const getTransactionsUseCase = new GetTransactionsUseCase(transactionRepository, accountRepository);
+const createTransactionUseCase = new CreateTransactionUseCase(transactionRepository, accountRepository);
+const transactionController = new TransactionController(getTransactionsUseCase, createTransactionUseCase);
+
 function setupMiddlewares() {
     // CORS
     app.use(
@@ -247,6 +260,7 @@ function setupRoutes() {
     app.use('/api/chats', chatRoutes(chatController));
     app.use('/api/messages', messageRoutes(messageController));
     app.use('/api', accountRoutes(accountController));
+    app.use('/api', transactionRoutes(transactionController));
     app.use('/api/news', newsRoutes(newsController));
     app.use('/api/notifications', notificationRoutes(notificationController));
     app.use('/api/loans', loanRoutes(loanController));
