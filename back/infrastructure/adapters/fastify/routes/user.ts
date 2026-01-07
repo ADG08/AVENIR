@@ -100,4 +100,39 @@ export async function userRoutes(
             return userController.checkClientAdvisor(request as any, reply);
         }
     );
+
+    fastify.put(
+        '/users/:userId/ban',
+        { preHandler: authMiddleware },
+        async (request, reply) => {
+            return userController.banUser(request as any, reply);
+        }
+    );
+
+    fastify.put(
+        '/users/:userId/activate',
+        { preHandler: authMiddleware },
+        async (request, reply) => {
+            return userController.activateUser(request as any, reply);
+        }
+    );
+
+    fastify.delete(
+        '/users/:userId',
+        {
+            preHandler: authMiddleware,
+            schema: {
+                body: {
+                    type: 'object',
+                    required: ['transferIBAN'],
+                    properties: {
+                        transferIBAN: { type: 'string' }
+                    }
+                }
+            }
+        },
+        async (request, reply) => {
+            return userController.deleteUser(request as any, reply);
+        }
+    );
 }

@@ -30,6 +30,9 @@ import { LoginUserUseCase } from '@avenir/application/usecases/user/LoginUserUse
 import { GetAdvisorClientsWithChatsAndLoansUseCase } from '@avenir/application/usecases/user/GetAdvisorClientsWithChatsAndLoansUseCase';
 import { GetAllClientsWithDetailsUseCase } from '@avenir/application/usecases/user/GetAllClientsWithDetailsUseCase';
 import { CheckClientAdvisorUseCase } from '@avenir/application/usecases/user/CheckClientAdvisorUseCase';
+import { BanUserWithAssetsHandlingUseCase } from '../../../application/usecases/user/BanUserWithAssetsHandlingUseCase';
+import { ActivateUserUseCase } from '../../../application/usecases/user/ActivateUserUseCase';
+import { DeleteUserWithIBANTransferUseCase } from '../../../application/usecases/user/DeleteUserWithIBANTransferUseCase';
 import { NodemailerEmailService } from '../email/NodemailerEmailService';
 import { CreateChatUseCase } from '@avenir/application/usecases/chat/CreateChatUseCase';
 import { GetChatsUseCase } from '@avenir/application/usecases/chat/GetChatsUseCase';
@@ -86,6 +89,7 @@ const messageRepository = dbContext.messageRepository;
 const newsRepository = dbContext.newsRepository;
 const notificationRepository = dbContext.notificationRepository;
 const loanRepository = dbContext.loanRepository;
+const portfolioRepository = dbContext.portfolioRepository;
 
 // User
 const emailService = new NodemailerEmailService();
@@ -98,7 +102,23 @@ const loginUserUseCase = new LoginUserUseCase(userRepository);
 const getAdvisorClientsWithChatsAndLoansUseCase = new GetAdvisorClientsWithChatsAndLoansUseCase(userRepository, chatRepository, loanRepository, messageRepository);
 const getAllClientsWithDetailsUseCase = new GetAllClientsWithDetailsUseCase(userRepository, chatRepository, loanRepository, messageRepository);
 const checkClientAdvisorUseCase = new CheckClientAdvisorUseCase(userRepository);
-const userController = new UserController(getUserUseCase, getUsersUseCase, addUserUseCase, registerUserUseCase, verifyEmailUseCase, loginUserUseCase, getAdvisorClientsWithChatsAndLoansUseCase, getAllClientsWithDetailsUseCase, checkClientAdvisorUseCase);
+const banUserWithAssetsHandlingUseCase = new BanUserWithAssetsHandlingUseCase(userRepository, accountRepository, portfolioRepository, loanRepository, sseService);
+const activateUserUseCase = new ActivateUserUseCase(userRepository, notificationRepository);
+const deleteUserUseCase = new DeleteUserWithIBANTransferUseCase(userRepository, accountRepository, portfolioRepository, loanRepository, sseService);
+const userController = new UserController(
+    getUserUseCase,
+    getUsersUseCase,
+    addUserUseCase,
+    registerUserUseCase,
+    verifyEmailUseCase,
+    loginUserUseCase,
+    getAdvisorClientsWithChatsAndLoansUseCase,
+    getAllClientsWithDetailsUseCase,
+    checkClientAdvisorUseCase,
+    banUserWithAssetsHandlingUseCase,
+    activateUserUseCase,
+    deleteUserUseCase
+);
 
 // Chat
 const createChatUseCase = new CreateChatUseCase(chatRepository, messageRepository, userRepository);
@@ -135,7 +155,6 @@ const getAccountByIbanUseCase = new GetAccountByIbanUseCase(accountRepository);
 const accountController = new AccountController(addAccountUseCase, deleteAccountUseCase, updateAccountNameUseCase, getAccountsUseCase, getAccountByIbanUseCase);
 // Investment
 const stockRepository = dbContext.stockRepository;
-const portfolioRepository = dbContext.portfolioRepository;
 const tradeRepository = dbContext.tradeRepository;
 const orderBookRepository = dbContext.orderBookRepository;
 const orderMatchingService = new OrderMatchingService(orderBookRepository, tradeRepository, portfolioRepository, accountRepository, stockRepository, userRepository);
@@ -164,7 +183,7 @@ const notificationController = new NotificationController(
 
 // Loans
 const deliverLoanUseCase = new DeliverLoanUseCase(loanRepository, accountRepository, createNotificationUseCase);
-const processMonthlyPaymentsUseCase = new ProcessMonthlyPaymentsUseCase(loanRepository, accountRepository, createNotificationUseCase, sseService);
+const processMonthlyPaymentsUseCase = new ProcessMonthlyPaymentsUseCase(loanRepository, accountRepository, userRepository, createNotificationUseCase, sseService);
 const createLoanUseCase = new CreateLoanUseCase(loanRepository, userRepository, sseService, deliverLoanUseCase, createNotificationUseCase);
 const getClientLoansUseCase = new GetClientLoansUseCase(loanRepository);
 const loanController = new LoanController(createLoanUseCase, getClientLoansUseCase, processMonthlyPaymentsUseCase, userRepository);

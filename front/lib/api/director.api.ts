@@ -114,10 +114,14 @@ export const activateClient = async (userId: string): Promise<void> => {
 };
 
 // Supprimer un client
-export const deleteClient = async (userId: string): Promise<void> => {
+export const deleteClient = async (userId: string, transferIBAN: string): Promise<void> => {
   const response = await fetch(`${API_URL}/api/users/${userId}`, {
     method: 'DELETE',
+    headers: {
+      'Content-Type': 'application/json',
+    },
     credentials: 'include',
+    body: JSON.stringify({ transferIBAN }),
   });
 
   if (!response.ok) {

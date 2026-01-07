@@ -9,6 +9,7 @@ import { GrantLoanModal, LoanCalculation } from '@/components/clients/grant-loan
 import { CreateClientModal, CreateClientData } from '@/components/clients/create-client-modal';
 import { EditClientModal, EditClientData } from '@/components/clients/edit-client-modal';
 import { ConfirmDialog } from '@/components/modals/confirm-dialog';
+import { DeleteAccountModal } from '@/components/modals/delete-account-modal';
 import { ClientWithDetails } from '@/types/client';
 import { motion } from 'framer-motion';
 import { Users, Search, UserPlus } from 'lucide-react';
@@ -46,6 +47,7 @@ export default function ClientsPage() {
   const [showBanned, setShowBanned] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [isBanConfirmOpen, setIsBanConfirmOpen] = useState(false);
+  const [isLoadingDeleteAccount, setIsLoadingDeleteAccount] = useState(false);
 
   const isDirector = currentUser?.role === UserRole.DIRECTOR;
 
@@ -346,12 +348,12 @@ export default function ClientsPage() {
     setIsDeleteConfirmOpen(true);
   };
 
-  const confirmDeleteClient = async () => {
+  const confirmDeleteClient = async (iban: string) => {
     if (!selectedClient) return;
 
     try {
-      setIsLoadingClientAction(true);
-      await deleteClient(selectedClient.id);
+      setIsLoadingDeleteAccount(true);
+      await deleteClient(selectedClient.id, iban);
 
       toast({
         title: t('director.deleteClient.success'),
@@ -369,8 +371,9 @@ export default function ClientsPage() {
         description: error instanceof Error ? error.message : t('director.deleteClient.errorDescription'),
         variant: 'destructive',
       });
+      throw error; // Relancer l'erreur pour que la modal puisse l'afficher
     } finally {
-      setIsLoadingClientAction(false);
+      setIsLoadingDeleteAccount(false);
     }
   };
 
@@ -596,18 +599,12 @@ export default function ClientsPage() {
             variant={selectedClient?.state === UserState.BANNED ? 'warning' : 'warning'}
           />
 
-          {/* Confirmation pour supprimer */}
-          <ConfirmDialog
+          {/* Modal de suppression avec IBAN */}
+          <DeleteAccountModal
             isOpen={isDeleteConfirmOpen}
             onClose={() => setIsDeleteConfirmOpen(false)}
             onConfirm={confirmDeleteClient}
-            title={t('director.deleteClient.confirmTitle')}
-            message={t('director.deleteClient.confirm', {
-              name: selectedClient ? `${selectedClient.firstName} ${selectedClient.lastName}` : '',
-            })}
-            confirmText={t('director.deleteClient.button')}
-            isLoading={isLoadingClientAction}
-            variant="danger"
+            isLoading={isLoadingDeleteAccount}
           />
         </>
       )}
