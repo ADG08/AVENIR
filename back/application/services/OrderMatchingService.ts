@@ -7,7 +7,6 @@ import { UserRepository } from '@avenir/domain/repositories/UserRepository';
 import { OrderBook } from '@avenir/domain/entities/OrderBook';
 import { Trade } from '@avenir/domain/entities/Trade';
 import { Portfolio } from '@avenir/domain/entities/Portfolio';
-import { Account } from '@avenir/domain/entities/Account';
 import { Stock } from '@avenir/domain/entities/Stock';
 import { OrderSide } from '@avenir/domain/enumerations/OrderSide';
 import { OrderBookState } from '@avenir/domain/enumerations/OrderBookState';
@@ -234,24 +233,8 @@ export class OrderMatchingService {
         const currentAccount = accounts.find(account => account.type === 'CURRENT');
 
         if (currentAccount) {
-            const updatedAccount = new Account(
-                currentAccount.id,
-                currentAccount.userId,
-                currentAccount.iban,
-                currentAccount.name,
-                currentAccount.type,
-                currentAccount.balance + amount,
-                currentAccount.currency,
-                currentAccount.cardNumber,
-                currentAccount.cardHolderName,
-                currentAccount.cardExpiryDate,
-                currentAccount.cardCvv,
-                currentAccount.savingRate,
-                currentAccount.transactions,
-                currentAccount.createdAt
-            );
-
-            await this.accountRepository.update(updatedAccount);
+            const newBalance = currentAccount.balance + amount;
+            await this.accountRepository.updateBalance(currentAccount.id, newBalance);
         }
     }
 
