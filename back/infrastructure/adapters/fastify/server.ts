@@ -10,6 +10,7 @@ import { chatRoutes } from './routes/chat';
 import { messageRoutes } from './routes/message';
 import { accountRoutes } from './routes/account';
 import { newsRoutes } from './routes/news';
+import { transactionRoutes } from './routes/transaction';
 import { websocketRoutes } from './routes/websocket';
 import { sseRoutes } from './routes/sse';
 import { investmentRoutes } from './routes/investment';
@@ -19,6 +20,7 @@ import { ChatController } from './controllers/ChatController';
 import { MessageController } from './controllers/MessageController';
 import { AccountController } from './controllers/AccountController';
 import { NewsController } from './controllers/NewsController';
+import { TransactionController } from './controllers/TransactionController';
 import { GetUserUseCase } from '@avenir/application/usecases/user/GetUserUseCase';
 import { GetUsersUseCase } from '@avenir/application/usecases/user/GetUsersUseCase';
 import { AddUserUseCase } from '@avenir/application/usecases/user/AddUserUseCase';
@@ -62,6 +64,9 @@ import { UpdateAccountNameUseCase } from "@avenir/application/usecases/account/U
 import { GetAccountsUseCase } from "@avenir/application/usecases/account/GetAccountsUseCase";
 import { OrderMatchingService } from '@avenir/application/services/OrderMatchingService';
 import { SSEService } from '../services/SSEService';
+import { GetAccountByIbanUseCase } from "@avenir/application/usecases/account/GetAccountByIbanUseCase";
+import { GetTransactionsUseCase } from "@avenir/application/usecases/transaction/GetTransactionsUseCase";
+import { CreateTransactionUseCase } from "@avenir/application/usecases/transaction/CreateTransactionUseCase";
 
 const fastify = Fastify({
     logger: true
@@ -124,7 +129,8 @@ const addAccountUseCase = new AddAccountUseCase(accountRepository, userRepositor
 const deleteAccountUseCase = new DeleteAccountUseCase(accountRepository);
 const updateAccountNameUseCase = new UpdateAccountNameUseCase(accountRepository);
 const getAccountsUseCase = new GetAccountsUseCase(accountRepository);
-const accountController = new AccountController(addAccountUseCase, deleteAccountUseCase, updateAccountNameUseCase, getAccountsUseCase);
+const getAccountByIbanUseCase = new GetAccountByIbanUseCase(accountRepository);
+const accountController = new AccountController(addAccountUseCase, deleteAccountUseCase, updateAccountNameUseCase, getAccountsUseCase, getAccountByIbanUseCase);
 // Investment
 const stockRepository = dbContext.stockRepository;
 const portfolioRepository = dbContext.portfolioRepository;
@@ -163,6 +169,12 @@ const loanController = new LoanController(createLoanUseCase, getClientLoansUseCa
 const loanPaymentScheduler = new LoanPaymentScheduler(processMonthlyPaymentsUseCase);
 loanPaymentScheduler.start();
 
+// Transaction
+const transactionRepository = dbContext.transactionRepository;
+const getTransactionsUseCase = new GetTransactionsUseCase(transactionRepository, accountRepository);
+const createTransactionUseCase = new CreateTransactionUseCase(transactionRepository, accountRepository);
+const transactionController = new TransactionController(getTransactionsUseCase, createTransactionUseCase);
+
 async function setupRoutes() {
     await fastify.register(cors, {
         origin: process.env.FRONTEND_URL || 'http://localhost:3000',
@@ -180,6 +192,7 @@ async function setupRoutes() {
     await fastify.register(chatRoutes, { prefix: '/api', chatController, messageRepository, chatRepository });
     await fastify.register(messageRoutes, { prefix: '/api', messageController });
     await fastify.register(accountRoutes, { prefix: '/api', accountController });
+    await fastify.register(transactionRoutes, { prefix: '/api', transactionController });
 
     // Route WebSocket
     await fastify.register(newsRoutes, { prefix: '/api', newsController });

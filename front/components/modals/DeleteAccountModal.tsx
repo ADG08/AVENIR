@@ -14,8 +14,11 @@ import { useLanguage } from '@/hooks/use-language';
 import { motion } from 'framer-motion';
 import { Copy, Check, AlertTriangle } from 'lucide-react';
 import { accountApi, Account } from '@/lib/api/account.api';
-import { useToast } from '@/hooks/use-toast';
+import { transactionApi } from '@/lib/api/transaction.api';
 import { AccountType } from '@/types/enums';
+import { TransactionType } from '@avenir/shared/enums';
+import { formatCurrency } from '@/lib/format';
+import { useToast } from '@/hooks/use-toast';
 
 type DeleteAccountModalProps = {
     open: boolean;
@@ -25,12 +28,13 @@ type DeleteAccountModalProps = {
     onSuccess?: () => void;
 };
 
-const deleteAccountSchema = z.object({
+const createDeleteAccountSchema = (hasBalance: boolean) => z.object({
     selectedAccount: z.string().min(1, 'Vous devez sélectionner un compte'),
+    destinationAccount: hasBalance 
+        ? z.string().min(1, 'Vous devez sélectionner un compte courant pour transférer le solde')
+        : z.string().optional(),
     verificationText: z.string().min(1, 'Le texte de vérification est requis'),
 });
-
-type DeleteAccountFormData = z.infer<typeof deleteAccountSchema>;
 
 const getFilteredAccounts = (accounts: Account[], accountType?: AccountType) => {
     const filteredAccounts = accountType 
@@ -50,30 +54,60 @@ export const DeleteAccountModal = ({ open, onOpenChange, accounts, accountType, 
     const { toast } = useToast();
     const [copied, setCopied] = useState(false);
 
-    const form = useForm<DeleteAccountFormData>({
-        resolver: zodResolver(deleteAccountSchema),
+    const form = useForm<z.infer<ReturnType<typeof createDeleteAccountSchema>>>({
+        resolver: zodResolver(createDeleteAccountSchema(false)),
         defaultValues: {
             selectedAccount: '',
+            destinationAccount: '',
             verificationText: '',
         },
+        mode: 'onChange',
     });
 
     useEffect(() => {
         if (open) {
-            form.reset();
+            form.reset({
+                selectedAccount: '',
+                destinationAccount: '',
+                verificationText: '',
+            });
             setCopied(false);
         }
-    }, [open, form]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [open]);
 
     const selectedAccount = form.watch('selectedAccount');
+    const destinationAccount = form.watch('destinationAccount');
     const verificationText = form.watch('verificationText');
 
     const selectedAccountData = accounts.find(acc => acc.id === selectedAccount);
     const selectedAccountLabel = selectedAccountData?.name || selectedAccountData?.iban || '';
+    const hasBalance = selectedAccountData ? selectedAccountData.balance > 0 : false;
     const confirmationText = selectedAccount
         ? `${t('dashboard.deleteAccountModal.confirmationText')} : ${selectedAccountLabel}`
         : t('dashboard.deleteAccountModal.confirmationText');
     const isVerified = verificationText === confirmationText;
+
+    // Get available current accounts (excluding the account to be deleted)
+    const availableCurrentAccounts = accounts.filter(
+        acc => acc.type === AccountType.CURRENT && acc.id !== selectedAccount
+    );
+
+    // Clear destination account when selected account changes or when balance becomes zero
+    useEffect(() => {
+        if (selectedAccount && !hasBalance) {
+            form.setValue('destinationAccount', '');
+            form.clearErrors('destinationAccount');
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [hasBalance, selectedAccount]);
+
+    // Update schema when balance changes
+    useEffect(() => {
+        const schema = createDeleteAccountSchema(hasBalance);
+        form.clearErrors();
+        // Re-validate with new schema
+    }, [hasBalance, form]);
 
     const handleCopy = async () => {
         await navigator.clipboard.writeText(confirmationText);
@@ -81,16 +115,40 @@ export const DeleteAccountModal = ({ open, onOpenChange, accounts, accountType, 
         setTimeout(() => setCopied(false), 2000);
     };
 
-    const handleSubmit = async (data: DeleteAccountFormData) => {
+    const handleSubmit = async (data: z.infer<ReturnType<typeof createDeleteAccountSchema>>) => {
         if (!isVerified) return;
 
         const selectedAccountData = accounts.find(acc => acc.id === data.selectedAccount);
-        if (selectedAccountData?.type === AccountType.CURRENT) {
+        if (!selectedAccountData) {
+            return;
+        }
+
+        if (selectedAccountData.type === AccountType.CURRENT) {
             const currentAccountsCount = accounts.filter(acc => acc.type === AccountType.CURRENT).length;
             if (currentAccountsCount <= 1) {
+                return;
+            }
+        }
+
+        // If account has balance, transfer it to destination account
+        if (hasBalance && selectedAccountData.balance > 0) {
+            if (!data.destinationAccount) {
+                return;
+            }
+
+            try {
+                // Transfer the balance to the destination account
+                await transactionApi.createTransaction({
+                    fromAccountId: data.selectedAccount,
+                    toAccountId: data.destinationAccount,
+                    amount: selectedAccountData.balance,
+                    description: `Transfert du solde avant suppression du compte`,
+                    type: TransactionType.TRANSFER,
+                });
+            } catch (error) {
                 toast({
                     title: t('common.error'),
-                    description: t('dashboard.deleteAccountModal.cannotDeleteLastCurrent'),
+                    description: error instanceof Error ? error.message : 'Erreur lors du transfert du solde',
                     variant: 'destructive',
                 });
                 return;
@@ -102,7 +160,7 @@ export const DeleteAccountModal = ({ open, onOpenChange, accounts, accountType, 
 
             toast({
                 title: t('common.success'),
-                description: t('dashboard.deleteAccountModal.successDescription'),
+                description: t('dashboard.deleteAccountModal.successDescription') || 'Compte supprimé avec succès',
             });
 
             form.reset();
@@ -112,7 +170,7 @@ export const DeleteAccountModal = ({ open, onOpenChange, accounts, accountType, 
         } catch (error) {
             toast({
                 title: t('common.error'),
-                description: error instanceof Error ? error.message : 'Une erreur est survenue',
+                description: error instanceof Error ? error.message : 'Une erreur est survenue lors de la suppression',
                 variant: 'destructive',
             });
         }
@@ -163,16 +221,16 @@ export const DeleteAccountModal = ({ open, onOpenChange, accounts, accountType, 
                                                     {(() => {
                                                         const { accounts: filteredAccounts, isLastCurrentAccount } = getFilteredAccounts(accounts, accountType);
                                                         
-                                                        return filteredAccounts.map((account) => (
-                                                            <SelectItem 
-                                                                key={account.id} 
-                                                                value={account.id}
-                                                                disabled={isLastCurrentAccount}
-                                                            >
-                                                                {account.name || account.iban}
-                                                                {isLastCurrentAccount && ` ${t('dashboard.deleteAccountModal.cannotDeleteLastCurrentSuffix')}`}
-                                                            </SelectItem>
-                                                        ));
+                                                            return filteredAccounts.map((account) => (
+                                                                <SelectItem 
+                                                                    key={account.id} 
+                                                                    value={account.id}
+                                                                    disabled={isLastCurrentAccount}
+                                                                >
+                                                                    {account.name || account.iban}
+                                                                    {isLastCurrentAccount && ` ${t('dashboard.deleteAccountModal.cannotDeleteLastCurrentSuffix')}`}
+                                                                </SelectItem>
+                                                            ));
                                                     })()}
                                                 </SelectContent>
                                             </Select>
@@ -180,6 +238,58 @@ export const DeleteAccountModal = ({ open, onOpenChange, accounts, accountType, 
                                         </FormItem>
                                     )}
                                 />
+
+                        {selectedAccount && hasBalance && availableCurrentAccounts.length > 0 && (
+                            <motion.div
+                                initial={{ opacity: 0, height: 0 }}
+                                animate={{ opacity: 1, height: 'auto' }}
+                                transition={{ duration: 0.3 }}
+                                className="space-y-3 rounded-lg border border-blue-200 bg-blue-50 p-4"
+                            >
+                                <div className="space-y-2">
+                                    <Label className="text-sm font-medium text-blue-900">
+                                        Transférer le solde vers un compte courant
+                                    </Label>
+                                    <p className="text-xs text-blue-700">
+                                        Ce compte a un solde de {formatCurrency(selectedAccountData?.balance || 0, selectedAccountData?.currency || 'EUR')}. 
+                                        Sélectionnez un compte courant pour transférer ce montant avant la suppression.
+                                    </p>
+                                    <FormField
+                                        control={form.control}
+                                        name="destinationAccount"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Compte courant de destination</FormLabel>
+                                                <Select
+                                                    onValueChange={field.onChange}
+                                                    value={field.value}
+                                                    disabled={form.formState.isSubmitting}
+                                                >
+                                                    <FormControl>
+                                                        <SelectTrigger className="h-11">
+                                                            <SelectValue placeholder="Sélectionnez un compte courant" />
+                                                        </SelectTrigger>
+                                                    </FormControl>
+                                                    <SelectContent>
+                                                        {availableCurrentAccounts.map((account) => (
+                                                            <SelectItem key={account.id} value={account.id}>
+                                                                <div className="flex items-center justify-between gap-4">
+                                                                    <span>{account.name || account.iban}</span>
+                                                                    <span className="text-xs text-gray-500">
+                                                                        {formatCurrency(account.balance, account.currency)}
+                                                                    </span>
+                                                                </div>
+                                                            </SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                </div>
+                            </motion.div>
+                        )}
 
                         {selectedAccount && (
                             <motion.div
@@ -253,7 +363,7 @@ export const DeleteAccountModal = ({ open, onOpenChange, accounts, accountType, 
                                 <ModalButton
                                     type="submit"
                                     variant="danger"
-                                    disabled={form.formState.isSubmitting || !isVerified}
+                                    disabled={form.formState.isSubmitting || !isVerified || (hasBalance && !destinationAccount)}
                                 >
                                     {form.formState.isSubmitting ? t('common.loading') : t('common.delete')}
                                 </ModalButton>

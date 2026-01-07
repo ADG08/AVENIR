@@ -1,5 +1,5 @@
 import { Account } from '../entities/Account';
-import { AccountType } from '@avenir/shared/enums/AccountType';
+import { AccountType, AccountStatus } from '@avenir/shared/enums';
 import { AccountRepository } from '../repositories/AccountRepository';
 import { Iban, Card } from '../value-objects/Account';
 import { SavingType } from '@avenir/shared/enums/SavingType';
@@ -67,6 +67,7 @@ export class AccountFactory {
             cardExpiryDate,
             cardCvv,
             savingType,
+            AccountStatus.ACTIVE,
             [],
             new Date()
         );

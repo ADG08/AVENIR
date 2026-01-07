@@ -5,6 +5,8 @@ export { WebSocketMessageType } from './WebSocketMessageType';
 export { MessageType } from './MessageType';
 export { LoanStatus } from './LoanStatus';
 export { AccountType } from './AccountType';
+export { AccountStatus } from './AccountStatus';
 export { SavingType, SavingTypeMaxAmount } from './SavingType';
 export { NotificationType, CustomNotificationType } from './NotificationType';
 export { SSEEventType } from './SSEEventType';
+export { TransactionType } from './TransactionType';

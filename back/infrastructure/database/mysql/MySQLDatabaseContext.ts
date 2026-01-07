@@ -11,6 +11,7 @@ import { MySQLTradeRepository } from '../../adapters/repositories/mysql/MySQLTra
 import { MySQLNewsRepository } from '../../adapters/repositories/mysql/MySQLNewsRepository';
 import { MySQLNotificationRepository } from '../../adapters/repositories/mysql/MySQLNotificationRepository';
 import { MySQLLoanRepository } from '../../adapters/repositories/mysql/MySQLLoanRepository';
+import { MySQLTransactionRepository } from '../../adapters/repositories/mysql/MySQLTransactionRepository';
 import { UserRepository } from '@avenir/domain/repositories/UserRepository';
 import { ChatRepository } from '@avenir/domain/repositories/ChatRepository';
 import { MessageRepository } from '@avenir/domain/repositories/MessageRepository';
@@ -22,6 +23,7 @@ import { TradeRepository } from '@avenir/domain/repositories/TradeRepository';
 import { NewsRepository } from '@avenir/domain/repositories/NewsRepository';
 import { NotificationRepository } from '@avenir/domain/repositories/NotificationRepository';
 import {LoanRepository} from "@avenir/domain/repositories/LoanRepository";
+import { TransactionRepository } from '@avenir/domain/repositories/TransactionRepository';
 
 export class MySQLDatabaseContext implements DatabaseContext {
     public readonly userRepository: UserRepository;
@@ -35,6 +37,7 @@ export class MySQLDatabaseContext implements DatabaseContext {
     public readonly newsRepository: NewsRepository;
     public readonly notificationRepository: NotificationRepository;
     public readonly loanRepository: LoanRepository;
+    public readonly transactionRepository: TransactionRepository;
 
     constructor() {
         this.userRepository = new MySQLUserRepository(pool);
@@ -48,6 +51,7 @@ export class MySQLDatabaseContext implements DatabaseContext {
         this.newsRepository = new MySQLNewsRepository(pool);
         this.notificationRepository = new MySQLNotificationRepository(pool);
         this.loanRepository = new MySQLLoanRepository(pool);
+        this.transactionRepository = new MySQLTransactionRepository(pool, this.accountRepository);
     }
 
     async close(): Promise<void> {

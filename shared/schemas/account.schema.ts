@@ -45,7 +45,7 @@ export const deleteAccountSchema = z.object({
 
 export const updateAccountNameSchema = z.object({
     id: idSchema,
-    name: z.string().min(1, 'Account name cannot be empty').max(50, 'Account name cannot exceed 50 characters').nullable(),
+    name: z.string().min(1, 'Account name cannot be empty').max(50, 'Account name cannot exceed 50 characters'),
     userId: idSchema,
 });
 

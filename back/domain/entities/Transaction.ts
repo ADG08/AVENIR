@@ -1,5 +1,5 @@
 import { Account } from "./Account";
-import { TransactionType } from "../enumerations/TransactionType";
+import { TransactionType } from "@avenir/shared/enums";
 
 export class Transaction {
     constructor(

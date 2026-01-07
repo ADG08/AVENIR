@@ -8,3 +8,5 @@ export { ChatResponse } from "./ChatResponse";
 export { MessageResponse } from "./MessageResponse";
 export { AddAccountResponse, AddAccountResponseMapper } from "./AddAccountResponse";
 export { GetAccountsResponse, GetAccountsResponseMapper } from "./GetAccountsResponse";
+export { GetTransactionsResponse, GetTransactionsResponseMapper } from "./GetTransactionsResponse";
+export { CreateTransactionResponse, CreateTransactionResponseMapper } from "./CreateTransactionResponse";

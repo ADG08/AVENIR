@@ -1,6 +1,5 @@
-export interface UpdateAccountNameRequest {
-    id: string;
-    name: string | null;
-    userId: string;
-}
-
+export type UpdateAccountNameRequest = {
+    readonly id: string;
+    readonly name: string;
+    readonly userId: string;
+};

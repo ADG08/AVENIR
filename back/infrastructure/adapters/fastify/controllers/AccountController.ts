@@ -3,7 +3,8 @@ import { AddAccountUseCase } from '../../../../application/usecases/account/AddA
 import { DeleteAccountUseCase } from '../../../../application/usecases/account/DeleteAccountUseCase';
 import { UpdateAccountNameUseCase } from '../../../../application/usecases/account/UpdateAccountNameUseCase';
 import { GetAccountsUseCase } from '../../../../application/usecases/account/GetAccountsUseCase';
-import { AddAccountRequest, GetAccountsRequest } from '../../../../application/requests';
+import { GetAccountByIbanUseCase } from '../../../../application/usecases/account/GetAccountByIbanUseCase';
+import { AddAccountRequest, GetAccountsRequest, GetAccountByIbanRequest } from '../../../../application/requests';
 import { DeleteAccountRequest } from '../../../../application/requests';
 import { UpdateAccountNameRequest } from '../../../../application/requests';
 import { AccountNotFoundError } from '../../../../domain/errors';
@@ -24,6 +25,7 @@ export class AccountController {
         private readonly deleteAccountUseCase: DeleteAccountUseCase,
         private readonly updateAccountNameUseCase: UpdateAccountNameUseCase,
         private readonly getAccountsUseCase: GetAccountsUseCase,
+        private readonly getAccountByIbanUseCase: GetAccountByIbanUseCase,
     ) {}
 
     async getAccounts(request: FastifyRequest<{ Querystring: { userId: string } }>, reply: FastifyReply) {
@@ -174,7 +176,7 @@ export class AccountController {
         }
     }
 
-    async updateAccountName(request: FastifyRequest<{ Params: { id: string }; Body: { name: string | null } }>, reply: FastifyReply) {
+    async updateAccountName(request: FastifyRequest<{ Params: { id: string }; Body: { name: string } }>, reply: FastifyReply) {
         try {
             if (!request.user) {
                 return reply.code(401).send({
@@ -223,6 +225,36 @@ export class AccountController {
                 return reply.code(400).send({
                     error: 'Validation error',
                     message: error.message
+                });
+            }
+
+            console.error('Unexpected error:', error);
+            return reply.code(500).send({
+                error: 'Internal server error',
+                message: error instanceof Error ? error.message : 'Unknown error',
+            });
+        }
+    }
+
+    async getAccountByIban(request: FastifyRequest<{ Querystring: { iban: string } }>, reply: FastifyReply) {
+        try {
+            if (!request.user) {
+                return reply.code(401).send({
+                    error: 'Unauthorized',
+                    message: 'User not authenticated',
+                });
+            }
+
+            const getAccountByIbanRequest: GetAccountByIbanRequest = {
+                iban: request.query.iban,
+            };
+            const response = await this.getAccountByIbanUseCase.execute(getAccountByIbanRequest);
+            return reply.code(200).send(response);
+        } catch (error) {
+            if (error instanceof AccountNotFoundError) {
+                return reply.code(404).send({
+                    error: 'Account not found',
+                    message: error.message,
                 });
             }
 

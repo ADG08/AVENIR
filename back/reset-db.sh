@@ -122,46 +122,36 @@ echo -e "${GREEN}All migrations applied${NC}"
 
 echo -e "${YELLOW}Loading fixtures (seed data)...${NC}"
 
-# Define fixtures in correct dependency order
-# 1. users first (everything depends on users)
-# 2. stocks (portfolios, order_book, trades depend on stocks)
-# 3. portfolios, order_book, trades, user_actions (depend on users and stocks)
-# 4. chat last (depends on users)
-FIXTURES=(
-    "users_fixtures.sql"
-    "stocks_fixtures.sql"
-    "portfolios_fixtures.sql"
-    "order_book_fixtures.sql"
-    "trades_fixtures.sql"
-    "hugo_laurent_trades_fixtures.sql"
-    "user_actions_fixtures.sql"
-    "news_fixtures.sql"
-    "chat_fixtures.sql"
-    "loans_fixtures.sql"
-)
+# Get all SQL files from fixtures directory, sorted alphabetically
+# This ensures consistent loading order across runs
+# Note: If you need specific loading order, prefix files with numbers (e.g., 01_users_fixtures.sql)
+FIXTURES_DIR="$DB_DIR/fixtures"
 
-# Apply fixtures in the specified order
-for fixture_name in "${FIXTURES[@]}"; do
-    fixture="$DB_DIR/fixtures/$fixture_name"
-    if [ -f "$fixture" ]; then
-        echo -e "${YELLOW}  Loading $fixture_name...${NC}"
+if [ ! -d "$FIXTURES_DIR" ]; then
+    echo -e "${YELLOW}Fixtures directory not found: $FIXTURES_DIR${NC}"
+    echo -e "${YELLOW}Skipping fixtures loading${NC}"
+else
+    # Find all .sql files in fixtures directory, sort them, and process each
+    for fixture in $(find "$FIXTURES_DIR" -maxdepth 1 -type f -name "*.sql" | sort); do
+        if [ -f "$fixture" ]; then
+            fixture_name=$(basename "$fixture")
+            echo -e "${YELLOW}  Loading $fixture_name...${NC}"
 
-        if [ "$DB_TYPE" = "postgres" ]; then
-            docker exec -i $CONTAINER_NAME psql -U $DB_USER -d $DB_NAME < "$fixture"
-        else
-            docker exec -i $CONTAINER_NAME mysql -u $DB_USER -p$DB_PASSWORD $DB_NAME < "$fixture"
+            if [ "$DB_TYPE" = "postgres" ]; then
+                docker exec -i $CONTAINER_NAME psql -U $DB_USER -d $DB_NAME < "$fixture"
+            else
+                docker exec -i $CONTAINER_NAME mysql -u $DB_USER -p$DB_PASSWORD $DB_NAME < "$fixture"
+            fi
+
+            if [ $? -ne 0 ]; then
+                echo -e "${RED}Failed to load fixture: $fixture_name${NC}"
+                exit 1
+            fi
+
+            echo -e "${GREEN}  Loaded $fixture_name${NC}"
         fi
-
-        if [ $? -ne 0 ]; then
-            echo -e "${RED}Failed to load fixture: $fixture_name${NC}"
-            exit 1
-        fi
-
-        echo -e "${GREEN}  Loaded $fixture_name${NC}"
-    else
-        echo -e "${YELLOW}  Skipping $fixture_name (file not found)${NC}"
-    fi
-done
+    done
+fi
 
 echo -e "${GREEN}All fixtures loaded${NC}"
 

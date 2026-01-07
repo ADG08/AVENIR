@@ -1,7 +1,7 @@
 import mysql, { RowDataPacket } from 'mysql2/promise';
 import { Account } from '../../../../domain/entities/Account';
 import { AccountRepository } from '../../../../domain/repositories/AccountRepository';
-import { AccountType } from '@avenir/shared/enums/AccountType';
+import { AccountType, AccountStatus } from '@avenir/shared/enums';
 import { SavingType } from '@avenir/shared/enums/SavingType';
 
 export class MySQLAccountRepository implements AccountRepository {
@@ -12,9 +12,9 @@ export class MySQLAccountRepository implements AccountRepository {
             INSERT INTO accounts (
                 id, user_id, iban, name, type, balance, currency,
                 card_number, card_holder_name, card_expiry_date, card_cvv,
-                saving_type, created_at
+                saving_type, status, created_at
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `;
 
         try {
@@ -31,6 +31,7 @@ export class MySQLAccountRepository implements AccountRepository {
                 account.cardExpiryDate,
                 account.cardCvv,
                 account.savingType,
+                account.status || AccountStatus.ACTIVE,
                 account.createdAt
             ]);
 
@@ -58,10 +59,11 @@ export class MySQLAccountRepository implements AccountRepository {
     }
 
     async getByUserId(userId: string): Promise<Account[]> {
-        const query = 'SELECT * FROM accounts WHERE user_id = ? ORDER BY created_at DESC';
+        // Only return ACTIVE accounts for normal queries
+        const query = 'SELECT * FROM accounts WHERE user_id = ? AND status = ? ORDER BY created_at DESC';
 
         try {
-            const [rows] = await this.pool.execute(query, [userId]);
+            const [rows] = await this.pool.execute(query, [userId, AccountStatus.ACTIVE]);
             const accounts = rows as RowDataPacket[];
 
             return accounts.map(row => this.mapRowToAccount(row));
@@ -103,40 +105,50 @@ export class MySQLAccountRepository implements AccountRepository {
         }
     }
 
-    async update(account: Account): Promise<Account> {
+    async updateName(accountId: string, name: string | null): Promise<Account> {
         const query = `
             UPDATE accounts
-            SET iban = ?, name = ?, type = ?, balance = ?, currency = ?,
-                card_number = ?, card_holder_name = ?, card_expiry_date = ?,
-                card_cvv = ?, saving_type = ?
+            SET name = ?
             WHERE id = ?
         `;
 
         try {
-            await this.pool.execute(query, [
-                account.iban,
-                account.name,
-                account.type,
-                account.balance,
-                account.currency,
-                account.cardNumber,
-                account.cardHolderName,
-                account.cardExpiryDate,
-                account.cardCvv,
-                account.savingType,
-                account.id
-            ]);
+            await this.pool.execute(query, [name, accountId]);
+            const account = await this.getById(accountId);
+            if (!account) {
+                throw new Error(`Account ${accountId} not found`);
+            }
 
             return account;
         } catch (error) {
-            console.error('MySQL error updating account:', error);
+            console.error('MySQL error updating account name:', error);
+            throw error;
+        }
+    }
+
+    async updateBalance(accountId: string, amount: number): Promise<Account> {
+        const query = `
+            UPDATE accounts
+            SET balance = balance + ?
+            WHERE id = ?
+        `;
+
+        try {
+            await this.pool.execute(query, [amount, accountId]);
+            const account = await this.getById(accountId);
+            if (!account) {
+                throw new Error(`Account ${accountId} not found`);
+            }
+            return account;
+        } catch (error) {
             throw error;
         }
     }
 
     async remove(id: string): Promise<void> {
+        // Mark account as INACTIVE instead of deleting it
         try {
-            await this.pool.execute('DELETE FROM accounts WHERE id = ?', [id]);
+            await this.pool.execute('UPDATE accounts SET status = ? WHERE id = ?', [AccountStatus.INACTIVE, id]);
         } catch (error) {
             console.error('MySQL error removing account:', error);
             throw error;
@@ -157,6 +169,7 @@ export class MySQLAccountRepository implements AccountRepository {
             row.card_expiry_date,
             row.card_cvv,
             row.saving_type as SavingType | null,
+            (row.status as AccountStatus) || AccountStatus.ACTIVE,
             [],
             new Date(row.created_at)
         );

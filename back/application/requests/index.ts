@@ -16,3 +16,6 @@ export { GetAccountsRequest } from "./GetAccountsRequest";
 export { GetAdvisorClientsRequest } from "./GetAdvisorClientsRequest";
 export { GetAdvisorClientsWithChatsAndLoansRequest } from "./GetAdvisorClientsWithChatsAndLoansRequest";
 export { CheckClientAdvisorRequest } from "./CheckClientAdvisorRequest";
+export { GetAccountByIbanRequest } from "./GetAccountByIbanRequest";
+export { GetTransactionsRequest } from "./GetTransactionsRequest";
+export { CreateTransactionRequest } from "./CreateTransactionRequest";

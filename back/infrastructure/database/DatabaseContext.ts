@@ -9,6 +9,7 @@ import { TradeRepository } from '../../domain/repositories/TradeRepository';
 import { NewsRepository } from '../../domain/repositories/NewsRepository';
 import { NotificationRepository } from '../../domain/repositories/NotificationRepository';
 import { LoanRepository } from '../../domain/repositories/LoanRepository';
+import { TransactionRepository } from '../../domain/repositories/TransactionRepository';
 
 export interface DatabaseContext {
     userRepository: UserRepository;
@@ -22,5 +23,6 @@ export interface DatabaseContext {
     newsRepository: NewsRepository;
     notificationRepository: NotificationRepository;
     loanRepository: LoanRepository;
+    transactionRepository: TransactionRepository;
     close(): Promise<void>;
 }

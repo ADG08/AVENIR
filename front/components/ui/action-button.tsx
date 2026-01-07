@@ -8,11 +8,11 @@ type ActionButtonProps = {
     onClick: () => void;
 };
 
-export const ActionButton = ({ icon: Icon, label, onClick }: ActionButtonProps) => {
+export const ActionButton = ({ icon: Icon, label, onClick, className = '' }: ActionButtonProps & { className?: string }) => {
     return (
         <button
             onClick={onClick}
-            className="flex cursor-pointer items-center justify-center gap-2 rounded-full border border-gray-200 bg-white px-6 py-3 transition-all hover:bg-gray-50"
+            className={`flex cursor-pointer items-center justify-center gap-2 rounded-full border border-gray-200 bg-white px-6 py-3 transition-all hover:bg-gray-50 ${className}`}
         >
             <Icon className="h-5 w-5 text-gray-700" />
             <span className="text-base font-medium text-gray-900">{label}</span>
