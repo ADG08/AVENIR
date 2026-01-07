@@ -11,6 +11,7 @@ import { PostgresTradeRepository } from '../../adapters/repositories/postgres/Po
 import { PostgresNewsRepository } from '../../adapters/repositories/postgres/PostgresNewsRepository';
 import { PostgresNotificationRepository } from '../../adapters/repositories/postgres/PostgresNotificationRepository';
 import { PostgresLoanRepository } from '../../adapters/repositories/postgres/PostgresLoanRepository';
+import { PostgresTransactionRepository } from '../../adapters/repositories/postgres/PostgresTransactionRepository';
 import { UserRepository } from '@avenir/domain/repositories/UserRepository';
 import { ChatRepository } from '@avenir/domain/repositories/ChatRepository';
 import { MessageRepository } from '@avenir/domain/repositories/MessageRepository';
@@ -22,6 +23,7 @@ import { TradeRepository } from '@avenir/domain/repositories/TradeRepository';
 import { NewsRepository } from '@avenir/domain/repositories/NewsRepository';
 import { NotificationRepository } from '@avenir/domain/repositories/NotificationRepository';
 import { LoanRepository } from '@avenir/domain/repositories/LoanRepository';
+import { TransactionRepository } from '@avenir/domain/repositories/TransactionRepository';
 
 export class PostgresDatabaseContext implements DatabaseContext {
     public readonly userRepository: UserRepository;
@@ -35,6 +37,7 @@ export class PostgresDatabaseContext implements DatabaseContext {
     public readonly newsRepository: NewsRepository;
     public readonly notificationRepository: NotificationRepository;
     public readonly loanRepository: LoanRepository;
+    public readonly transactionRepository: TransactionRepository;
 
     constructor() {
         this.userRepository = new PostgresUserRepository(pool);
@@ -48,6 +51,7 @@ export class PostgresDatabaseContext implements DatabaseContext {
         this.newsRepository = new PostgresNewsRepository(pool);
         this.notificationRepository = new PostgresNotificationRepository(pool);
         this.loanRepository = new PostgresLoanRepository(pool);
+        this.transactionRepository = new PostgresTransactionRepository(pool, this.accountRepository);
     }
 
     async close(): Promise<void> {

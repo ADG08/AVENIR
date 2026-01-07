@@ -19,18 +19,21 @@ import { EditAccountNameModal } from '@/components/modals/EditAccountNameModal';
 import { SendMoneyModal } from '@/components/modals/SendMoneyModal';
 import { News } from '@/types/news';
 import { getAllNews } from '@/lib/api/news.api';
+import { AddMoneyModal } from '@/components/modals/AddMoneyModal';
 import { Search, ArrowUp, ArrowDown, Plus, ChevronLeft, ChevronRight, Trash2, List } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useLanguage } from '@/hooks/use-language';
 import { accountApi, Account } from '@/lib/api/account.api';
+import { transactionApi, Transaction } from '@/lib/api/transaction.api';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { AccountType } from '@/types/enums';
+import { AccountType, TransactionType } from '@/types/enums';
 import { formatCurrency } from '@/lib/format';
 import { calculateSavingsProgress } from '@/lib/savings';
 import { useSSE, SSEEventType, isNewsCreatedPayload, isNewsDeletedPayload } from '@/contexts/SSEContext';
 import { mapSSENewsToNews } from '@/lib/mapping/sse.mapping';
+import { RealTransactionItem } from '@/components/ui/real-transaction-item';
 
 export default function Home() {
     const { t } = useLanguage();
@@ -48,19 +51,18 @@ export default function Home() {
     const [deleteAccountType, setDeleteAccountType] = useState<AccountType | undefined>(undefined);
     const [editAccountNameModalOpen, setEditAccountNameModalOpen] = useState(false);
     const [sendMoneyModalOpen, setSendMoneyModalOpen] = useState(false);
+    const [addMoneyModalOpen, setAddMoneyModalOpen] = useState(false);
     const [accounts, setAccounts] = useState<Account[]>([]);
     const [isLoadingAccounts, setIsLoadingAccounts] = useState(true);
+    const [transactions, setTransactions] = useState<Transaction[]>([]);
+    const [isLoadingTransactions, setIsLoadingTransactions] = useState(false);
     const [selectedAccountForEdit, setSelectedAccountForEdit] = useState<Account | null>(null);
     const [news, setNews] = useState<News[]>([]);
     const [isLoadingNews, setIsLoadingNews] = useState(false);
     const [activeFilters, setActiveFilters] = useState<{
-        card: string | null;
         category: string | null;
-        status: string | null;
     }>({
-        card: null,
         category: null,
-        status: null,
     });
     const filterRef = useRef<HTMLDivElement>(null);
     const transactionsRef = useRef<HTMLDivElement>(null);
@@ -84,12 +86,33 @@ export default function Home() {
             });
         } finally {
             setIsLoadingAccounts(false);
-        }
+        }   
     }, [user?.id, toast, t]);
 
+    const loadTransactions = useCallback(async () => {
+        if (!user?.id) {
+            setIsLoadingTransactions(false);
+            return;
+        }
+
+        try {
+            setIsLoadingTransactions(true);
+            const loadedTransactions = await transactionApi.getTransactions();
+            setTransactions(loadedTransactions);
+        } catch (error) {
+            console.error('Error loading transactions:', error);
+        } finally {
+            setIsLoadingTransactions(false);
+        }
+    }, [user?.id]);
+
     useEffect(() => {
-        loadAccounts();
-    }, [loadAccounts]);
+        if (user?.id) {
+            loadAccounts();
+            loadTransactions();
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [user?.id]);
 
     useEffect(() => {
         const loadNews = async () => {
@@ -143,16 +166,16 @@ export default function Home() {
     const cards = accounts
         .filter((account) => account.type === AccountType.CURRENT)
         .map((account) => ({
-            id: account.id,
-            cardNumber: account.cardNumber ? `****${account.cardNumber.slice(-4)}` : '****0000',
-            cardType: account.cardNumber ? 'VISA' : 'N/A',
-            expiryDate: account.cardExpiryDate || '00/00',
-            firstName: user?.firstName || '',
-            lastName: user?.lastName || '',
-            accountName: account.name || account.iban,
-            cvv: '***',
-            account: account,
-        }));
+        id: account.id,
+        cardNumber: account.cardNumber ? `****${account.cardNumber.slice(-4)}` : '****0000',
+        cardType: account.cardNumber ? 'VISA' : 'N/A',
+        expiryDate: account.cardExpiryDate || '00/00',
+        firstName: user?.firstName || '',
+        lastName: user?.lastName || '',
+        accountName: account.name || account.iban,
+        cvv: '***',
+        account: account,
+    }));
 
     const nextCard = () => {
         setCardDirection(1);
@@ -164,73 +187,262 @@ export default function Home() {
         setCurrentCardIndex((prev) => (prev - 1 + cards.length) % cards.length);
     };
 
-    const getChartData = () => {
-        if (period === 'monthly') {
-            return [
-                { label: 'Week 1', value: 15, percentage: '+12%' },
-                { label: 'Week 2', value: 20, percentage: '+18%' },
-                { label: 'Week 3', value: 18, percentage: '+15%' },
-                { label: 'Week 4', value: 25, percentage: '+22%' },
-            ];
-        } else if (period === 'weekly') {
-            return [
-                { label: 'Mon', value: 5, percentage: '+8%' },
-                { label: 'Tue', value: 8, percentage: '+12%' },
-                { label: 'Wed', value: 6, percentage: '+10%' },
-                { label: 'Thu', value: 10, percentage: '+15%' },
-                { label: 'Fri', value: 7, percentage: '+11%' },
-                { label: 'Sat', value: 4, percentage: '+7%' },
-                { label: 'Sun', value: 3, percentage: '+5%' },
-            ];
+    // Calculate real data from accounts and transactions
+    const userAccountIds = new Set(accounts.map(acc => acc.id));
+    const totalBalance = accounts.reduce((sum, account) => {
+        // Convert to same currency (assuming EUR for now, or use account currency)
+        return sum + account.balance;
+    }, 0);
+
+    const savingsTotal = accounts
+        .filter(acc => acc.type === AccountType.SAVINGS)
+        .reduce((sum, account) => sum + account.balance, 0);
+
+    const savingsAccountIds = new Set(
+        accounts.filter(acc => acc.type === AccountType.SAVINGS).map(acc => acc.id)
+    );
+
+    // Calculate income (DEPOSIT transactions)
+    const income = transactions
+        .filter(t => t.type === TransactionType.DEPOSIT)
+        .reduce((sum, t) => sum + t.amount, 0);
+
+    // Calculate expenses (TRANSFER out to external accounts - not to user's own accounts)
+    const expenses = transactions
+        .filter(t => {
+            if (t.type === TransactionType.TRANSFER) {
+                // It's an expense if it's a transfer FROM a user account TO an external account
+                const isFromUserAccount = userAccountIds.has(t.fromAccountId);
+                const isToUserAccount = userAccountIds.has(t.toAccountId);
+                return isFromUserAccount && !isToUserAccount;
+            }
+            return false;
+        })
+        .reduce((sum, t) => sum + t.amount, 0);
+
+    // Calculate this month's income and expenses
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const thisMonthTransactions = transactions.filter(t => {
+        const transactionDate = new Date(t.createdAt);
+        return transactionDate >= startOfMonth;
+    });
+
+    const incomeThisMonth = thisMonthTransactions
+        .filter(t => t.type === TransactionType.DEPOSIT)
+        .reduce((sum, t) => sum + t.amount, 0);
+
+    const expensesThisMonth = thisMonthTransactions
+        .filter(t => {
+            if (t.type === TransactionType.TRANSFER) {
+                const isFromUserAccount = userAccountIds.has(t.fromAccountId);
+                const isToUserAccount = userAccountIds.has(t.toAccountId);
+                return isFromUserAccount && !isToUserAccount;
+            }
+            return false;
+        })
+        .reduce((sum, t) => sum + t.amount, 0);
+
+    const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0);
+    const lastMonthTransactions = transactions.filter(t => {
+        const transactionDate = new Date(t.createdAt);
+        return transactionDate >= startOfLastMonth && transactionDate <= endOfLastMonth;
+    });
+
+    const incomeLastMonth = lastMonthTransactions
+        .filter(t => t.type === TransactionType.DEPOSIT)
+        .reduce((sum, t) => sum + t.amount, 0);
+
+    const expensesLastMonth = lastMonthTransactions
+        .filter(t => {
+            if (t.type === TransactionType.TRANSFER) {
+                const isFromUserAccount = userAccountIds.has(t.fromAccountId);
+                const isToUserAccount = userAccountIds.has(t.toAccountId);
+                return isFromUserAccount && !isToUserAccount;
+            }
+            return false;
+        })
+        .reduce((sum, t) => sum + t.amount, 0);
+
+    // Calculate savings growth: transactions TO savings accounts
+    const savingsThisMonth = thisMonthTransactions
+        .filter(t => {
+            // Count deposits to savings accounts or transfers to savings accounts
+            if (t.type === TransactionType.DEPOSIT) {
+                return savingsAccountIds.has(t.toAccountId);
+            }
+            if (t.type === TransactionType.TRANSFER) {
+                return savingsAccountIds.has(t.toAccountId);
+            }
+            return false;
+        })
+        .reduce((sum, t) => sum + t.amount, 0);
+
+    const savingsLastMonth = lastMonthTransactions
+        .filter(t => {
+            // Count deposits to savings accounts or transfers to savings accounts
+            if (t.type === TransactionType.DEPOSIT) {
+                return savingsAccountIds.has(t.toAccountId);
+            }
+            if (t.type === TransactionType.TRANSFER) {
+                return savingsAccountIds.has(t.toAccountId);
+            }
+            return false;
+        })
+        .reduce((sum, t) => sum + t.amount, 0);
+
+    const calculateTrend = (current: number, previous: number): string => {
+        if (previous === 0) {
+            return current > 0 ? '+100%' : '+0%';
         }
-        return [
-            { label: 'Jan', value: 25, percentage: '+16%' },
-            { label: 'Feb', value: 35, percentage: '+21%' },
-            { label: 'Mar', value: 15, percentage: '+36%' },
-            { label: 'Apr', value: 10, percentage: '+19%' },
-            { label: 'May', value: 25, percentage: '+25%' },
-            { label: 'Jun', value: 59.8, percentage: '+14%' },
-            { label: 'Jul', value: 25, percentage: '+8%' },
-            { label: 'Aug', value: 45, percentage: '+11%' },
-            { label: 'Sep', value: 60, percentage: '+9%' },
-            { label: 'Oct', value: 35, percentage: '+20%' },
-            { label: 'Nov', value: 15, percentage: '+7%' },
-            { label: 'Dec', value: 10, percentage: '+4%' },
-        ];
+        const change = ((current - previous) / previous) * 100;
+        const sign = change >= 0 ? '+' : '';
+        return `${sign}${Math.round(change)}%`;
+    };
+
+    const incomeTrend = calculateTrend(incomeThisMonth, incomeLastMonth);
+    const expensesTrend = calculateTrend(expensesThisMonth, expensesLastMonth);
+    const savingsTrend = calculateTrend(savingsThisMonth, savingsLastMonth);
+
+    // Generate chart data from real transactions
+    const getChartData = () => {
+        if (period === 'yearly') {
+            // Group transactions by month
+            const monthlyData: Record<number, number> = {};
+            const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            
+            transactions.forEach(transaction => {
+                const date = new Date(transaction.createdAt);
+                const month = date.getMonth();
+                if (!monthlyData[month]) {
+                    monthlyData[month] = 0;
+                }
+                // Count expenses (outgoing transfers to external accounts)
+                if (transaction.type === TransactionType.TRANSFER) {
+                    const isFromUserAccount = userAccountIds.has(transaction.fromAccountId);
+                    const isToUserAccount = userAccountIds.has(transaction.toAccountId);
+                    if (isFromUserAccount && !isToUserAccount) {
+                        monthlyData[month] += transaction.amount;
+                    }
+                }
+            });
+
+            return monthNames.map((name, index) => ({
+                label: name,
+                value: monthlyData[index] || 0,
+                percentage: '+0%', // Could calculate trend if needed
+            }));
+        } else if (period === 'monthly') {
+            // Group by week of current month
+            const weeklyData: Record<number, number> = {};
+            const now = new Date();
+            const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+            
+            transactions.forEach(transaction => {
+                const date = new Date(transaction.createdAt);
+                if (date >= startOfMonth && date <= now) {
+                    const week = Math.floor((date.getDate() - 1) / 7);
+                    if (!weeklyData[week]) {
+                        weeklyData[week] = 0;
+                    }
+                    if (transaction.type === TransactionType.TRANSFER) {
+                        const isFromUserAccount = userAccountIds.has(transaction.fromAccountId);
+                        const isToUserAccount = userAccountIds.has(transaction.toAccountId);
+                        if (isFromUserAccount && !isToUserAccount) {
+                            weeklyData[week] += transaction.amount;
+                        }
+                    }
+                }
+            });
+
+            return Array.from({ length: 4 }, (_, i) => ({
+                label: `Week ${i + 1}`,
+                value: weeklyData[i] || 0,
+                percentage: '+0%',
+            }));
+        } else {
+
+            const dailyData: Record<number, number> = {};
+            const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            transactions.forEach(transaction => {
+                const date = new Date(transaction.createdAt);
+                date.setHours(0, 0, 0, 0);
+                const daysDiff = Math.floor((today.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
+                if (daysDiff >= 0 && daysDiff < 7) {
+                    const dayOfWeek = date.getDay();
+                    const adjustedDay = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // Convert Sunday=0 to Sunday=6
+                    if (!dailyData[adjustedDay]) {
+                        dailyData[adjustedDay] = 0;
+                    }
+                    if (transaction.type === TransactionType.TRANSFER) {
+                        const isFromUserAccount = userAccountIds.has(transaction.fromAccountId);
+                        const isToUserAccount = userAccountIds.has(transaction.toAccountId);
+                        if (isFromUserAccount && !isToUserAccount) {
+                            dailyData[adjustedDay] += transaction.amount;
+                        }
+                    }
+                }
+            });
+
+            return dayNames.map((name, index) => ({
+                label: name,
+                value: dailyData[index] || 0,
+                percentage: '+0%',
+            }));
+        }
     };
 
     const chartData = getChartData();
 
-    const allTransactions = [
-        { id: 1, name: 'iPhone 17', time: '11:37 AM', cardNumber: '****4329', cardType: 'VISA', category: t('dashboard.electronics'), amount: '$1,020.00', type: 'purchase' as const, status: 'Success', date: 'Today', dateGroup: 'today' },
-        { id: 2, name: 'Starbucks Coffee', time: '09:15 AM', cardNumber: '****4329', cardType: 'VISA', category: 'Food & Drink', amount: '$12.50', type: 'purchase' as const, status: 'Success', date: 'Today', dateGroup: 'today' },
-        { id: 3, name: 'Uber Ride', time: '08:30 AM', cardNumber: '****8765', cardType: 'Mastercard', category: 'Transport', amount: '$25.00', type: 'purchase' as const, status: 'Success', date: 'Today', dateGroup: 'today' },
-        { id: 4, name: 'Netflix Subscription', time: '10:00 AM', cardNumber: '****4329', cardType: 'VISA', category: 'Entertainment', amount: '$15.99', type: 'purchase' as const, status: 'Success', date: 'Dec 10, 2024', dateGroup: 'lastWeek' },
-        { id: 5, name: 'Amazon Purchase', time: '02:30 PM', cardNumber: '****8765', cardType: 'Mastercard', category: t('dashboard.electronics'), amount: '$89.99', type: 'purchase' as const, status: 'Success', date: 'Dec 9, 2024', dateGroup: 'lastWeek' },
-        { id: 6, name: 'Grocery Shopping', time: '05:45 PM', cardNumber: '****4329', cardType: 'VISA', category: 'Food & Drink', amount: '$156.30', type: 'purchase' as const, status: 'Pending', date: 'Dec 8, 2024', dateGroup: 'lastWeek' },
-        { id: 7, name: 'Gym Membership', time: '09:00 AM', cardNumber: '****8765', cardType: 'Mastercard', category: 'Health', amount: '$49.99', type: 'purchase' as const, status: 'Success', date: 'Nov 28, 2024', dateGroup: 'lastMonth' },
-        { id: 8, name: 'Book Purchase', time: '03:20 PM', cardNumber: '****4329', cardType: 'VISA', category: 'Shopping', amount: '$34.50', type: 'purchase' as const, status: 'Success', date: 'Nov 25, 2024', dateGroup: 'lastMonth' },
-        { id: 9, name: 'Restaurant Dinner', time: '07:30 PM', cardNumber: '****8765', cardType: 'Mastercard', category: 'Food & Drink', amount: '$78.90', type: 'purchase' as const, status: 'Failed', date: 'Nov 22, 2024', dateGroup: 'lastMonth' },
-    ];
+    const groupTransactionsByDate = (transactions: Transaction[]) => {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const lastWeek = new Date(today);
+        lastWeek.setDate(lastWeek.getDate() - 7);
+        const lastMonth = new Date(today);
+        lastMonth.setMonth(lastMonth.getMonth() - 1);
 
-    const filteredTransactions = allTransactions.filter((transaction) => {
-        if (activeFilters.card && transaction.cardType !== activeFilters.card) return false;
-        if (activeFilters.category && transaction.category !== activeFilters.category) return false;
-        return !(activeFilters.status && transaction.status !== activeFilters.status);
-    });
+        const grouped: Record<string, Transaction[]> = {
+            today: [],
+            lastWeek: [],
+            lastMonth: [],
+            older: [],
+        };
 
-    const groupedTransactions = filteredTransactions.reduce((acc, transaction) => {
-        const group = transaction.dateGroup;
-        if (!acc[group]) acc[group] = [];
-        acc[group].push(transaction);
-        return acc;
-    }, {} as Record<string, typeof allTransactions>);
+        transactions.forEach((transaction) => {
+            const transactionDate = new Date(transaction.createdAt);
+            transactionDate.setHours(0, 0, 0, 0);
 
-    const clearFilters = () => {
-        setActiveFilters({ card: null, category: null, status: null });
+            if (transactionDate.getTime() === today.getTime()) {
+                grouped.today.push(transaction);
+            } else if (transactionDate >= lastWeek) {
+                grouped.lastWeek.push(transaction);
+            } else if (transactionDate >= lastMonth) {
+                grouped.lastMonth.push(transaction);
+            } else {
+                grouped.older.push(transaction);
+            }
+        });
+
+        return grouped;
     };
 
-    const hasActiveFilters = activeFilters.card || activeFilters.category || activeFilters.status;
+    const filteredTransactions = transactions.filter((transaction) => {
+        if (activeFilters.category && transaction.type !== activeFilters.category) return false;
+        return true;
+    });
+
+    const groupedTransactions = groupTransactionsByDate(filteredTransactions);
+
+    const clearFilters = () => {
+        setActiveFilters({ category: null });
+    };
+
+    const hasActiveFilters = activeFilters.category !== null;
 
     const handleViewAllTransactions = () => {
         transactionsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -254,9 +466,22 @@ export default function Home() {
                 <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
                     <div className="space-y-6 lg:col-span-8">
                         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                            <StatCard title={t('dashboard.income')} amount="$41,200" trend="+2.5%" variant="primary" />
-                            <StatCard title={t('dashboard.expenses')} amount="$23,200" trend="+1.8%" />
-                            <StatCard title={t('dashboard.savings')} amount="$9,800" trend="+3.2%" />
+                            <StatCard 
+                                title={t('dashboard.income')} 
+                                amount={formatCurrency(income, 'EUR')} 
+                                trend={incomeTrend} 
+                                variant="primary" 
+                            />
+                            <StatCard 
+                                title={t('dashboard.expenses')} 
+                                amount={formatCurrency(expenses, 'EUR')} 
+                                trend={expensesTrend} 
+                            />
+                            <StatCard 
+                                title={t('dashboard.savings')} 
+                                amount={formatCurrency(savingsTotal, 'EUR')} 
+                                trend={savingsTrend} 
+                            />
                         </div>
 
                         <motion.div
@@ -267,7 +492,9 @@ export default function Home() {
                             <div className="mb-6 flex items-center justify-between gap-3">
                                 <div className="flex-1">
                                     <p className="text-sm font-medium text-gray-500">{t('dashboard.totalBalance')}</p>
-                                    <h2 className="mt-1 text-2xl font-bold tracking-tight financial-amount text-gray-900 sm:text-3xl md:text-4xl">$102,489.00</h2>
+                                    <h2 className="mt-1 text-2xl font-bold tracking-tight financial-amount text-gray-900 sm:text-3xl md:text-4xl">
+                                        {formatCurrency(totalBalance, 'EUR')}
+                                    </h2>
                                 </div>
                                 <Select value={period} onValueChange={setPeriod}>
                                     <SelectTrigger className="h-9 w-28.75 text-xs sm:h-10 sm:w-35 sm:text-sm">
@@ -340,42 +567,14 @@ export default function Home() {
 
                                                 <div className="space-y-3">
                                                     <div>
-                                                        <label className="mb-2 block text-xs font-medium text-gray-700">Card</label>
+                                                        <label className="mb-2 block text-xs font-medium text-gray-700">{t('dashboard.transactionsConfig.filter.type') || 'Type'}</label>
                                                         <div className="flex flex-wrap gap-2">
-                                                            {['VISA', 'Mastercard'].map((card) => (
+                                                            {Object.values(TransactionType).map((type) => (
                                                                 <FilterToggleButton
-                                                                    key={card}
-                                                                    value={card}
-                                                                    isActive={activeFilters.card === card}
-                                                                    onClick={() => setActiveFilters({ ...activeFilters, card: activeFilters.card === card ? null : card })}
-                                                                />
-                                                            ))}
-                                                        </div>
-                                                    </div>
-
-                                                    <div>
-                                                        <label className="mb-2 block text-xs font-medium text-gray-700">Category</label>
-                                                        <div className="flex flex-wrap gap-2">
-                                                            {[t('dashboard.electronics'), 'Food & Drink', 'Transport', 'Entertainment', 'Health', 'Shopping'].map((cat) => (
-                                                                <FilterToggleButton
-                                                                    key={cat}
-                                                                    value={cat}
-                                                                    isActive={activeFilters.category === cat}
-                                                                    onClick={() => setActiveFilters({ ...activeFilters, category: activeFilters.category === cat ? null : cat })}
-                                                                />
-                                                            ))}
-                                                        </div>
-                                                    </div>
-
-                                                    <div>
-                                                        <label className="mb-2 block text-xs font-medium text-gray-700">Status</label>
-                                                        <div className="flex flex-wrap gap-2">
-                                                            {['Success', 'Pending', 'Failed'].map((status) => (
-                                                                <FilterToggleButton
-                                                                    key={status}
-                                                                    value={status}
-                                                                    isActive={activeFilters.status === status}
-                                                                    onClick={() => setActiveFilters({ ...activeFilters, status: activeFilters.status === status ? null : status })}
+                                                                    key={type}
+                                                                    value={type}
+                                                                    isActive={activeFilters.category === type}
+                                                                    onClick={() => setActiveFilters({ ...activeFilters, category: activeFilters.category === type ? null : type })}
                                                                 />
                                                             ))}
                                                         </div>
@@ -388,34 +587,59 @@ export default function Home() {
                             </div>
 
                             <div className="space-y-4">
-                                {Object.entries(groupedTransactions).map(([group, transactions]) => (
+                                {isLoadingTransactions ? (
+                                    <div className="py-12 text-center text-gray-500">
+                                        {t('common.loading')}...
+                                    </div>
+                                ) : (
+                                    <>
+                                        {Object.entries(groupedTransactions).map(([group, groupTransactions]) => {
+                                            if (groupTransactions.length === 0) return null;
+                                            
+                                            const getGroupLabel = () => {
+                                                switch (group) {
+                                                    case 'today':
+                                                        return t('dashboard.transactionsConfig.groups.today') || 'Today';
+                                                    case 'lastWeek':
+                                                        return t('dashboard.transactionsConfig.groups.lastWeek') || 'Last Week';
+                                                    case 'lastMonth':
+                                                        return t('dashboard.transactionsConfig.groups.lastMonth') || 'Last Month';
+                                                    default:
+                                                        return t('dashboard.transactionsConfig.groups.older') || 'Older';
+                                                }
+                                            };
+
+                                            return (
                                     <div key={group} className="space-y-4">
                                         <div className="flex items-center justify-between rounded-xl bg-gray-50 px-4 py-3">
                                             <span className="text-sm font-medium text-gray-600">
-                                                {group === 'today' ? 'Today' : group === 'lastWeek' ? 'Last Week' : 'Last Month'}
+                                                            {getGroupLabel()}
+                                                        </span>
+                                                        <span className="text-sm text-gray-500">
+                                                            {groupTransactions.length} {t('dashboard.transactions')}
                                             </span>
-                                            <span className="text-sm text-gray-500">{transactions.length} {t('dashboard.transactions')}</span>
                                         </div>
 
-                                        {transactions.map((transaction) => (
-                                            <TransactionItem
+                                                    {groupTransactions.map((transaction) => {
+                                                        const account = accounts.find(acc => acc.id === transaction.fromAccountId);
+                                                        return (
+                                                            <RealTransactionItem
                                                 key={transaction.id}
-                                                name={transaction.name}
-                                                time={transaction.time}
-                                                cardNumber={transaction.cardNumber}
-                                                category={transaction.category}
-                                                amount={transaction.amount}
-                                                type={transaction.type}
-                                                status={transaction.status}
+                                                                transaction={transaction}
+                                                                accountName={account?.name || account?.iban}
                                             />
-                                        ))}
+                                                        );
+                                                    })}
                                     </div>
-                                ))}
+                                            );
+                                        })}
 
-                                {filteredTransactions.length === 0 && (
+                                        {filteredTransactions.length === 0 && !isLoadingTransactions && (
                                     <div className="py-12 text-center text-gray-500">
-                                        No transactions found with the selected filters.
+                                                {t('dashboard.transactionsConfig.noTransactions') || 'No transactions found.'}
                                     </div>
+                                        )}
+                                    </>
                                 )}
                             </div>
                         </motion.div>
@@ -555,29 +779,37 @@ export default function Home() {
                                 )}
                             </div>
 
-                            <div className="mt-4 grid grid-cols-2 gap-3">
+                            <div className="mt-4 space-y-3">
                                 <ActionButton
                                     icon={List}
                                     label={t('dashboard.viewAllTransactions')}
                                     onClick={handleViewAllTransactions}
+                                    className="w-full"
                                 />
-                                <ActionButton
-                                    icon={ArrowUp}
-                                    label={t('dashboard.sendMoney')}
-                                    onClick={() => setSendMoneyModalOpen(true)}
-                                />
+                                <div className="grid grid-cols-2 gap-3">
+                                    <ActionButton
+                                        icon={ArrowDown}
+                                        label="Ajouter de l'argent"
+                                        onClick={() => setAddMoneyModalOpen(true)}
+                                    />
+                                    <ActionButton
+                                        icon={ArrowUp}
+                                        label={t('dashboard.sendMoney')}
+                                        onClick={() => setSendMoneyModalOpen(true)}
+                                    />
+                                </div>
                             </div>
 
                             <div className="mt-4 space-y-4">
                                 <StatRow
                                     icon={ArrowUp}
                                     label={t('dashboard.incomeThisMonth')}
-                                    amount="$2,873.00"
+                                    amount={formatCurrency(incomeThisMonth, 'EUR')}
                                 />
                                 <StatRow
                                     icon={ArrowDown}
                                     label={t('dashboard.expensesThisMonth')}
-                                    amount="$1,924.00"
+                                    amount={formatCurrency(expensesThisMonth, 'EUR')}
                                 />
                             </div>
                         </motion.div>
@@ -696,7 +928,10 @@ export default function Home() {
                 }}
                 accounts={accounts}
                 accountType={deleteAccountType}
-                onSuccess={loadAccounts}
+                onSuccess={() => {
+                    loadAccounts();
+                    loadTransactions();
+                }}
             />
             <EditAccountNameModal
                 open={editAccountNameModalOpen}
@@ -705,7 +940,22 @@ export default function Home() {
                 currentName={selectedAccountForEdit?.name || ''}
                 onSuccess={loadAccounts}
             />
-            <SendMoneyModal open={sendMoneyModalOpen} onOpenChange={setSendMoneyModalOpen} />
+            <SendMoneyModal 
+                open={sendMoneyModalOpen} 
+                onOpenChange={setSendMoneyModalOpen}
+                onSuccess={() => {
+                    loadAccounts();
+                    loadTransactions();
+                }}
+            />
+            <AddMoneyModal 
+                open={addMoneyModalOpen} 
+                onOpenChange={setAddMoneyModalOpen}
+                onSuccess={() => {
+                    loadAccounts();
+                    loadTransactions();
+                }}
+            />
         </div>
     );
 }

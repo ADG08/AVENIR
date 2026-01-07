@@ -6,6 +6,7 @@ export interface AccountRepository {
     getByUserId(userId: string): Promise<Account[]>;
     getByIban(iban: string): Promise<Account | null>;
     getByCardNumber(cardNumber: string): Promise<Account | null>;
-    update(account: Account): Promise<Account>;
+    updateName(accountId: string, name: string | null): Promise<Account>;
+    updateBalance(accountId: string, amount: number): Promise<Account>;
     remove(id: string): Promise<void>;
 }

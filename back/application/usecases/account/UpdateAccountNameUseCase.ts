@@ -2,7 +2,6 @@ import { AccountRepository } from "../../../domain/repositories/AccountRepositor
 import { UpdateAccountNameRequest } from "../../requests/UpdateAccountNameRequest";
 import { AccountNotFoundError } from "../../../domain/errors/AccountNotFoundError";
 import { UnauthorizedAccountAccessError } from "../../../domain/errors/UnauthorizedAccountAccessError";
-import { Account } from "../../../domain/entities/Account";
 import { AccountType } from "@avenir/shared/enums/AccountType";
 import { ValidationError } from "../../errors/ValidationError";
 
@@ -10,6 +9,10 @@ export class UpdateAccountNameUseCase {
     constructor(private readonly accountRepository: AccountRepository) {}
 
     async execute(request: UpdateAccountNameRequest): Promise<void> {
+        if (!request.name || request.name.trim().length === 0) {
+            throw new ValidationError('Account name is required and cannot be empty');
+        }
+
         const account = await this.accountRepository.getById(request.id);
         if (!account) {
             throw new AccountNotFoundError(request.id);
@@ -23,24 +26,6 @@ export class UpdateAccountNameUseCase {
             throw new ValidationError('Savings account names cannot be changed. The name is determined by the saving rate.');
         }
 
-        const updatedAccount = new Account(
-            account.id,
-            account.userId,
-            account.iban,
-            request.name,
-            account.type,
-            account.balance,
-            account.currency,
-            account.cardNumber,
-            account.cardHolderName,
-            account.cardExpiryDate,
-            account.cardCvv,
-            account.savingType,
-            account.transactions,
-            account.createdAt
-        );
-
-        await this.accountRepository.update(updatedAccount);
+        await this.accountRepository.updateName(request.id, request.name.trim());
     }
 }
-

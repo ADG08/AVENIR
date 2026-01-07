@@ -151,9 +151,9 @@ export const AddSavingsModal = ({ open, onOpenChange, accounts, onSuccess }: Add
                                                         </div>
                                                     ) : (
                                                         availableSavingsTypes.map((type) => (
-                                                            <SelectItem key={type.value} value={type.value}>
-                                                                {t(type.labelKey)}
-                                                            </SelectItem>
+                                                        <SelectItem key={type.value} value={type.value}>
+                                                            {t(type.labelKey)}
+                                                        </SelectItem>
                                                         ))
                                                     )}
                                                 </SelectContent>

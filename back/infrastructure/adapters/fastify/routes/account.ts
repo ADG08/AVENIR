@@ -21,8 +21,11 @@ export async function accountRoutes(
         return accountController.deleteAccount(request, reply);
     });
 
-    fastify.patch<{ Params: { id: string }; Body: { name: string | null } }>('/accounts/:id/name', { preHandler: authMiddleware }, async (request, reply) => {
+    fastify.patch<{ Params: { id: string }; Body: { name: string } }>('/accounts/:id/name', { preHandler: authMiddleware }, async (request, reply) => {
         return accountController.updateAccountName(request, reply);
     });
-}
 
+    fastify.get<{ Querystring: { iban: string } }>('/accounts/by-iban', { preHandler: authMiddleware }, async (request, reply) => {
+        return accountController.getAccountByIban(request, reply);
+    });
+}

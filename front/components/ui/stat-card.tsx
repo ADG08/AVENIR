@@ -15,6 +15,11 @@ type StatCardProps = {
 export const StatCard = ({ title, amount, trend, variant = 'default', className }: StatCardProps) => {
     const isPrimary = variant === 'primary';
     const isPositiveTrend = trend?.startsWith('+');
+    const hasTrend = !!trend;
+
+    const cardBackground = isPrimary ? '#383bfe' : undefined;
+    const textColor = isPrimary ? 'text-white' : 'text-gray-900';
+    const titleColor = isPrimary ? 'text-white/90' : 'text-gray-600';
 
     return (
         <motion.div
@@ -29,42 +34,41 @@ export const StatCard = ({ title, amount, trend, variant = 'default', className 
                 className
             )}
             style={
-                isPrimary
+                cardBackground
                     ? {
-                        backgroundColor: '#383bfe',
+                        backgroundColor: cardBackground,
                     }
                     : undefined
             }
         >
             <div className="mb-8 flex items-start justify-between">
-                <span className={cn('text-sm font-medium', isPrimary ? 'text-white/90' : 'text-gray-600')}>
+                <span className={cn('text-sm font-medium', titleColor)}>
                     {title}
                 </span>
                 <button
-                    className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border-1 bg-white transition-all hover:scale-110"
-                    style={{ borderColor: '#585858' }}
+                    className={cn(
+                        'flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border-1 transition-all hover:scale-110',
+                        isPrimary ? 'bg-white/20 border-white/30' : 'bg-white border-gray-300'
+                    )}
                 >
-                    <ArrowUpRight className="h-5 w-5" style={{ color: '#585858' }} />
+                    <ArrowUpRight className={cn('h-5 w-5', isPrimary ? 'text-white' : 'text-gray-600')} />
                 </button>
             </div>
 
-            <div className="flex items-center gap-3">
-                <h3 className={cn('text-4xl font-bold tracking-tight financial-amount', isPrimary ? 'text-white' : 'text-gray-900')}>
+            <div className="space-y-2">
+                <h3 className={cn('text-4xl font-bold tracking-tight financial-amount', textColor)}>
                     {amount}
                 </h3>
-                {trend && (
-                    <div
-                        className={cn(
-                            'flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-semibold',
-                            isPrimary ? 'border-white/30 bg-white/20 text-white' : 'border-green-200 bg-green-50 text-green-600'
-                        )}
-                    >
+                {hasTrend && (
+                    <div className="flex items-center gap-1.5">
                         {isPositiveTrend ? (
-                            <ChevronUp className="h-4 w-4 stroke-[3]" />
+                            <ChevronUp className={cn('h-4 w-4 stroke-[3]', textColor)} />
                         ) : (
-                            <ChevronDown className="h-4 w-4 stroke-[3]" />
+                            <ChevronDown className={cn('h-4 w-4 stroke-[3]', textColor)} />
                         )}
-                        {trend}
+                        <span className={cn('text-sm font-semibold', textColor)}>
+                            {trend}
+                        </span>
                     </div>
                 )}
             </div>

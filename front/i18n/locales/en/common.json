@@ -89,6 +89,23 @@
     "noSavingsAccounts": "No savings accounts. Click the button above to create one.",
     "noLimit": "No limit",
     "transactions": "Transactions",
+    "transactionsConfig": {
+      "noTransactions": "No transactions found.",
+      "filter": {
+        "type": "Type"
+      },
+      "types": {
+        "deposit": "Deposit",
+        "withdrawal": "Withdrawal",
+        "transfer": "Transfer"
+      },
+      "groups": {
+        "today": "Today",
+        "lastWeek": "This Week",
+        "lastMonth": "This Month",
+        "older": "Older"
+      }
+    },
     "electronics": "Electronics",
     "completed": "Completed",
     "overview": "Overview",
@@ -152,7 +169,7 @@
       "sourceAccount": "From account",
       "sourceAccountPlaceholder": "Select source account",
       "destination": "To",
-      "destinationPlaceholder": "Select a recipient",
+      "destinationPlaceholder": "Select an account",
       "amount": "Amount",
       "descriptionPlaceholder": "e.g., Refund, Gift...",
       "myAccounts": "My accounts",

@@ -1,8 +1,7 @@
-import { AccountType, SavingType } from '@/types/enums';
+import { TransactionType } from '@avenir/shared/enums';
 
 const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001') + '/api';
 
-// Helper to clear auth cookies client-side
 const clearAuthCookies = () => {
   if (typeof document !== 'undefined') {
     document.cookie = 'accessToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
@@ -10,11 +9,9 @@ const clearAuthCookies = () => {
   }
 };
 
-// Flag to prevent multiple simultaneous refresh attempts
 let isRefreshing = false;
 let refreshPromise: Promise<boolean> | null = null;
 
-// Internal refresh token function
 const internalRefreshToken = async (): Promise<boolean> => {
   if (isRefreshing && refreshPromise) {
     return refreshPromise;
@@ -46,7 +43,6 @@ const internalRefreshToken = async (): Promise<boolean> => {
   return refreshPromise;
 };
 
-// Helper function for authenticated fetch with error handling and token refresh
 const fetchWithAuth = async (url: string, options: RequestInit = {}): Promise<Response> => {
   const hasBody = options.body !== undefined && options.body !== null;
   const headers: HeadersInit = {
@@ -60,12 +56,10 @@ const fetchWithAuth = async (url: string, options: RequestInit = {}): Promise<Re
     headers,
   });
 
-  // If 401 and not already a refresh endpoint, try to refresh and retry once
   if (res.status === 401 && !url.includes('/auth/refresh')) {
     const refreshSuccess = await internalRefreshToken();
 
     if (refreshSuccess) {
-      // Retry the original request
       const hasBody = options.body !== undefined && options.body !== null;
       const retryHeaders: HeadersInit = {
         ...(hasBody && { 'Content-Type': 'application/json' }),
@@ -85,7 +79,6 @@ const fetchWithAuth = async (url: string, options: RequestInit = {}): Promise<Re
 
       return retryRes;
     } else {
-      // Refresh failed, clear cookies and throw
       clearAuthCookies();
       throw new Error('Authentication failed. Please log in again.');
     }
@@ -99,31 +92,37 @@ const fetchWithAuth = async (url: string, options: RequestInit = {}): Promise<Re
   return res;
 };
 
-export interface Account {
+export interface Transaction {
   id: string;
-  userId: string;
-  iban: string;
-  name: string | null;
-  type: AccountType;
-  balance: number;
-  currency: string;
-  cardNumber: string | null;
-  cardHolderName: string | null;
-  cardExpiryDate: string | null;
-  savingType: SavingType | null;
-  status?: string;
+  fromAccountId: string;
+  toAccountId: string;
+  amount: number;
+  description: string | null;
+  type: TransactionType;
   createdAt: string;
 }
 
-export interface AddAccountRequest {
-  name?: string;
-  type: AccountType;
-  savingType?: SavingType;
+export interface GetTransactionsParams {
+  accountId?: string;
 }
 
-export const accountApi = {
-  async getAccounts(): Promise<Account[]> {
-    const response = await fetchWithAuth(`${API_BASE_URL}/accounts`, {
+export interface CreateTransactionRequest {
+  fromAccountId: string;
+  toAccountId?: string;
+  amount: number;
+  description?: string;
+  type: TransactionType;
+}
+
+export const transactionApi = {
+  async getTransactions(params?: GetTransactionsParams): Promise<Transaction[]> {
+    const queryParams = new URLSearchParams();
+    if (params?.accountId) {
+      queryParams.append('accountId', params.accountId);
+    }
+
+    const url = `${API_BASE_URL}/transactions${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+    const response = await fetchWithAuth(url, {
       method: 'GET',
     });
 
@@ -131,37 +130,13 @@ export const accountApi = {
     return Array.isArray(data) ? data : [];
   },
 
-  async addAccount(request: AddAccountRequest): Promise<Account> {
-    const response = await fetchWithAuth(`${API_BASE_URL}/accounts`, {
+  async createTransaction(request: CreateTransactionRequest): Promise<Transaction> {
+    const response = await fetchWithAuth(`${API_BASE_URL}/transactions`, {
       method: 'POST',
       body: JSON.stringify(request),
     });
 
     return response.json();
-  },
-
-  async deleteAccount(accountId: string): Promise<void> {
-    await fetchWithAuth(`${API_BASE_URL}/accounts/${accountId}`, {
-      method: 'DELETE',
-    });
-  },
-
-  async updateAccountName(accountId: string, name: string | null): Promise<void> {
-    await fetchWithAuth(`${API_BASE_URL}/accounts/${accountId}/name`, {
-      method: 'PATCH',
-      body: JSON.stringify({ name }),
-    });
-  },
-
-  async getAccountByIban(iban: string): Promise<Account | null> {
-    try {
-      const response = await fetchWithAuth(`${API_BASE_URL}/accounts/by-iban?iban=${encodeURIComponent(iban)}`, {
-        method: 'GET',
-      });
-      return response.json();
-    } catch (error) {
-      return null;
-    }
   },
 };
 

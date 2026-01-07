@@ -89,6 +89,23 @@
     "noSavingsAccounts": "Aucun compte d'épargne. Cliquez sur le bouton ci-dessus pour en créer un.",
     "noLimit": "Aucune limite",
     "transactions": "Transactions",
+    "transactionsConfig": {
+      "noTransactions": "Aucune transaction trouvée.",
+      "filter": {
+        "type": "Type"
+      },
+      "types": {
+        "deposit": "Dépôt",
+        "withdrawal": "Retrait",
+        "transfer": "Virement"
+      },
+      "groups": {
+        "today": "Aujourd'hui",
+        "lastWeek": "Cette semaine",
+        "lastMonth": "Ce mois",
+        "older": "Plus ancien"
+      }
+    },
     "electronics": "Électronique",
     "completed": "Terminé",
     "overview": "Aperçu",
@@ -152,7 +169,7 @@
       "sourceAccount": "Depuis le compte",
       "sourceAccountPlaceholder": "Sélectionnez le compte source",
       "destination": "Vers",
-      "destinationPlaceholder": "Sélectionnez un destinataire",
+      "destinationPlaceholder": "Sélectionnez un compte",
       "amount": "Montant",
       "descriptionPlaceholder": "Ex: Remboursement, Cadeau...",
       "myAccounts": "Mes comptes",

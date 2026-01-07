@@ -1,20 +1,21 @@
 import { Account } from "../../domain/entities/Account";
-import { SavingType } from "@avenir/shared/enums/SavingType";
+import { SavingType, AccountStatus } from "@avenir/shared/enums";
 
-export interface GetAccountsResponse {
-    id: string;
-    userId: string;
-    iban: string;
-    name: string | null;
-    type: string;
-    balance: number;
-    currency: string;
-    cardNumber: string | null;
-    cardHolderName: string | null;
-    cardExpiryDate: string | null;
-    savingType: SavingType | null;
-    createdAt: Date;
-}
+export type GetAccountsResponse = {
+    readonly id: string;
+    readonly userId: string;
+    readonly iban: string;
+    readonly name: string | null;
+    readonly type: string;
+    readonly balance: number;
+    readonly currency: string;
+    readonly cardNumber: string | null;
+    readonly cardHolderName: string | null;
+    readonly cardExpiryDate: string | null;
+    readonly savingType: SavingType | null;
+    readonly status: AccountStatus;
+    readonly createdAt: Date;
+};
 
 export class GetAccountsResponseMapper {
     static toResponse(account: Account): GetAccountsResponse {
@@ -30,6 +31,7 @@ export class GetAccountsResponseMapper {
             cardHolderName: account.cardHolderName,
             cardExpiryDate: account.cardExpiryDate,
             savingType: account.savingType,
+            status: account.status,
             createdAt: account.createdAt,
         };
     }
@@ -38,4 +40,3 @@ export class GetAccountsResponseMapper {
         return accounts.map(account => this.toResponse(account));
     }
 }
-
