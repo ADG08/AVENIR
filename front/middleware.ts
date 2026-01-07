@@ -17,6 +17,7 @@ const ROUTES_WHITELIST: Record<UserRole, string[]> = {
   ],
   DIRECTOR: [
     '/dashboard/investment',
+    '/dashboard/clients',
     '/dashboard/contact',
   ],
 };

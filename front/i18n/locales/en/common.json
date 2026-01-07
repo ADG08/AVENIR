@@ -20,7 +20,13 @@
     "send": "Send",
     "optional": "Optional",
     "sending": "Sending...",
-    "deleting": "Deleting..."
+    "deleting": "Deleting...",
+    "email": "Email",
+    "firstName": "First Name",
+    "lastName": "Last Name",
+    "password": "Password",
+    "firstNamePlaceholder": "John",
+    "lastNamePlaceholder": "Doe"
   },
   "home": {
     "title": "AVENIR",
@@ -666,5 +672,67 @@
       "completed": "Loan repaid",
       "completedMessage": "Congratulations! Your loan \"{{loanName}}\" is fully repaid."
     }
+  },
+  "director": {
+    "allClients": "All clients",
+    "showBanned": "Show banned clients",
+    "createClient": {
+      "button": "Create client",
+      "title": "Create new client",
+      "submit": "Create client",
+      "success": "Client created successfully",
+      "successDescription": "Client {{name}} has been created successfully.",
+      "error": "Error creating client",
+      "errorDescription": "Unable to create client"
+    },
+    "editClient": {
+      "button": "Edit",
+      "title": "Edit client",
+      "submit": "Save",
+      "bannedTooltip": "Cannot edit a banned account. Please activate the account first.",
+      "success": "Client updated successfully",
+      "successDescription": "Client information has been updated.",
+      "error": "Error updating client",
+      "errorDescription": "Unable to update client"
+    },
+    "banClient": {
+      "button": "Ban",
+      "confirmTitle": "Ban client",
+      "confirm": "Are you sure you want to ban {{name}}? The client will no longer be able to log in.",
+      "success": "Client banned",
+      "successDescription": "Client {{name}} has been banned.",
+      "error": "Error banning client",
+      "errorDescription": "Unable to ban client"
+    },
+    "activateClient": {
+      "button": "Activate",
+      "confirmTitle": "Activate client",
+      "confirm": "Are you sure you want to activate {{name}}? The client will be able to log in again.",
+      "success": "Client activated",
+      "successDescription": "Client {{name}} has been activated.",
+      "error": "Error activating client",
+      "errorDescription": "Unable to activate client"
+    },
+    "deleteClient": {
+      "button": "Delete",
+      "confirmTitle": "Delete client",
+      "confirm": "Are you sure you want to delete client {{name}}? This action is irreversible.",
+      "bannedTooltip": "Cannot delete a banned account. Please activate the account first.",
+      "success": "Client deleted",
+      "successDescription": "Client {{name}} has been deleted.",
+      "error": "Error deleting client",
+      "errorDescription": "Unable to delete client"
+    },
+    "clientAction": {
+      "errorDescription": "An error occurred"
+    }
+  },
+  "validation": {
+    "emailRequired": "Email is required",
+    "emailInvalid": "Email is not valid",
+    "firstNameRequired": "First name is required",
+    "lastNameRequired": "Last name is required",
+    "passwordRequired": "Password is required",
+    "passwordMinLength": "Password must be at least 8 characters"
   }
 }

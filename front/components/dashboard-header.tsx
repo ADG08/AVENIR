@@ -32,6 +32,7 @@ export const DashboardHeader = ({ activeTab, setActiveTab }: DashboardHeaderProp
         case UserRole.DIRECTOR:
             navItems = [
                 { id: 'investment', label: t('dashboard.investmentHeader'), href: '/dashboard/investment' },
+                { id: 'clients', label: t('dashboard.clients'), href: '/dashboard/clients' },
                 { id: 'contact', label: t('dashboard.contact'), href: '/dashboard/contact' },
             ];
             break;

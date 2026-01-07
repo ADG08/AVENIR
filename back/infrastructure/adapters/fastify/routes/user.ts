@@ -86,6 +86,14 @@ export async function userRoutes(
     );
 
     fastify.get(
+        '/directors/:directorId/clients',
+        { preHandler: authMiddleware },
+        async (request, reply) => {
+            return userController.getAllClientsWithDetails(request as any, reply);
+        }
+    );
+
+    fastify.get(
         '/advisors/:advisorId/clients/:clientId/check',
         { preHandler: authMiddleware },
         async (request, reply) => {

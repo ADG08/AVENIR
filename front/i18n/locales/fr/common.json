@@ -20,7 +20,13 @@
     "send": "Envoyer",
     "optional": "Optionnel",
     "sending": "Envoi...",
-    "deleting": "Suppression..."
+    "deleting": "Suppression...",
+    "email": "Email",
+    "firstName": "Prénom",
+    "lastName": "Nom",
+    "password": "Mot de passe",
+    "firstNamePlaceholder": "Jean",
+    "lastNamePlaceholder": "Dupont"
   },
   "home": {
     "title": "AVENIR",
@@ -544,7 +550,6 @@
     }
   },
   "chat": {
-    "title": "Contact",
     "conversations": "Conversations",
     "newConversation": "Nouvelle conversation",
     "noConversations": "Aucune conversation",
@@ -667,5 +672,67 @@
       "completed": "Crédit remboursé",
       "completedMessage": "Félicitations ! Votre crédit \"{{loanName}}\" est entièrement remboursé."
     }
+  },
+  "director": {
+    "allClients": "Tous les clients",
+    "showBanned": "Afficher les clients bannis",
+    "createClient": {
+      "button": "Créer un client",
+      "title": "Créer un nouveau client",
+      "submit": "Créer le client",
+      "success": "Client créé avec succès",
+      "successDescription": "Le client {{name}} a été créé avec succès.",
+      "error": "Erreur lors de la création",
+      "errorDescription": "Impossible de créer le client"
+    },
+    "editClient": {
+      "button": "Modifier",
+      "title": "Modifier le client",
+      "submit": "Enregistrer",
+      "bannedTooltip": "Impossible de modifier un compte banni. Veuillez d'abord activer le compte.",
+      "success": "Client modifié avec succès",
+      "successDescription": "Les informations du client ont été mises à jour.",
+      "error": "Erreur lors de la modification",
+      "errorDescription": "Impossible de modifier le client"
+    },
+    "banClient": {
+      "button": "Bannir",
+      "confirmTitle": "Bannir le client",
+      "confirm": "Êtes-vous sûr de vouloir bannir {{name}} ? Le client ne pourra plus se connecter.",
+      "success": "Client banni",
+      "successDescription": "Le client {{name}} a été banni.",
+      "error": "Erreur lors du bannissement",
+      "errorDescription": "Impossible de bannir le client"
+    },
+    "activateClient": {
+      "button": "Activer",
+      "confirmTitle": "Activer le client",
+      "confirm": "Êtes-vous sûr de vouloir activer {{name}} ? Le client pourra à nouveau se connecter.",
+      "success": "Client activé",
+      "successDescription": "Le client {{name}} a été activé.",
+      "error": "Erreur lors de l'activation",
+      "errorDescription": "Impossible d'activer le client"
+    },
+    "deleteClient": {
+      "button": "Supprimer",
+      "confirmTitle": "Supprimer le client",
+      "confirm": "Êtes-vous sûr de vouloir supprimer le client {{name}} ? Cette action est irréversible.",
+      "bannedTooltip": "Impossible de supprimer un compte banni. Veuillez d'abord activer le compte.",
+      "success": "Client supprimé",
+      "successDescription": "Le client {{name}} a été supprimé.",
+      "error": "Erreur lors de la suppression",
+      "errorDescription": "Impossible de supprimer le client"
+    },
+    "clientAction": {
+      "errorDescription": "Une erreur est survenue"
+    }
+  },
+  "validation": {
+    "emailRequired": "L'email est requis",
+    "emailInvalid": "L'email n'est pas valide",
+    "firstNameRequired": "Le prénom est requis",
+    "lastNameRequired": "Le nom est requis",
+    "passwordRequired": "Le mot de passe est requis",
+    "passwordMinLength": "Le mot de passe doit contenir au moins 8 caractères"
   }
 }

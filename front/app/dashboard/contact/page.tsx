@@ -51,29 +51,39 @@ export default function ContactPage() {
 
   // Gestion de la redirection vers les détails du client
   const handleClientClick = useCallback(async (clientId: string) => {
-    if (!currentUser || currentUser.role !== UserRole.ADVISOR) return;
+    if (!currentUser) return;
 
-    try {
-      const result = await checkClientAdvisor(clientId, currentUser.id);
+    // Le directeur peut accéder à tous les clients sans vérification
+    if (currentUser.role === UserRole.DIRECTOR) {
+      sessionStorage.setItem('openClientId', clientId);
+      router.push('/dashboard/clients');
+      return;
+    }
 
-      if (result.isManaged) {
-        sessionStorage.setItem('openClientId', clientId);
-        router.push('/dashboard/clients');
-      } else {
+    // Pour les conseillers, vérifier qu'ils gèrent bien le client
+    if (currentUser.role === UserRole.ADVISOR) {
+      try {
+        const result = await checkClientAdvisor(clientId, currentUser.id);
+
+        if (result.isManaged) {
+          sessionStorage.setItem('openClientId', clientId);
+          router.push('/dashboard/clients');
+        } else {
+          toast({
+            title: t('common.error'),
+            description: result.advisorName
+              ? `Ce client est géré par ${result.advisorName}`
+              : 'Ce client n\'est pas sous votre gestion',
+            variant: 'destructive',
+          });
+        }
+      } catch {
         toast({
-          title: 'Client non géré',
-          description: result.advisorName
-            ? `Ce client est géré par ${result.advisorName}`
-            : 'Ce client n\'est pas sous votre gestion',
+          title: t('common.error'),
+          description: 'Erreur lors de la vérification du client',
           variant: 'destructive',
         });
       }
-    } catch {
-      toast({
-        title: t('common.error'),
-        description: 'Erreur lors de la vérification du client',
-        variant: 'destructive',
-      });
     }
   }, [currentUser, router, toast, t]);
 

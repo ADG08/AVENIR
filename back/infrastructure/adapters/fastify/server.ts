@@ -28,6 +28,7 @@ import { RegisterUserUseCase } from '@avenir/application/usecases/user/RegisterU
 import { VerifyEmailUseCase } from '@avenir/application/usecases/user/VerifyEmailUseCase';
 import { LoginUserUseCase } from '@avenir/application/usecases/user/LoginUserUseCase';
 import { GetAdvisorClientsWithChatsAndLoansUseCase } from '@avenir/application/usecases/user/GetAdvisorClientsWithChatsAndLoansUseCase';
+import { GetAllClientsWithDetailsUseCase } from '@avenir/application/usecases/user/GetAllClientsWithDetailsUseCase';
 import { CheckClientAdvisorUseCase } from '@avenir/application/usecases/user/CheckClientAdvisorUseCase';
 import { NodemailerEmailService } from '../email/NodemailerEmailService';
 import { CreateChatUseCase } from '@avenir/application/usecases/chat/CreateChatUseCase';
@@ -95,8 +96,9 @@ const registerUserUseCase = new RegisterUserUseCase(userRepository, accountRepos
 const verifyEmailUseCase = new VerifyEmailUseCase(userRepository, emailService);
 const loginUserUseCase = new LoginUserUseCase(userRepository);
 const getAdvisorClientsWithChatsAndLoansUseCase = new GetAdvisorClientsWithChatsAndLoansUseCase(userRepository, chatRepository, loanRepository, messageRepository);
+const getAllClientsWithDetailsUseCase = new GetAllClientsWithDetailsUseCase(userRepository, chatRepository, loanRepository, messageRepository);
 const checkClientAdvisorUseCase = new CheckClientAdvisorUseCase(userRepository);
-const userController = new UserController(getUserUseCase, getUsersUseCase, addUserUseCase, registerUserUseCase, verifyEmailUseCase, loginUserUseCase, getAdvisorClientsWithChatsAndLoansUseCase, checkClientAdvisorUseCase);
+const userController = new UserController(getUserUseCase, getUsersUseCase, addUserUseCase, registerUserUseCase, verifyEmailUseCase, loginUserUseCase, getAdvisorClientsWithChatsAndLoansUseCase, getAllClientsWithDetailsUseCase, checkClientAdvisorUseCase);
 
 // Chat
 const createChatUseCase = new CreateChatUseCase(chatRepository, messageRepository, userRepository);

@@ -6,6 +6,7 @@ import { RegisterUserUseCase } from '../../../../application/usecases/user/Regis
 import { VerifyEmailUseCase } from '../../../../application/usecases/user/VerifyEmailUseCase';
 import { LoginUserUseCase } from '../../../../application/usecases/user/LoginUserUseCase';
 import { GetAdvisorClientsWithChatsAndLoansUseCase } from '../../../../application/usecases/user/GetAdvisorClientsWithChatsAndLoansUseCase';
+import { GetAllClientsWithDetailsUseCase } from '../../../../application/usecases/user/GetAllClientsWithDetailsUseCase';
 import { CheckClientAdvisorUseCase } from '../../../../application/usecases/user/CheckClientAdvisorUseCase';
 import {
     AddUserRequest,
@@ -13,6 +14,7 @@ import {
     VerifyEmailRequest,
     LoginUserRequest,
     GetAdvisorClientsWithChatsAndLoansRequest,
+    GetAllClientsWithDetailsRequest,
     CheckClientAdvisorRequest
 } from '../../../../application/requests';
 import { GetUserRequest } from '../../../../application/requests';
@@ -42,6 +44,7 @@ export class UserController {
         private readonly verifyEmailUseCase?: VerifyEmailUseCase,
         private readonly loginUserUseCase?: LoginUserUseCase,
         private readonly getAdvisorClientsWithChatsAndLoansUseCase?: GetAdvisorClientsWithChatsAndLoansUseCase,
+        private readonly getAllClientsWithDetailsUseCase?: GetAllClientsWithDetailsUseCase,
         private readonly checkClientAdvisorUseCase?: CheckClientAdvisorUseCase,
     ) {
         this.jwtService = new JwtService();
@@ -403,6 +406,46 @@ export class UserController {
             if (error instanceof UserNotFoundError) {
                 return reply.code(404).send({
                     error: 'User not found',
+                    message: error.message,
+                });
+            }
+
+            return reply.code(500).send({
+                error: 'Internal server error',
+                message: error instanceof Error ? error.message : 'Unknown error',
+            });
+        }
+    }
+
+    async getAllClientsWithDetails(
+        request: FastifyRequest<{ Params: { directorId: string } }>,
+        reply: FastifyReply
+    ) {
+        if (!this.getAllClientsWithDetailsUseCase) {
+            return reply.code(500).send({
+                error: 'Internal server error',
+                message: 'GetAllClientsWithDetailsUseCase not configured',
+            });
+        }
+
+        try {
+            const getAllClientsRequest = new GetAllClientsWithDetailsRequest(
+                request.params.directorId
+            );
+
+            const response = await this.getAllClientsWithDetailsUseCase.execute(getAllClientsRequest);
+            return reply.code(200).send(response);
+        } catch (error) {
+            if (error instanceof UserNotFoundError) {
+                return reply.code(404).send({
+                    error: 'User not found',
+                    message: error.message,
+                });
+            }
+
+            if (error instanceof Error && error.message === 'User is not a director') {
+                return reply.code(403).send({
+                    error: 'Forbidden',
                     message: error.message,
                 });
             }
