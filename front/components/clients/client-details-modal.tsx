@@ -255,15 +255,6 @@ export const ClientDetailsModal = ({
                   {/* Boutons pour le directeur */}
                   {onEditClient && onBanClient && onDeleteClient && (
                     <>
-                      {/*<button*/}
-                      {/*  onClick={onEditClient}*/}
-                      {/*  disabled={displayedClient?.state === UserState.BANNED}*/}
-                      {/*  className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white"*/}
-                      {/*  title={displayedClient?.state === UserState.BANNED ? t('director.editClient.bannedTooltip') : ''}*/}
-                      {/*>*/}
-                      {/*  <Edit className="h-4 w-4" />*/}
-                      {/*  {t('director.editClient.button')}*/}
-                      {/*</button>*/}
                       <button
                         onClick={onBanClient}
                         className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-orange-300 bg-white px-4 py-2.5 text-sm font-medium text-orange-700 transition-colors hover:bg-orange-50"

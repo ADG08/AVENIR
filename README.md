@@ -110,25 +110,12 @@ docker compose --profile mysql down -v
 ## Fixtures (Données de test)
 
 Les fixtures permettent de charger des données de test dans la base de données.
-
-### PostgreSQL
-
-```bash
-# Charger les utilisateurs
-docker compose exec postgres psql -U avenir_user -d avenir_db -f /docker-entrypoint-initdb.d/fixtures/users_fixtures.sql
-
-# Charger les chats et messages
-docker compose exec postgres psql -U avenir_user -d avenir_db -f /docker-entrypoint-initdb.d/fixtures/chat_fixtures.sql
-```
-
-### MySQL
+À lancer dans le dossier back
 
 ```bash
-# Charger les utilisateurs
-docker compose exec mysql mysql -u avenir_user -pavenir_password avenir_db < back/infrastructure/database/mysql/fixtures/users_fixtures.sql
-
-# Charger les chats et messages
-docker compose exec mysql mysql -u avenir_user -pavenir_password avenir_db < back/infrastructure/database/mysql/fixtures/chat_fixtures.sql
+# Charger les fixtures
+cd back
+npm run db:reset
 ```
 
 ## 📡 API

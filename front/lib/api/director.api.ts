@@ -129,35 +129,3 @@ export const deleteClient = async (userId: string, transferIBAN: string): Promis
     throw new Error(error.message || error.error || 'Failed to delete client');
   }
 };
-
-export const updateClient = async (userId: string, data: UpdateClientData): Promise<void> => {
-  const response = await fetch(`${API_URL}/api/users/${userId}`, {
-    method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    credentials: 'include',
-    body: JSON.stringify(data),
-  });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || error.error || 'Failed to update client');
-  }
-};
-
-export const createClient = async (data: CreateClientData): Promise<void> => {
-  const response = await fetch(`${API_URL}/api/users`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    credentials: 'include',
-    body: JSON.stringify({ ...data, role: 'CLIENT' }),
-  });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || error.error || 'Failed to create client');
-  }
-};

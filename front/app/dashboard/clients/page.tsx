@@ -6,8 +6,6 @@ import { ClientCard } from '@/components/clients/client-card';
 import { ClientDetailsModal } from '@/components/clients/client-details-modal';
 import { SendNotificationModal } from '@/components/clients/send-notification-modal';
 import { GrantLoanModal, LoanCalculation } from '@/components/clients/grant-loan-modal';
-import { CreateClientModal, CreateClientData } from '@/components/clients/create-client-modal';
-import { EditClientModal, EditClientData } from '@/components/clients/edit-client-modal';
 import { ConfirmDialog } from '@/components/modals/confirm-dialog';
 import { DeleteAccountModal } from '@/components/modals/delete-account-modal';
 import { ClientWithDetails } from '@/types/client';
@@ -18,7 +16,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSSE, SSEEventType, isLoanCreatedPayload } from '@/contexts/SSEContext';
 import { getAdvisorClients } from '@/lib/api/advisor.api';
-import { getAllClients, banClient, activateClient, deleteClient, updateClient, createClient } from '@/lib/api/director.api';
+import { getAllClients, banClient, activateClient, deleteClient } from '@/lib/api/director.api';
 import { createNotification } from '@/lib/api/notification.api';
 import { createLoan } from '@/lib/api/loan.api';
 import { mapAdvisorClientsToClientDetails } from '@/lib/mapping/client.mapping';
@@ -38,8 +36,6 @@ export default function ClientsPage() {
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
   const [isLoanModalOpen, setIsLoanModalOpen] = useState(false);
-  const [isCreateClientModalOpen, setIsCreateClientModalOpen] = useState(false);
-  const [isEditClientModalOpen, setIsEditClientModalOpen] = useState(false);
   const [isLoadingNotification, setIsLoadingNotification] = useState(false);
   const [isLoadingLoan, setIsLoadingLoan] = useState(false);
   const [isLoadingClients, setIsLoadingClients] = useState(true);
@@ -247,56 +243,6 @@ export default function ClientsPage() {
   };
 
   // Handlers pour le directeur
-  const handleCreateClient = async (data: CreateClientData) => {
-    try {
-      setIsLoadingClientAction(true);
-      await createClient(data);
-
-      toast({
-        title: t('director.createClient.success'),
-        description: t('director.createClient.successDescription', {
-          name: `${data.firstName} ${data.lastName}`,
-        }),
-      });
-
-      await loadClients();
-      setIsCreateClientModalOpen(false);
-    } catch (error) {
-      toast({
-        title: t('director.createClient.error'),
-        description: error instanceof Error ? error.message : t('director.createClient.errorDescription'),
-        variant: 'destructive',
-      });
-    } finally {
-      setIsLoadingClientAction(false);
-    }
-  };
-
-  const handleEditClient = async (data: EditClientData) => {
-    if (!selectedClient) return;
-
-    try {
-      setIsLoadingClientAction(true);
-      await updateClient(selectedClient.id, data);
-
-      toast({
-        title: t('director.editClient.success'),
-        description: t('director.editClient.successDescription'),
-      });
-
-      await loadClients();
-      setIsEditClientModalOpen(false);
-      setIsDetailsModalOpen(false);
-    } catch (error) {
-      toast({
-        title: t('director.editClient.error'),
-        description: error instanceof Error ? error.message : t('director.editClient.errorDescription'),
-        variant: 'destructive',
-      });
-    } finally {
-      setIsLoadingClientAction(false);
-    }
-  };
 
   const handleBanToggleClient = async () => {
     if (!selectedClient) return;
@@ -522,7 +468,6 @@ export default function ClientsPage() {
           );
           setSelectedClient(updatedClient);
         }}
-        onEditClient={isDirector ? () => setIsEditClientModalOpen(true) : undefined}
         onBanClient={isDirector ? handleBanToggleClient : undefined}
         onDeleteClient={isDirector ? handleDeleteClient : undefined}
         isDirector={isDirector}
@@ -552,25 +497,6 @@ export default function ClientsPage() {
       {/* Modales directeur */}
       {isDirector && (
         <>
-          {/*<CreateClientModal*/}
-          {/*  isOpen={isCreateClientModalOpen}*/}
-          {/*  onClose={() => setIsCreateClientModalOpen(false)}*/}
-          {/*  onSubmit={handleCreateClient}*/}
-          {/*  isLoading={isLoadingClientAction}*/}
-          {/*/>*/}
-
-          {/*<EditClientModal*/}
-          {/*  isOpen={isEditClientModalOpen}*/}
-          {/*  onClose={() => setIsEditClientModalOpen(false)}*/}
-          {/*  onSubmit={handleEditClient}*/}
-          {/*  isLoading={isLoadingClientAction}*/}
-          {/*  client={selectedClient ? {*/}
-          {/*    email: selectedClient.email,*/}
-          {/*    firstName: selectedClient.firstName,*/}
-          {/*    lastName: selectedClient.lastName,*/}
-          {/*  } : null}*/}
-          {/*/>*/}
-
           {/* Confirmation pour bannir/activer */}
           <ConfirmDialog
             isOpen={isBanConfirmOpen}
