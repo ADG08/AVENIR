@@ -66,8 +66,24 @@ export const userRoutes = (userController: UserController) => {
         return userController.getAdvisorClients(req as any, res);
     });
 
+    router.get('/directors/:directorId/clients', authMiddleware, (req, res) => {
+        return userController.getAllClientsWithDetails(req as any, res);
+    });
+
     router.get('/advisors/:advisorId/clients/:clientId/check', authMiddleware, (req, res) => {
         return userController.checkClientAdvisor(req as any, res);
+    });
+
+    router.put('/users/:userId/ban', authMiddleware, (req, res) => {
+        return userController.banUser(req as any, res);
+    });
+
+    router.put('/users/:userId/activate', authMiddleware, (req, res) => {
+        return userController.activateUser(req as any, res);
+    });
+
+    router.delete('/users/:userId', authMiddleware, (req, res) => {
+        return userController.deleteUser(req as any, res);
     });
 
     return router;

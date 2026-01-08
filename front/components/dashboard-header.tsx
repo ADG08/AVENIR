@@ -292,6 +292,20 @@ export const DashboardHeader = ({ activeTab, setActiveTab, onDeleteAccount }: Da
 
                             <div className="my-2 border-t border-gray-200"></div>
 
+                            {/* Supprimer mon compte */}
+                            {currentUser?.role === UserRole.CLIENT && onDeleteAccount && (
+                                <button
+                                    onClick={() => {
+                                        setMobileMenuOpen(false);
+                                        onDeleteAccount();
+                                    }}
+                                    className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
+                                >
+                                    <Trash2 className="h-5 w-5" />
+                                    <span>{t('account.deleteAccount.button')}</span>
+                                </button>
+                            )}
+
                             {/* Déconnexion */}
                             <button
                                 onClick={() => {

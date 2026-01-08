@@ -6,19 +6,26 @@ import { RegisterUserUseCase } from '../../../../application/usecases/user/Regis
 import { VerifyEmailUseCase } from '../../../../application/usecases/user/VerifyEmailUseCase';
 import { LoginUserUseCase } from '../../../../application/usecases/user/LoginUserUseCase';
 import { GetAdvisorClientsWithChatsAndLoansUseCase } from '../../../../application/usecases/user/GetAdvisorClientsWithChatsAndLoansUseCase';
+import { GetAllClientsWithDetailsUseCase } from '../../../../application/usecases/user/GetAllClientsWithDetailsUseCase';
 import { CheckClientAdvisorUseCase } from '../../../../application/usecases/user/CheckClientAdvisorUseCase';
+import { BanUserWithAssetsHandlingUseCase } from '../../../../application/usecases/user/BanUserWithAssetsHandlingUseCase';
+import { ActivateUserUseCase } from '../../../../application/usecases/user/ActivateUserUseCase';
+import { DeleteUserWithIBANTransferUseCase } from '../../../../application/usecases/user/DeleteUserWithIBANTransferUseCase';
 import {
     AddUserRequest,
     RegisterUserRequest,
     VerifyEmailRequest,
     LoginUserRequest,
     GetAdvisorClientsWithChatsAndLoansRequest,
+    GetAllClientsWithDetailsRequest,
     CheckClientAdvisorRequest,
+    ActivateUserRequest
 } from '../../../../application/requests';
 import { GetUserRequest } from '../../../../application/requests';
 import { GetUsersRequest } from '../../../../application/requests';
 import { UserNotFoundError } from '../../../../domain/errors';
 import { UserAlreadyExistsError } from '../../../../domain/errors';
+import { BannedAccountError } from '../../../../domain/errors';
 import { ValidationError } from '../../../../application/errors';
 import { JwtService } from '../../auth/JwtService';
 
@@ -42,7 +49,11 @@ export class UserController {
         private readonly verifyEmailUseCase?: VerifyEmailUseCase,
         private readonly loginUserUseCase?: LoginUserUseCase,
         private readonly getAdvisorClientsWithChatsAndLoansUseCase?: GetAdvisorClientsWithChatsAndLoansUseCase,
-        private readonly checkClientAdvisorUseCase?: CheckClientAdvisorUseCase
+        private readonly getAllClientsWithDetailsUseCase?: GetAllClientsWithDetailsUseCase,
+        private readonly checkClientAdvisorUseCase?: CheckClientAdvisorUseCase,
+        private readonly banUserWithAssetsHandlingUseCase?: BanUserWithAssetsHandlingUseCase,
+        private readonly activateUserUseCase?: ActivateUserUseCase,
+        private readonly deleteUserUseCase?: DeleteUserWithIBANTransferUseCase,
     ) {
         this.jwtService = new JwtService();
     }
@@ -178,6 +189,14 @@ export class UserController {
                 message: 'Connexion réussie. Bienvenue !',
             });
         } catch (error) {
+            if (error instanceof BannedAccountError) {
+                return res.status(403).json({
+                    error: 'Account banned',
+                    message: error.message,
+                    isBanned: true,
+                });
+            }
+
             if (error instanceof Error) {
                 return res.status(401).json({
                     error: 'Authentication failed',
@@ -258,6 +277,7 @@ export class UserController {
                     lastName: response.lastName,
                     email: response.email,
                     role: response.role,
+                    state: response.state,
                 },
             });
         } catch (error) {
@@ -396,6 +416,151 @@ export class UserController {
             if (error instanceof UserNotFoundError) {
                 return res.status(404).json({
                     error: 'User not found',
+                    message: error.message,
+                });
+            }
+
+            return res.status(500).json({
+                error: 'Internal server error',
+                message: error instanceof Error ? error.message : 'Unknown error',
+            });
+        }
+    }
+
+    async getAllClientsWithDetails(req: Request<{ directorId: string }>, res: Response) {
+        if (!this.getAllClientsWithDetailsUseCase) {
+            return res.status(500).json({
+                error: 'Internal server error',
+                message: 'GetAllClientsWithDetailsUseCase not configured',
+            });
+        }
+
+        try {
+            const getAllClientsRequest = new GetAllClientsWithDetailsRequest(
+                req.params.directorId
+            );
+
+            const response = await this.getAllClientsWithDetailsUseCase.execute(getAllClientsRequest);
+            return res.status(200).json(response);
+        } catch (error) {
+            if (error instanceof UserNotFoundError) {
+                return res.status(404).json({
+                    error: 'User not found',
+                    message: error.message,
+                });
+            }
+
+            if (error instanceof Error && error.message === 'User is not a director') {
+                return res.status(403).json({
+                    error: 'Forbidden',
+                    message: error.message,
+                });
+            }
+
+            return res.status(500).json({
+                error: 'Internal server error',
+                message: error instanceof Error ? error.message : 'Unknown error',
+            });
+        }
+    }
+
+    async banUser(req: Request<{ userId: string }>, res: Response) {
+        try {
+            if (!this.banUserWithAssetsHandlingUseCase) {
+                return res.status(501).json({
+                    error: 'Not Implemented',
+                    message: 'Ban user use case is not available',
+                });
+            }
+
+            const result = await this.banUserWithAssetsHandlingUseCase.execute({
+                userId: req.params.userId,
+            });
+
+            return res.status(200).json({
+                message: 'User banned successfully',
+                details: result,
+            });
+        } catch (error) {
+            if (error instanceof UserNotFoundError) {
+                return res.status(404).json({
+                    error: 'User not found',
+                    message: error.message,
+                });
+            }
+
+            return res.status(500).json({
+                error: 'Internal server error',
+                message: error instanceof Error ? error.message : 'Unknown error',
+            });
+        }
+    }
+
+    async activateUser(req: Request<{ userId: string }>, res: Response) {
+        try {
+            if (!this.activateUserUseCase) {
+                return res.status(501).json({
+                    error: 'Not Implemented',
+                    message: 'Activate user use case is not available',
+                });
+            }
+
+            const activateRequest: ActivateUserRequest = {
+                userId: req.params.userId,
+            };
+
+            await this.activateUserUseCase.execute(activateRequest);
+
+            return res.status(200).json({
+                message: 'User activated successfully',
+            });
+        } catch (error) {
+            if (error instanceof UserNotFoundError) {
+                return res.status(404).json({
+                    error: 'User not found',
+                    message: error.message,
+                });
+            }
+
+            return res.status(500).json({
+                error: 'Internal server error',
+                message: error instanceof Error ? error.message : 'Unknown error',
+            });
+        }
+    }
+
+    async deleteUser(
+        req: Request<{ userId: string }, {}, { transferIBAN: string }>,
+        res: Response
+    ) {
+        try {
+            if (!this.deleteUserUseCase) {
+                return res.status(501).json({
+                    error: 'Not Implemented',
+                    message: 'Delete user use case is not available',
+                });
+            }
+
+            const result = await this.deleteUserUseCase.execute({
+                userId: req.params.userId,
+                transferIBAN: req.body.transferIBAN,
+            });
+
+            return res.status(200).json({
+                message: 'User deleted successfully',
+                data: result,
+            });
+        } catch (error) {
+            if (error instanceof UserNotFoundError) {
+                return res.status(404).json({
+                    error: 'User not found',
+                    message: error.message,
+                });
+            }
+
+            if (error instanceof ValidationError) {
+                return res.status(400).json({
+                    error: 'Validation error',
                     message: error.message,
                 });
             }

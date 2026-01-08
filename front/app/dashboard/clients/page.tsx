@@ -12,7 +12,7 @@ import { ConfirmDialog } from '@/components/modals/confirm-dialog';
 import { DeleteAccountModal } from '@/components/modals/delete-account-modal';
 import { ClientWithDetails } from '@/types/client';
 import { motion } from 'framer-motion';
-import { Users, Search, UserPlus } from 'lucide-react';
+import { Users, Search } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
@@ -447,15 +447,15 @@ export default function ClientsPage() {
               </div>
 
               {/* Bouton créer client (directeur uniquement) */}
-              {isDirector && (
-                <button
-                  onClick={() => setIsCreateClientModalOpen(true)}
-                  className="flex items-center gap-2 rounded-full bg-blue-600 px-6 py-2.5 text-sm font-medium text-white shadow-lg transition-all hover:bg-blue-700 hover:shadow-xl"
-                >
-                  <UserPlus className="h-5 w-5" />
-                  {t('director.createClient.button')}
-                </button>
-              )}
+              {/*{isDirector && (*/}
+              {/*  <button*/}
+              {/*    onClick={() => setIsCreateClientModalOpen(true)}*/}
+              {/*    className="flex items-center gap-2 rounded-full bg-blue-600 px-6 py-2.5 text-sm font-medium text-white shadow-lg transition-all hover:bg-blue-700 hover:shadow-xl"*/}
+              {/*  >*/}
+              {/*    <UserPlus className="h-5 w-5" />*/}
+              {/*    {t('director.createClient.button')}*/}
+              {/*  </button>*/}
+              {/*)}*/}
             </div>
           </div>
         </motion.div>
@@ -552,24 +552,24 @@ export default function ClientsPage() {
       {/* Modales directeur */}
       {isDirector && (
         <>
-          <CreateClientModal
-            isOpen={isCreateClientModalOpen}
-            onClose={() => setIsCreateClientModalOpen(false)}
-            onSubmit={handleCreateClient}
-            isLoading={isLoadingClientAction}
-          />
+          {/*<CreateClientModal*/}
+          {/*  isOpen={isCreateClientModalOpen}*/}
+          {/*  onClose={() => setIsCreateClientModalOpen(false)}*/}
+          {/*  onSubmit={handleCreateClient}*/}
+          {/*  isLoading={isLoadingClientAction}*/}
+          {/*/>*/}
 
-          <EditClientModal
-            isOpen={isEditClientModalOpen}
-            onClose={() => setIsEditClientModalOpen(false)}
-            onSubmit={handleEditClient}
-            isLoading={isLoadingClientAction}
-            client={selectedClient ? {
-              email: selectedClient.email,
-              firstName: selectedClient.firstName,
-              lastName: selectedClient.lastName,
-            } : null}
-          />
+          {/*<EditClientModal*/}
+          {/*  isOpen={isEditClientModalOpen}*/}
+          {/*  onClose={() => setIsEditClientModalOpen(false)}*/}
+          {/*  onSubmit={handleEditClient}*/}
+          {/*  isLoading={isLoadingClientAction}*/}
+          {/*  client={selectedClient ? {*/}
+          {/*    email: selectedClient.email,*/}
+          {/*    firstName: selectedClient.firstName,*/}
+          {/*    lastName: selectedClient.lastName,*/}
+          {/*  } : null}*/}
+          {/*/>*/}
 
           {/* Confirmation pour bannir/activer */}
           <ConfirmDialog
