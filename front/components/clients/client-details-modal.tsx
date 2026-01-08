@@ -33,7 +33,6 @@ export const ClientDetailsModal = ({
   onSendNotification,
   onGrantLoan,
   onClientUpdate,
-  onEditClient,
   onBanClient,
   onDeleteClient,
   isDirector = false,
@@ -253,7 +252,7 @@ export const ClientDetailsModal = ({
                   )}
 
                   {/* Boutons pour le directeur */}
-                  {onEditClient && onBanClient && onDeleteClient && (
+                  {onBanClient && onDeleteClient && (
                     <>
                       <button
                         onClick={onBanClient}
