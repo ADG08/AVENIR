@@ -3,7 +3,6 @@ import {AccountRepository} from '../../../domain/repositories/AccountRepository'
 import {CreateNotificationUseCase} from '../notification/CreateNotificationUseCase';
 import {NotificationType} from '@avenir/shared/enums/NotificationType';
 import {AccountType} from '@avenir/shared/enums/AccountType';
-import {Account} from '../../../domain/entities/Account';
 import {ClientHasNoAccountError, LoanNotFoundError} from '@avenir/domain/errors';
 
 export class DeliverLoanUseCase {
@@ -27,24 +26,8 @@ export class DeliverLoanUseCase {
         const account = accounts.find(acc => acc.type === AccountType.CURRENT) || accounts[0];
 
         // Créditer le montant sur le compte du client
-        const updatedAccount = new Account(
-            account.id,
-            account.userId,
-            account.iban,
-            account.name,
-            account.type,
-            account.balance + loan.amount,
-            account.currency,
-            account.cardNumber,
-            account.cardHolderName,
-            account.cardExpiryDate,
-            account.cardCvv,
-            account.savingType,
-            account.transactions,
-            account.createdAt
-        );
-
-        await this.accountRepository.update(updatedAccount);
+        const newBalance = account.balance + loan.amount;
+        await this.accountRepository.updateBalance(account.id, newBalance);
 
         // Envoyer une notification au client
         await this.createNotificationUseCase.execute(

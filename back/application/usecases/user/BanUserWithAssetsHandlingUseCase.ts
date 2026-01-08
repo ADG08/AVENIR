@@ -5,7 +5,6 @@ import { LoanRepository } from "../../../domain/repositories/LoanRepository";
 import { UserNotFoundError } from "../../../domain/errors";
 import { UserState } from "../../../domain/enumerations/UserState";
 import { User } from "../../../domain/entities/User";
-import { Account } from "../../../domain/entities/Account";
 import { Loan } from "../../../domain/entities/Loan";
 import { LoanStatus } from "@avenir/shared/enums";
 import { SSEService } from "../../../infrastructure/adapters/services/SSEService";
@@ -88,24 +87,7 @@ export class BanUserWithAssetsHandlingUseCase {
         }
 
         for (const account of accounts) {
-            const frozenAccount = new Account(
-                account.id,
-                account.userId,
-                account.iban,
-                account.name,
-                account.type,
-                0, // Balance à 0
-                account.currency,
-                account.cardNumber,
-                account.cardHolderName,
-                account.cardExpiryDate,
-                account.cardCvv,
-                account.savingType,
-                account.transactions,
-                account.createdAt
-            );
-
-            await this.accountRepository.update(frozenAccount);
+            await this.accountRepository.updateBalance(account.id, 0);
         }
 
         const bannedUser = new User(

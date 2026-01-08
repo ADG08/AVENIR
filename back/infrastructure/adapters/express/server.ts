@@ -202,6 +202,7 @@ const deliverLoanUseCase = new DeliverLoanUseCase(loanRepository, accountReposit
 const processMonthlyPaymentsUseCase = new ProcessMonthlyPaymentsUseCase(
     loanRepository,
     accountRepository,
+    userRepository,
     createNotificationUseCase,
     sseService
 );

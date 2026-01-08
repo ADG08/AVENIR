@@ -4,7 +4,6 @@ import { UserRepository } from '../../../domain/repositories/UserRepository';
 import { CreateNotificationUseCase } from '../notification/CreateNotificationUseCase';
 import { NotificationType } from '@avenir/shared/enums/NotificationType';
 import { Loan } from '../../../domain/entities/Loan';
-import { Account } from '../../../domain/entities/Account';
 import { SSEService } from '../../../infrastructure/adapters/services/SSEService';
 import { LoanResponse } from '../../responses/LoanResponse';
 import { LoanStatus } from "@avenir/shared/enums/LoanStatus";
@@ -114,23 +113,8 @@ export class ProcessMonthlyPaymentsUseCase {
         }
 
         // Prélever la mensualité
-        const updatedAccount = new Account(
-            account.id,
-            account.userId,
-            account.iban,
-            account.name,
-            account.type,
-            account.balance - loan.monthlyPayment,
-            account.currency,
-            account.cardNumber,
-            account.cardHolderName,
-            account.cardExpiryDate,
-            account.cardCvv,
-            account.savingType,
-            account.transactions,
-            account.createdAt
-        );
-        await this.accountRepository.update(updatedAccount);
+        const newBalance = account.balance - loan.monthlyPayment;
+        await this.accountRepository.updateBalance(account.id, newBalance);
 
         const newPaidAmount = loan.paidAmount + loan.monthlyPayment;
         const isCompleted = newPaidAmount >= loan.totalCost;
