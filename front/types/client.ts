@@ -16,6 +16,7 @@ export interface ClientLoan {
   remainingPayment: number;
   progressPercentage?: number;
   monthsPaid?: number;
+  startDate: Date;
   endDate: Date;
   nextPaymentDate?: Date;
   status: LoanStatus;

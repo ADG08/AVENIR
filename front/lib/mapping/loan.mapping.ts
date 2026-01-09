@@ -28,6 +28,7 @@ export const mapLoanApiResponseToClientLoan = (
     progressPercentage: loan.progressPercentage,
     monthsPaid: loan.monthsPaid,
     status: loan.status as LoanStatus,
+    startDate: new Date(loan.createdAt),
     endDate: endDate,
     nextPaymentDate: loan.nextPaymentDate ? new Date(loan.nextPaymentDate) : undefined,
     createdAt: new Date(loan.createdAt),
