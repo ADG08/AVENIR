@@ -1,0 +1,60 @@
+services:
+  postgres:
+    image: postgres:16.5-alpine
+    container_name: avenir-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./back/infrastructure/database/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - avenir-network
+
+  back:
+    build:
+      context: .
+      dockerfile: back/Dockerfile
+    container_name: avenir-back
+    restart: unless-stopped
+    env_file:
+      - back/.env
+    environment:
+      POSTGRES_HOST: postgres
+    ports:
+      - "3001:3001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - avenir-network
+
+  front:
+    build:
+      context: .
+      dockerfile: front/Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+        NEXT_PUBLIC_WS_URL: ${NEXT_PUBLIC_WS_URL}
+    container_name: avenir-front
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    depends_on:
+      - back
+    networks:
+      - avenir-network
+
+networks:
+  avenir-network:
+    driver: bridge
+
+volumes:
+  postgres_data:

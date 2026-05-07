@@ -71,6 +71,7 @@ import { SSEService } from '../services/SSEService';
 import { GetAccountByIbanUseCase } from "@avenir/application/usecases/account/GetAccountByIbanUseCase";
 import { GetTransactionsUseCase } from "@avenir/application/usecases/transaction/GetTransactionsUseCase";
 import { CreateTransactionUseCase } from "@avenir/application/usecases/transaction/CreateTransactionUseCase";
+import { runMigrations } from '../../database/postgres/migrate';
 
 const fastify = Fastify({
     logger: true
@@ -226,6 +227,7 @@ async function setupRoutes() {
 
 const start = async () => {
     try {
+        await runMigrations();
         await setupRoutes();
         const port = parseInt(process.env.PORT || '3001', 10);
         await fastify.listen({ port, host: '0.0.0.0' });
@@ -242,7 +244,7 @@ const shutdown = async () => {
         await fastify.close();
         process.exit(0);
     } catch (err) {
-        console.error('Error during shutdown:', err);
+        fastify.log.error(err);
         process.exit(1);
     }
 };
