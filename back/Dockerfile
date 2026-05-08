@@ -14,9 +14,10 @@ FROM node:20-alpine AS runner
 
 WORKDIR /app
 
-COPY shared/ ./shared/
+COPY shared/package*.json ./shared/
 WORKDIR /app/shared
 RUN npm install --omit=dev
+COPY --from=builder /app/shared/dist ./dist
 
 COPY back/package*.json /app/back/
 COPY back/domain/package.json /app/back/domain/
