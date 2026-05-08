@@ -211,27 +211,35 @@ BEGIN
 END;
 $$ language 'plpgsql';
 
+DROP TRIGGER IF EXISTS update_users_updated_at ON users;
 CREATE TRIGGER update_users_updated_at BEFORE UPDATE ON users
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_accounts_updated_at ON accounts;
 CREATE TRIGGER update_accounts_updated_at BEFORE UPDATE ON accounts
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_loans_updated_at ON loans;
 CREATE TRIGGER update_loans_updated_at BEFORE UPDATE ON loans
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_orders_updated_at ON orders;
 CREATE TRIGGER update_orders_updated_at BEFORE UPDATE ON orders
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_saving_rates_updated_at ON saving_rates;
 CREATE TRIGGER update_saving_rates_updated_at BEFORE UPDATE ON saving_rates
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_stocks_updated_at ON stocks;
 CREATE TRIGGER update_stocks_updated_at BEFORE UPDATE ON stocks
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_portfolios_updated_at ON portfolios;
 CREATE TRIGGER update_portfolios_updated_at BEFORE UPDATE ON portfolios
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_order_book_updated_at ON order_book;
 CREATE TRIGGER update_order_book_updated_at BEFORE UPDATE ON order_book
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
