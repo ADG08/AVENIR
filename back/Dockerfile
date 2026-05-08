@@ -12,6 +12,8 @@ RUN npm install --include=dev && npm run build
 FROM node:20-alpine AS runner
 WORKDIR /app/back
 
+RUN apk add --no-cache wget
+
 # Install only third-party prod deps — no workspaces, no local @avenir packages
 COPY back/package.json ./
 RUN node -e "const p=require('./package.json');delete p.workspaces;delete p.dependencies['@avenir/shared'];require('fs').writeFileSync('package.json',JSON.stringify(p))" \
