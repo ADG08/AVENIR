@@ -171,8 +171,16 @@ DO $$ BEGIN
     CREATE INDEX IF NOT EXISTS idx_transactions_account_id ON transactions(account_id);
   END IF;
 END $$;
-CREATE INDEX IF NOT EXISTS idx_loans_user_id ON loans(user_id);
-CREATE INDEX IF NOT EXISTS idx_orders_user_id ON orders(user_id);
+DO $$ BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='loans' AND column_name='user_id') THEN
+    CREATE INDEX IF NOT EXISTS idx_loans_user_id ON loans(user_id);
+  END IF;
+END $$;
+DO $$ BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='orders' AND column_name='user_id') THEN
+    CREATE INDEX IF NOT EXISTS idx_orders_user_id ON orders(user_id);
+  END IF;
+END $$;
 CREATE INDEX IF NOT EXISTS idx_user_actions_user_id ON user_actions(user_id);
 CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
 CREATE INDEX IF NOT EXISTS idx_chats_client_id ON chats(client_id);
