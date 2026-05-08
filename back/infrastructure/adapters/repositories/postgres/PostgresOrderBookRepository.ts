@@ -36,7 +36,6 @@ export class PostgresOrderBookRepository implements OrderBookRepository {
             ]);
             return await this.mapRowToOrderBook(result.rows[0]);
         } catch (error) {
-            console.error('PostgreSQL error:', error);
             throw error;
         }
     }
@@ -56,7 +55,6 @@ export class PostgresOrderBookRepository implements OrderBookRepository {
                 new Date()
             ]);
         } catch (error) {
-            console.error('PostgreSQL error:', error);
             throw error;
         }
     }
@@ -65,7 +63,6 @@ export class PostgresOrderBookRepository implements OrderBookRepository {
         try {
             await this.pool.query('DELETE FROM order_book WHERE id = $1', [id]);
         } catch (error) {
-            console.error('PostgreSQL error:', error);
             throw error;
         }
     }
@@ -85,7 +82,6 @@ export class PostgresOrderBookRepository implements OrderBookRepository {
             const result = await this.pool.query(query, [id]);
             return result.rows.length === 0 ? null : await this.mapRowToOrderBook(result.rows[0]);
         } catch (error) {
-            console.error('PostgreSQL error:', error);
             throw error;
         }
     }
@@ -106,7 +102,6 @@ export class PostgresOrderBookRepository implements OrderBookRepository {
             const result = await this.pool.query(query, [userId]);
             return Promise.all(result.rows.map(row => this.mapRowToOrderBook(row)));
         } catch (error) {
-            console.error('PostgreSQL error:', error);
             throw error;
         }
     }
@@ -127,7 +122,6 @@ export class PostgresOrderBookRepository implements OrderBookRepository {
             const result = await this.pool.query(query, [stockId]);
             return Promise.all(result.rows.map(row => this.mapRowToOrderBook(row)));
         } catch (error) {
-            console.error('PostgreSQL error:', error);
             throw error;
         }
     }
@@ -148,7 +142,6 @@ export class PostgresOrderBookRepository implements OrderBookRepository {
             const result = await this.pool.query(query, [stockId, side]);
             return Promise.all(result.rows.map(row => this.mapRowToOrderBook(row)));
         } catch (error) {
-            console.error('PostgreSQL error:', error);
             throw error;
         }
     }
@@ -169,7 +162,6 @@ export class PostgresOrderBookRepository implements OrderBookRepository {
             const result = await this.pool.query(query, [stockId]);
             return Promise.all(result.rows.map(row => this.mapRowToOrderBook(row)));
         } catch (error) {
-            console.error('PostgreSQL error:', error);
             throw error;
         }
     }
@@ -190,7 +182,6 @@ export class PostgresOrderBookRepository implements OrderBookRepository {
             const result = await this.pool.query(query, [state]);
             return Promise.all(result.rows.map(row => this.mapRowToOrderBook(row)));
         } catch (error) {
-            console.error('PostgreSQL error:', error);
             throw error;
         }
     }
@@ -210,7 +201,6 @@ export class PostgresOrderBookRepository implements OrderBookRepository {
             const result = await this.pool.query(query);
             return Promise.all(result.rows.map(row => this.mapRowToOrderBook(row)));
         } catch (error) {
-            console.error('PostgreSQL error:', error);
             throw error;
         }
     }

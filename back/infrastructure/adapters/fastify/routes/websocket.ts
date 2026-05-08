@@ -10,7 +10,6 @@ export const websocketRoutes: FastifyPluginAsync = async (fastify) => {
             return;
         }
 
-        console.log(`[WebSocket] Nouvelle connexion`);
 
         // Enregistrer le client
         webSocketService.registerClient(userId, userRole, socket);
@@ -36,16 +35,13 @@ export const websocketRoutes: FastifyPluginAsync = async (fastify) => {
                     socket.send(JSON.stringify({ type: 'pong', timestamp: new Date().toISOString() }));
                 }
             } catch (error) {
-                console.error('[WebSocket] Erreur lors du traitement du message:', error);
             }
         });
 
         socket.on('error', (error: Error) => {
-            console.error(error.message);
         });
 
         socket.on('close', () => {
-            console.log(`[WebSocket] Connexion fermée`);
         });
     });
 

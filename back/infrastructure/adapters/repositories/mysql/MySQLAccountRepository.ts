@@ -37,7 +37,6 @@ export class MySQLAccountRepository implements AccountRepository {
 
             return account;
         } catch (error) {
-            console.error('MySQL error adding account:', error);
             throw error;
         }
     }
@@ -53,7 +52,6 @@ export class MySQLAccountRepository implements AccountRepository {
 
             return this.mapRowToAccount(accounts[0]);
         } catch (error) {
-            console.error('MySQL error getting account:', error);
             throw error;
         }
     }
@@ -68,7 +66,6 @@ export class MySQLAccountRepository implements AccountRepository {
 
             return accounts.map(row => this.mapRowToAccount(row));
         } catch (error) {
-            console.error('MySQL error getting accounts by user:', error);
             throw error;
         }
     }
@@ -84,7 +81,6 @@ export class MySQLAccountRepository implements AccountRepository {
 
             return this.mapRowToAccount(accounts[0]);
         } catch (error) {
-            console.error('MySQL error getting account by IBAN:', error);
             throw error;
         }
     }
@@ -100,7 +96,6 @@ export class MySQLAccountRepository implements AccountRepository {
 
             return this.mapRowToAccount(accounts[0]);
         } catch (error) {
-            console.error('MySQL error getting account by card number:', error);
             throw error;
         }
     }
@@ -121,7 +116,6 @@ export class MySQLAccountRepository implements AccountRepository {
 
             return account;
         } catch (error) {
-            console.error('MySQL error updating account name:', error);
             throw error;
         }
     }
@@ -150,7 +144,6 @@ export class MySQLAccountRepository implements AccountRepository {
         try {
             await this.pool.execute('UPDATE accounts SET status = ? WHERE id = ?', [AccountStatus.INACTIVE, id]);
         } catch (error) {
-            console.error('MySQL error removing account:', error);
             throw error;
         }
     }

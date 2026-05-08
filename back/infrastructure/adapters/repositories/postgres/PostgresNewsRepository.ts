@@ -23,7 +23,6 @@ export class PostgresNewsRepository implements NewsRepository {
       ]);
       return news;
     } catch (error) {
-      console.error('Erreur PostgreSQL:', error);
       throw error;
     }
   }
@@ -32,7 +31,6 @@ export class PostgresNewsRepository implements NewsRepository {
     try {
       await this.pool.query('DELETE FROM news WHERE id = $1', [id]);
     } catch (error) {
-      console.error('Erreur PostgreSQL:', error);
       throw error;
     }
   }
@@ -54,7 +52,6 @@ export class PostgresNewsRepository implements NewsRepository {
         news.id,
       ]);
     } catch (error) {
-      console.error('Erreur PostgreSQL:', error);
       throw error;
     }
   }
@@ -81,7 +78,6 @@ export class PostgresNewsRepository implements NewsRepository {
         new Date(row.updated_at)
       );
     } catch (error) {
-      console.error('Erreur PostgreSQL:', error);
       throw error;
     }
   }
@@ -103,7 +99,6 @@ export class PostgresNewsRepository implements NewsRepository {
           )
       );
     } catch (error) {
-      console.error('Erreur PostgreSQL:', error);
       throw error;
     }
   }
@@ -127,7 +122,6 @@ export class PostgresNewsRepository implements NewsRepository {
           )
       );
     } catch (error) {
-      console.error('Erreur PostgreSQL:', error);
       throw error;
     }
   }
@@ -152,7 +146,6 @@ export class PostgresNewsRepository implements NewsRepository {
           )
       );
     } catch (error) {
-      console.error('Erreur PostgreSQL:', error);
       throw error;
     }
   }

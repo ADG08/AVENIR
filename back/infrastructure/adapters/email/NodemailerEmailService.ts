@@ -166,9 +166,7 @@ If you did not create this account, please ignore this email.
 
         try {
             await this.transporter.sendMail(mailOptions);
-            console.log(`Welcome email sent to ${to}`);
         } catch (error) {
-            console.error('Error sending welcome email:', error);
             throw new Error('Failed to send welcome email');
         }
     }
@@ -306,9 +304,7 @@ If you did not create an account, please ignore this email.
 
         try {
             await this.transporter.sendMail(mailOptions);
-            console.log(`Verification email sent to ${to}`);
         } catch (error) {
-            console.error('Error sending verification email:', error);
             throw new Error('Failed to send verification email');
         }
     }

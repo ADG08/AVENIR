@@ -66,7 +66,6 @@ export class PostgresTradeRepository implements TradeRepository {
             ]);
             return await this.mapRowToTrade(result.rows[0]);
         } catch (error) {
-            console.error('PostgreSQL error:', error);
             throw error;
         }
     }
@@ -77,7 +76,6 @@ export class PostgresTradeRepository implements TradeRepository {
             const result = await this.pool.query(query, [id]);
             return result.rows.length === 0 ? null : await this.mapRowToTrade(result.rows[0]);
         } catch (error) {
-            console.error('PostgreSQL error:', error);
             throw error;
         }
     }
@@ -88,7 +86,6 @@ export class PostgresTradeRepository implements TradeRepository {
             const result = await this.pool.query(query, [stockId]);
             return Promise.all(result.rows.map(row => this.mapRowToTrade(row)));
         } catch (error) {
-            console.error('PostgreSQL error:', error);
             throw error;
         }
     }
@@ -99,7 +96,6 @@ export class PostgresTradeRepository implements TradeRepository {
             const result = await this.pool.query(query, [buyerId]);
             return Promise.all(result.rows.map(row => this.mapRowToTrade(row)));
         } catch (error) {
-            console.error('PostgreSQL error:', error);
             throw error;
         }
     }
@@ -110,7 +106,6 @@ export class PostgresTradeRepository implements TradeRepository {
             const result = await this.pool.query(query, [sellerId]);
             return Promise.all(result.rows.map(row => this.mapRowToTrade(row)));
         } catch (error) {
-            console.error('PostgreSQL error:', error);
             throw error;
         }
     }
@@ -121,7 +116,6 @@ export class PostgresTradeRepository implements TradeRepository {
             const result = await this.pool.query(query, [userId]);
             return Promise.all(result.rows.map(row => this.mapRowToTrade(row)));
         } catch (error) {
-            console.error('PostgreSQL error:', error);
             throw error;
         }
     }
@@ -132,7 +126,6 @@ export class PostgresTradeRepository implements TradeRepository {
             const result = await this.pool.query(query, [limit]);
             return Promise.all(result.rows.map(row => this.mapRowToTrade(row)));
         } catch (error) {
-            console.error('PostgreSQL error:', error);
             throw error;
         }
     }
@@ -143,7 +136,6 @@ export class PostgresTradeRepository implements TradeRepository {
             const result = await this.pool.query(query);
             return Promise.all(result.rows.map(row => this.mapRowToTrade(row)));
         } catch (error) {
-            console.error('PostgreSQL error:', error);
             throw error;
         }
     }

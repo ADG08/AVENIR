@@ -30,7 +30,6 @@ export const createRoleMiddleware = (userRepository: UserRepository, ...allowedR
 
       (request.user as any).role = user.role;
     } catch (error) {
-      console.error('Error in role middleware:', error);
       return reply.code(500).send({
         error: 'Internal Server Error',
         message: 'Erreur lors de la vérification du rôle',

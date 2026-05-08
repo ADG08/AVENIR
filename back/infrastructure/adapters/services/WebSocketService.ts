@@ -32,8 +32,6 @@ export class WebSocketService {
 
         this.clients.get(userId)!.push(client);
 
-        console.log(`[WebSocket] Client connecté: ${userId} (${userRole})`);
-        console.log(`[WebSocket] Total clients connectés: ${this.getConnectedClientsCount()}`);
 
         socket.on('close', () => {
             this.unregisterClient(userId, socket);
@@ -51,15 +49,12 @@ export class WebSocketService {
                 this.clients.delete(userId);
             }
         }
-        console.log(`[WebSocket] Client déconnecté: ${userId}`);
-        console.log(`[WebSocket] Total clients connectés: ${this.getConnectedClientsCount()}`);
     }
 
     sendMessageToUser(userId: string, message: WebSocketMessage | ChatMessage): void {
         const userClients = this.clients.get(userId);
         if (userClients) {
             const payload = JSON.stringify(message);
-            console.log(`[WebSocket] Envoi du message`, message);
 
             let sentCount = 0;
             userClients.forEach(client => {
@@ -67,15 +62,12 @@ export class WebSocketService {
                     client.socket.send(payload);
                     sentCount++;
                 } else {
-                    console.log(`[WebSocket] Utilisateur non connecté, message non envoyé, state: ${client.socket.readyState}`);
                 }
             });
 
             if (sentCount > 0) {
-                console.log(`[WebSocket] Message ${message.type} envoyé à ${sentCount} connexion(s) pour ${userId}`);
             }
         } else {
-            console.log(`[WebSocket] Utilisateur non connecté, message non envoyé`);
         }
     }
 

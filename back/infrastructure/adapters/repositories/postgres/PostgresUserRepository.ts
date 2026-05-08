@@ -32,7 +32,6 @@ export class PostgresUserRepository implements UserRepository {
             ]);
             return this.mapRowToUser(result.rows[0]);
         } catch (error) {
-            console.error('PostgreSQL error:', error);
             throw error;
         }
     }
@@ -41,7 +40,6 @@ export class PostgresUserRepository implements UserRepository {
         try {
             await this.pool.query('DELETE FROM users WHERE id = $1', [id]);
         } catch (error) {
-            console.error('PostgreSQL error:', error);
             throw error;
         }
     }
@@ -70,7 +68,6 @@ export class PostgresUserRepository implements UserRepository {
                 user.verifiedAt || null
             ]);
         } catch (error) {
-            console.error('PostgreSQL error:', error);
             throw error;
         }
     }
@@ -80,7 +77,6 @@ export class PostgresUserRepository implements UserRepository {
             const result = await this.pool.query('SELECT * FROM users WHERE id = $1', [id]);
             return result.rows.length === 0 ? null : this.mapRowToUser(result.rows[0]);
         } catch (error) {
-            console.error('PostgreSQL error:', error);
             throw error;
         }
     }
@@ -90,7 +86,6 @@ export class PostgresUserRepository implements UserRepository {
             const result = await this.pool.query('SELECT * FROM users WHERE email = $1', [email]);
             return result.rows.length === 0 ? null : this.mapRowToUser(result.rows[0]);
         } catch (error) {
-            console.error('PostgreSQL error:', error);
             throw error;
         }
     }
@@ -100,7 +95,6 @@ export class PostgresUserRepository implements UserRepository {
             const result = await this.pool.query('SELECT * FROM users WHERE identity_number = $1', [identityNumber]);
             return result.rows.length === 0 ? null : this.mapRowToUser(result.rows[0]);
         } catch (error) {
-            console.error('PostgreSQL error:', error);
             throw error;
         }
     }
@@ -110,7 +104,6 @@ export class PostgresUserRepository implements UserRepository {
             const result = await this.pool.query('SELECT * FROM users ORDER BY created_at DESC');
             return result.rows.map(row => this.mapRowToUser(row));
         } catch (error) {
-            console.error('PostgreSQL error:', error);
             throw error;
         }
     }
@@ -120,7 +113,6 @@ export class PostgresUserRepository implements UserRepository {
             const result = await this.pool.query('SELECT * FROM users WHERE verification_token = $1', [token]);
             return result.rows.length === 0 ? null : this.mapRowToUser(result.rows[0]);
         } catch (error) {
-            console.error('PostgreSQL error:', error);
             throw error;
         }
     }
@@ -133,7 +125,6 @@ export class PostgresUserRepository implements UserRepository {
             );
             return result.rows.map(row => this.mapRowToUser(row));
         } catch (error) {
-            console.error('PostgreSQL error:', error);
             throw error;
         }
     }
@@ -146,7 +137,6 @@ export class PostgresUserRepository implements UserRepository {
             );
             return result.rows.length === 0 ? null : this.mapRowToUser(result.rows[0]);
         } catch (error) {
-            console.error('PostgreSQL error:', error);
             throw error;
         }
     }
@@ -159,7 +149,6 @@ export class PostgresUserRepository implements UserRepository {
             );
             return result.rows[0].is_managed;
         } catch (error) {
-            console.error('PostgreSQL error:', error);
             throw error;
         }
     }

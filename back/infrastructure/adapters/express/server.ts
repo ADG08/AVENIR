@@ -261,7 +261,6 @@ function setupMiddlewares() {
 
     // Logger middleware
     app.use((req, res, next) => {
-        console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
         next();
     });
 }
@@ -289,25 +288,20 @@ const start = async () => {
 
         const port = parseInt(process.env.PORT || '3001', 10);
         server.listen(port, '0.0.0.0', () => {
-            console.log(`[Express] Server listening on http://0.0.0.0:${port}`);
         });
     } catch (err) {
-        console.error('[Express] Error starting server:', err);
         process.exit(1);
     }
 };
 
 const shutdown = async () => {
     try {
-        console.log('[Express] Shutting down gracefully...');
         loanPaymentScheduler.stop();
         await dbContext.close();
         server.close(() => {
-            console.log('[Express] Server closed');
             process.exit(0);
         });
     } catch (err) {
-        console.error('[Express] Error during shutdown:', err);
         process.exit(1);
     }
 };

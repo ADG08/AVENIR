@@ -16,15 +16,12 @@ export const pool = new Pool({
 });
 
 pool.on('error', (err) => {
-    console.error('✗ PostgreSQL erreur:', err);
     // Don't exit the process on pool errors, let the application handle it
 });
 
 // Test connection on startup
 pool.query('SELECT NOW()')
     .then(() => {
-        console.log('✓ PostgreSQL connection test successful');
     })
     .catch((err) => {
-        console.error('✗ PostgreSQL connection test failed:', err);
     });

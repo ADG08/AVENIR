@@ -77,7 +77,6 @@ export class CreateNewsUseCase {
 
       await Promise.all(notificationPromises);
     } catch (error) {
-      console.error('Error creating notifications for news:', error);
     }
 
     return newsResponse;

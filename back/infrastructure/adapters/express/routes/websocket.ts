@@ -17,7 +17,6 @@ export const websocketRoutes = () => {
       return;
     }
 
-    console.log(`[WebSocket] Nouvelle connexion`);
 
     // Enregistrer le client
     webSocketService.registerClient(userId, userRole, ws);
@@ -44,16 +43,13 @@ export const websocketRoutes = () => {
           ws.send(JSON.stringify({ type: 'pong', timestamp: new Date().toISOString() }));
         }
       } catch (error) {
-        console.error('[WebSocket] Erreur lors du traitement du message:', error);
       }
     });
 
     ws.on('error', (error: Error) => {
-      console.error(error.message);
     });
 
     ws.on('close', () => {
-      console.log(`[WebSocket] Connexion fermée`);
     });
   });
 

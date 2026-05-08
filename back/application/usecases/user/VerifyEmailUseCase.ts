@@ -64,7 +64,6 @@ export class VerifyEmailUseCase {
                 verifiedUser.identityNumber
             );
         } catch (error) {
-            console.error("Failed to send welcome email:", error);
         }
 
         return VerifyEmailResponseMapper.toResponse(verifiedUser);

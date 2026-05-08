@@ -78,7 +78,6 @@ export class ChatController {
                     }
                 );
             } else {
-                console.log('No advisors/directors connected to notify');
             }
 
             return res.status(201).json(response);
@@ -321,7 +320,6 @@ export class ChatController {
                     if (messages && messages.length > 0) {
                         const lastMessage = messages[messages.length - 1];
                         if (lastMessage.type === 'SYSTEM') {
-                            console.log('[ChatTransfer] Sending SYSTEM message notification');
                             webSocketService.notifyNewMessage(
                                 req.params.chatId,
                                 finalParticipantIds,

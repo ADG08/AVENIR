@@ -56,7 +56,6 @@ export class AccountController {
                 });
             }
 
-            console.error('Unexpected error:', error);
             return reply.code(500).send({
                 error: 'Internal server error',
                 message: error instanceof Error ? error.message : 'Unknown error',
@@ -110,7 +109,6 @@ export class AccountController {
                 });
             }
 
-            console.error('Unexpected error:', error);
             return reply.code(500).send({
                 error: 'Internal server error',
                 message: error instanceof Error ? error.message : 'Unknown error',
@@ -168,7 +166,6 @@ export class AccountController {
                 });
             }
 
-            console.error('Unexpected error:', error);
             return reply.code(500).send({
                 error: 'Internal server error',
                 message: error instanceof Error ? error.message : 'Unknown error',
@@ -228,7 +225,6 @@ export class AccountController {
                 });
             }
 
-            console.error('Unexpected error:', error);
             return reply.code(500).send({
                 error: 'Internal server error',
                 message: error instanceof Error ? error.message : 'Unknown error',
@@ -258,7 +254,6 @@ export class AccountController {
                 });
             }
 
-            console.error('Unexpected error:', error);
             return reply.code(500).send({
                 error: 'Internal server error',
                 message: error instanceof Error ? error.message : 'Unknown error',

@@ -142,7 +142,6 @@ export class InvestmentController {
 
             return res.status(200).json(stocksData);
         } catch (error) {
-            console.error('Error fetching stocks:', error);
             return res.status(500).json({ error: 'Failed to fetch stocks' });
         }
     }
@@ -212,7 +211,6 @@ export class InvestmentController {
                     yesterdayIncomePercent = history[0].value > 0 ? (yesterdayIncome / history[0].value) * 100 : 0;
                 }
             } catch (error) {
-                console.error('Error calculating yesterday income:', error);
                 yesterdayIncome = 0;
                 yesterdayIncomePercent = 0;
             }
@@ -229,7 +227,6 @@ export class InvestmentController {
 
             return res.status(200).json(portfolioSummary);
         } catch (error) {
-            console.error('Error fetching portfolio:', error);
             return res.status(500).json({ error: 'Failed to fetch portfolio' });
         }
     }
@@ -257,7 +254,6 @@ export class InvestmentController {
 
             return res.status(200).json(recentTrades);
         } catch (error) {
-            console.error('Error fetching recent trades:', error);
             return res.status(500).json({ error: 'Failed to fetch recent trades' });
         }
     }
@@ -283,7 +279,6 @@ export class InvestmentController {
                 accountId: currentAccount.id,
             });
         } catch (error) {
-            console.error('Error fetching balance:', error);
             return res.status(500).json({ error: 'Failed to fetch balance' });
         }
     }
@@ -371,7 +366,6 @@ export class InvestmentController {
                 orderState: updatedOrder?.state || buyOrder.state,
             });
         } catch (error) {
-            console.error('Error purchasing stock:', error);
             return res.status(500).json({ error: 'Failed to purchase stock' });
         }
     }
@@ -502,7 +496,6 @@ export class InvestmentController {
                 },
             });
         } catch (error) {
-            console.error('Error placing order:', error);
             return res.status(500).json({ error: 'Failed to place order' });
         }
     }
@@ -556,7 +549,6 @@ export class InvestmentController {
                 asks: activeAsks,
             });
         } catch (error) {
-            console.error('Error fetching order book:', error);
             return res.status(500).json({ error: 'Failed to fetch order book' });
         }
     }
@@ -605,7 +597,6 @@ export class InvestmentController {
 
             return res.status(200).json(recentTrades);
         } catch (error) {
-            console.error('Error fetching stock trades:', error);
             return res.status(500).json({ error: 'Failed to fetch stock trades' });
         }
     }
@@ -666,7 +657,6 @@ export class InvestmentController {
                 },
             });
         } catch (error) {
-            console.error('Error cancelling order:', error);
             return res.status(500).json({ error: 'Failed to cancel order' });
         }
     }
@@ -712,7 +702,6 @@ export class InvestmentController {
 
             return res.status(200).json(orders);
         } catch (error) {
-            console.error('Error fetching user orders:', error);
             return res.status(500).json({ error: 'Failed to fetch user orders' });
         }
     }
@@ -775,7 +764,6 @@ export class InvestmentController {
                 prices: pricesData,
             });
         } catch (error) {
-            console.error('Error fetching stock prices:', error);
             return res.status(500).json({ error: 'Failed to fetch stock prices' });
         }
     }
@@ -938,7 +926,6 @@ export class InvestmentController {
                 history,
             });
         } catch (error) {
-            console.error('Error fetching portfolio history:', error);
             return res.status(500).json({ error: 'Failed to fetch portfolio history' });
         }
     }
@@ -1020,7 +1007,6 @@ export class InvestmentController {
                 totalProfits: parseFloat(totalProfits.toFixed(2)),
             });
         } catch (error) {
-            console.error('Error fetching profits breakdown:', error);
             return res.status(500).json({ error: 'Failed to fetch profits breakdown' });
         }
     }
@@ -1043,7 +1029,6 @@ export class InvestmentController {
 
             return res.status(200).json(stocksData);
         } catch (error) {
-            console.error('Error fetching stocks (admin):', error);
             return res.status(500).json({ error: 'Échec de la récupération des actions' });
         }
     }
@@ -1137,7 +1122,6 @@ export class InvestmentController {
                     await this.orderBookRepository.add(liquidityBidOrder);
                 }
             } catch (liquidityError) {
-                console.error('Erreur création liquidité:', liquidityError);
             }
 
             return res.status(201).json({
@@ -1154,7 +1138,6 @@ export class InvestmentController {
                 },
             });
         } catch (error) {
-            console.error('Error creating stock:', error);
             return res.status(500).json({ error: "Échec de la création de l'action" });
         }
     }
@@ -1214,7 +1197,6 @@ export class InvestmentController {
                 },
             });
         } catch (error) {
-            console.error('Error updating stock:', error);
             return res.status(500).json({ error: "Échec de la mise à jour de l'action" });
         }
     }
@@ -1260,7 +1242,6 @@ export class InvestmentController {
                 message: 'Action supprimée avec succès',
             });
         } catch (error) {
-            console.error('Error deleting stock:', error);
             return res.status(500).json({ error: "Échec de la suppression de l'action" });
         }
     }

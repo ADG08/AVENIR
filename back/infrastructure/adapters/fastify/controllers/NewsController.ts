@@ -78,7 +78,6 @@ export class NewsController {
         return;
       }
 
-      console.error('Erreur lors de la création de l\'actualité:', error);
       reply.code(500).send({
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
@@ -111,7 +110,6 @@ export class NewsController {
         return;
       }
 
-      console.error('Erreur lors de la récupération des actualités:', error);
       reply.code(500).send({
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
@@ -208,7 +206,6 @@ export class NewsController {
         return;
       }
 
-      console.error('Erreur lors de la suppression de l\'actualité:', error);
       reply.code(500).send({
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',

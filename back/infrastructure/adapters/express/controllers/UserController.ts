@@ -81,7 +81,6 @@ export class UserController {
                 });
             }
 
-            console.error('Unexpected error:', error);
             return res.status(500).json({
                 error: 'Internal server error',
                 message: error instanceof Error ? error.message : 'Unknown error',
@@ -98,7 +97,6 @@ export class UserController {
             const response = await this.getUsersUseCase.execute(getUsersRequest);
             return res.status(200).json(response);
         } catch (error) {
-            console.error('Unexpected error:', error);
             return res.status(500).json({
                 error: 'Internal server error',
                 message: error instanceof Error ? error.message : 'Unknown error',
@@ -126,7 +124,6 @@ export class UserController {
                 });
             }
 
-            console.error('Unexpected error:', error);
             return res.status(500).json({
                 error: 'Internal server error',
                 message: error instanceof Error ? error.message : 'Unknown error',
@@ -161,7 +158,6 @@ export class UserController {
                 });
             }
 
-            console.error('Unexpected error:', error);
             return res.status(500).json({
                 error: 'Internal server error',
                 message: error instanceof Error ? error.message : 'Unknown error',
@@ -204,7 +200,6 @@ export class UserController {
                 });
             }
 
-            console.error('Unexpected error:', error);
             return res.status(500).json({
                 error: 'Internal server error',
                 message: error instanceof Error ? error.message : 'Unknown error',
@@ -246,7 +241,6 @@ export class UserController {
                 }
             }
 
-            console.error('Unexpected error:', error);
             return res.status(500).json({
                 error: 'Internal server error',
                 message: error instanceof Error ? error.message : 'Unknown error',
@@ -288,7 +282,6 @@ export class UserController {
                 });
             }
 
-            console.error('Unexpected error:', error);
             return res.status(500).json({
                 error: 'Internal server error',
                 message: error instanceof Error ? error.message : 'Unknown error',
@@ -306,7 +299,6 @@ export class UserController {
                 message: 'Logged out successfully',
             });
         } catch (error) {
-            console.error('Unexpected error:', error);
             return res.status(500).json({
                 error: 'Internal server error',
                 message: error instanceof Error ? error.message : 'Unknown error',
@@ -353,7 +345,6 @@ export class UserController {
                 message: 'Token refreshed successfully',
             });
         } catch (error) {
-            console.error('Unexpected error:', error);
             return res.status(500).json({
                 error: 'Internal server error',
                 message: error instanceof Error ? error.message : 'Unknown error',

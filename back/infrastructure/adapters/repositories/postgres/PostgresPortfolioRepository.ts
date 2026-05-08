@@ -29,7 +29,6 @@ export class PostgresPortfolioRepository implements PortfolioRepository {
             ]);
             return await this.mapRowToPortfolio(result.rows[0]);
         } catch (error) {
-            console.error('PostgreSQL error:', error);
             throw error;
         }
     }
@@ -50,7 +49,6 @@ export class PostgresPortfolioRepository implements PortfolioRepository {
                 new Date()
             ]);
         } catch (error) {
-            console.error('PostgreSQL error:', error);
             throw error;
         }
     }
@@ -59,7 +57,6 @@ export class PostgresPortfolioRepository implements PortfolioRepository {
         try {
             await this.pool.query('DELETE FROM portfolios WHERE id = $1', [id]);
         } catch (error) {
-            console.error('PostgreSQL error:', error);
             throw error;
         }
     }
@@ -79,7 +76,6 @@ export class PostgresPortfolioRepository implements PortfolioRepository {
             const result = await this.pool.query(query, [id]);
             return result.rows.length === 0 ? null : await this.mapRowToPortfolio(result.rows[0]);
         } catch (error) {
-            console.error('PostgreSQL error:', error);
             throw error;
         }
     }
@@ -100,7 +96,6 @@ export class PostgresPortfolioRepository implements PortfolioRepository {
             const result = await this.pool.query(query, [userId]);
             return Promise.all(result.rows.map(row => this.mapRowToPortfolio(row)));
         } catch (error) {
-            console.error('PostgreSQL error:', error);
             throw error;
         }
     }
@@ -120,7 +115,6 @@ export class PostgresPortfolioRepository implements PortfolioRepository {
             const result = await this.pool.query(query, [userId, stockId]);
             return result.rows.length === 0 ? null : await this.mapRowToPortfolio(result.rows[0]);
         } catch (error) {
-            console.error('PostgreSQL error:', error);
             throw error;
         }
     }
@@ -140,7 +134,6 @@ export class PostgresPortfolioRepository implements PortfolioRepository {
             const result = await this.pool.query(query);
             return Promise.all(result.rows.map(row => this.mapRowToPortfolio(row)));
         } catch (error) {
-            console.error('PostgreSQL error:', error);
             throw error;
         }
     }

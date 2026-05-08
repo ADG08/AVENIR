@@ -23,7 +23,6 @@ export class MySQLNewsRepository implements NewsRepository {
       ]);
       return news;
     } catch (error) {
-      console.error('Erreur MySQL:', error);
       throw error;
     }
   }
@@ -32,7 +31,6 @@ export class MySQLNewsRepository implements NewsRepository {
     try {
       await this.pool.execute('DELETE FROM news WHERE id = ?', [id]);
     } catch (error) {
-      console.error('Erreur MySQL:', error);
       throw error;
     }
   }
@@ -54,7 +52,6 @@ export class MySQLNewsRepository implements NewsRepository {
         news.id,
       ]);
     } catch (error) {
-      console.error('Erreur MySQL:', error);
       throw error;
     }
   }
@@ -81,7 +78,6 @@ export class MySQLNewsRepository implements NewsRepository {
         new Date(row.updated_at)
       );
     } catch (error) {
-      console.error('Erreur MySQL:', error);
       throw error;
     }
   }
@@ -103,7 +99,6 @@ export class MySQLNewsRepository implements NewsRepository {
           )
       );
     } catch (error) {
-      console.error('Erreur MySQL:', error);
       throw error;
     }
   }
@@ -127,7 +122,6 @@ export class MySQLNewsRepository implements NewsRepository {
           )
       );
     } catch (error) {
-      console.error('Erreur MySQL:', error);
       throw error;
     }
   }
@@ -152,7 +146,6 @@ export class MySQLNewsRepository implements NewsRepository {
           )
       );
     } catch (error) {
-      console.error('Erreur MySQL:', error);
       throw error;
     }
   }

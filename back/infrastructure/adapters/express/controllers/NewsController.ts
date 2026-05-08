@@ -66,7 +66,6 @@ export class NewsController {
         });
       }
 
-      console.error('Erreur lors de la création de l\'actualité:', error);
       return res.status(500).json({
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
@@ -95,7 +94,6 @@ export class NewsController {
         });
       }
 
-      console.error('Erreur lors de la récupération des actualités:', error);
       return res.status(500).json({
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
@@ -181,7 +179,6 @@ export class NewsController {
         });
       }
 
-      console.error('Erreur lors de la suppression de l\'actualité:', error);
       return res.status(500).json({
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',

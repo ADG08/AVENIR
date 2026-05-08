@@ -58,7 +58,6 @@ export class SSEService {
 
         this.clients.get(userId)!.push(client);
 
-        console.log(`[SSE] Total clients connectés: ${this.getConnectedClientsCount()}`);
         this.sendToClient(client, {
             type: SSEEventType.CONNECTED,
             data: { userId, userRole, message: 'Connected to SSE', timestamp: new Date().toISOString() }
@@ -103,7 +102,6 @@ export class SSEService {
             }
         }
 
-        console.log(`[SSE] Total clients connectés: ${this.getConnectedClientsCount()}`);
     }
 
     private sendToClient(client: SSEClient, message: SSEMessage): void {
@@ -115,7 +113,6 @@ export class SSEService {
                 (client.reply as Response).write(data);
             }
         } catch (error) {
-            console.error(`[SSE] Erreur lors de l'envoi du message au client :`, error);
         }
     }
 

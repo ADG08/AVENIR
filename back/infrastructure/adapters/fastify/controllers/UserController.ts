@@ -81,7 +81,6 @@ export class UserController {
                 });
             }
 
-            console.error('Unexpected error:', error);
             return reply.code(500).send({
                 error: 'Internal server error',
                 message: error instanceof Error ? error.message : 'Unknown error',
@@ -98,7 +97,6 @@ export class UserController {
             const response = await this.getUsersUseCase.execute(getUsersRequest);
             return reply.code(200).send(response);
         } catch (error) {
-            console.error('Unexpected error:', error);
             return reply.code(500).send({
                 error: 'Internal server error',
                 message: error instanceof Error ? error.message : 'Unknown error',
@@ -126,7 +124,6 @@ export class UserController {
                 });
             }
 
-            console.error('Unexpected error:', error);
             return reply.code(500).send({
                 error: 'Internal server error',
                 message: error instanceof Error ? error.message : 'Unknown error',
@@ -161,7 +158,6 @@ export class UserController {
                 });
             }
 
-            console.error('Unexpected error:', error);
             return reply.code(500).send({
                 error: 'Internal server error',
                 message: error instanceof Error ? error.message : 'Unknown error',
@@ -204,7 +200,6 @@ export class UserController {
                 });
             }
 
-            console.error('Unexpected error:', error);
             return reply.code(500).send({
                 error: 'Internal server error',
                 message: error instanceof Error ? error.message : 'Unknown error',
@@ -246,7 +241,6 @@ export class UserController {
                 }
             }
 
-            console.error('Unexpected error:', error);
             return reply.code(500).send({
                 error: 'Internal server error',
                 message: error instanceof Error ? error.message : 'Unknown error',
@@ -256,7 +250,6 @@ export class UserController {
 
     async getCurrentUser(request: FastifyRequest, reply: FastifyReply) {
         try {
-            console.log('[getCurrentUser] request.user:', request.user);
 
             if (!request.user) {
                 return reply.code(401).send({
@@ -265,7 +258,6 @@ export class UserController {
                 });
             }
 
-            console.log('[getCurrentUser] request.user.userId:', request.user.userId);
 
             const getUserRequest: GetUserRequest = {
                 id: request.user.userId,
@@ -292,7 +284,6 @@ export class UserController {
                 });
             }
 
-            console.error('Unexpected error:', error);
             return reply.code(500).send({
                 error: 'Internal server error',
                 message: error instanceof Error ? error.message : 'Unknown error',
@@ -311,7 +302,6 @@ export class UserController {
                 message: 'Logged out successfully',
             });
         } catch (error) {
-            console.error('Unexpected error:', error);
             return reply.code(500).send({
                 error: 'Internal server error',
                 message: error instanceof Error ? error.message : 'Unknown error',
@@ -359,7 +349,6 @@ export class UserController {
                 message: 'Token refreshed successfully',
             });
         } catch (error) {
-            console.error('Unexpected error:', error);
             return reply.code(500).send({
                 error: 'Internal server error',
                 message: error instanceof Error ? error.message : 'Unknown error',

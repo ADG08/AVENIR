@@ -180,7 +180,6 @@ export class DeleteUserWithIBANTransferUseCase {
         const totalTransferred = Math.max(0, totalFunds - totalDebt);
 
         // Simuler le transfert vers l'IBAN
-        console.log(`[DELETE USER] User ${user.email} - Portfolios liquidated: ${portfolios.length}, Accounts closed: ${accounts.length}`);
 
         this.sseService.notifyUserDeleted(user.id);
         await this.userRepository.remove(request.userId);

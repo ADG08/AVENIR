@@ -30,7 +30,6 @@ export class MySQLUserRepository implements UserRepository {
             ]);
             return user;
         } catch (error) {
-            console.error('MySQL error:', error);
             throw error;
         }
     }
@@ -39,7 +38,6 @@ export class MySQLUserRepository implements UserRepository {
         try {
             await this.pool.execute('DELETE FROM users WHERE id = ?', [id]);
         } catch (error) {
-            console.error('MySQL error:', error);
             throw error;
         }
     }
@@ -68,7 +66,6 @@ export class MySQLUserRepository implements UserRepository {
                 user.id
             ]);
         } catch (error) {
-            console.error('MySQL error:', error);
             throw error;
         }
     }
@@ -79,7 +76,6 @@ export class MySQLUserRepository implements UserRepository {
             const results = rows as RowDataPacket[];
             return results.length === 0 ? null : this.mapRowToUser(results[0]);
         } catch (error) {
-            console.error('MySQL error:', error);
             throw error;
         }
     }
@@ -90,7 +86,6 @@ export class MySQLUserRepository implements UserRepository {
             const results = rows as RowDataPacket[];
             return results.length === 0 ? null : this.mapRowToUser(results[0]);
         } catch (error) {
-            console.error('MySQL error:', error);
             throw error;
         }
     }
@@ -101,7 +96,6 @@ export class MySQLUserRepository implements UserRepository {
             const results = rows as RowDataPacket[];
             return results.length === 0 ? null : this.mapRowToUser(results[0]);
         } catch (error) {
-            console.error('MySQL error:', error);
             throw error;
         }
     }
@@ -112,7 +106,6 @@ export class MySQLUserRepository implements UserRepository {
             const results = rows as RowDataPacket[];
             return results.map(row => this.mapRowToUser(row));
         } catch (error) {
-            console.error('MySQL error:', error);
             throw error;
         }
     }
@@ -123,7 +116,6 @@ export class MySQLUserRepository implements UserRepository {
             const results = rows as RowDataPacket[];
             return results.length === 0 ? null : this.mapRowToUser(results[0]);
         } catch (error) {
-            console.error('MySQL error:', error);
             throw error;
         }
     }
@@ -137,7 +129,6 @@ export class MySQLUserRepository implements UserRepository {
             const results = rows as RowDataPacket[];
             return results.map(row => this.mapRowToUser(row));
         } catch (error) {
-            console.error('MySQL error:', error);
             throw error;
         }
     }

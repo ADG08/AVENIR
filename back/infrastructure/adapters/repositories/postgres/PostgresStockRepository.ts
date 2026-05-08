@@ -29,7 +29,6 @@ export class PostgresStockRepository implements StockRepository {
             ]);
             return this.mapRowToStock(result.rows[0]);
         } catch (error) {
-            console.error('PostgreSQL error:', error);
             throw error;
         }
     }
@@ -58,7 +57,6 @@ export class PostgresStockRepository implements StockRepository {
                 new Date()
             ]);
         } catch (error) {
-            console.error('PostgreSQL error:', error);
             throw error;
         }
     }
@@ -67,7 +65,6 @@ export class PostgresStockRepository implements StockRepository {
         try {
             await this.pool.query('DELETE FROM stocks WHERE id = $1', [id]);
         } catch (error) {
-            console.error('PostgreSQL error:', error);
             throw error;
         }
     }
@@ -77,7 +74,6 @@ export class PostgresStockRepository implements StockRepository {
             const result = await this.pool.query('SELECT * FROM stocks WHERE id = $1', [id]);
             return result.rows.length === 0 ? null : this.mapRowToStock(result.rows[0]);
         } catch (error) {
-            console.error('PostgreSQL error:', error);
             throw error;
         }
     }
@@ -87,7 +83,6 @@ export class PostgresStockRepository implements StockRepository {
             const result = await this.pool.query('SELECT * FROM stocks WHERE symbol = $1', [symbol]);
             return result.rows.length === 0 ? null : this.mapRowToStock(result.rows[0]);
         } catch (error) {
-            console.error('PostgreSQL error:', error);
             throw error;
         }
     }
@@ -97,7 +92,6 @@ export class PostgresStockRepository implements StockRepository {
             const result = await this.pool.query('SELECT * FROM stocks ORDER BY symbol ASC');
             return result.rows.map(row => this.mapRowToStock(row));
         } catch (error) {
-            console.error('PostgreSQL error:', error);
             throw error;
         }
     }
@@ -107,7 +101,6 @@ export class PostgresStockRepository implements StockRepository {
             const result = await this.pool.query('SELECT * FROM stocks WHERE is_active = true ORDER BY symbol ASC');
             return result.rows.map(row => this.mapRowToStock(row));
         } catch (error) {
-            console.error('PostgreSQL error:', error);
             throw error;
         }
     }

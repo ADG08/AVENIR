@@ -38,7 +38,6 @@ export class PostgresAccountRepository implements AccountRepository {
 
             return this.mapRowToAccount(result.rows[0]);
         } catch (error) {
-            console.error('PostgreSQL error adding account:', error);
             throw error;
         }
     }
@@ -53,7 +52,6 @@ export class PostgresAccountRepository implements AccountRepository {
 
             return this.mapRowToAccount(result.rows[0]);
         } catch (error) {
-            console.error('PostgreSQL error getting account:', error);
             throw error;
         }
     }
@@ -66,7 +64,6 @@ export class PostgresAccountRepository implements AccountRepository {
             const result = await this.pool.query(query, [userId, AccountStatus.ACTIVE]);
             return result.rows.map(row => this.mapRowToAccount(row));
         } catch (error) {
-            console.error('PostgreSQL error getting accounts by user:', error);
             throw error;
         }
     }
@@ -80,7 +77,6 @@ export class PostgresAccountRepository implements AccountRepository {
 
             return this.mapRowToAccount(result.rows[0]);
         } catch (error) {
-            console.error('PostgreSQL error getting account by IBAN:', error);
             throw error;
         }
     }
@@ -94,7 +90,6 @@ export class PostgresAccountRepository implements AccountRepository {
 
             return this.mapRowToAccount(result.rows[0]);
         } catch (error) {
-            console.error('PostgreSQL error getting account by card number:', error);
             throw error;
         }
     }
@@ -115,7 +110,6 @@ export class PostgresAccountRepository implements AccountRepository {
 
             return this.mapRowToAccount(result.rows[0]);
         } catch (error) {
-            console.error('PostgreSQL error updating account name:', error);
             throw error;
         }
     }
@@ -144,7 +138,6 @@ export class PostgresAccountRepository implements AccountRepository {
         try {
             await this.pool.query('UPDATE accounts SET status = $1 WHERE id = $2', [AccountStatus.INACTIVE, id]);
         } catch (error) {
-            console.error('PostgreSQL error removing account:', error);
             throw error;
         }
     }
