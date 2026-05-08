@@ -166,7 +166,11 @@ CREATE TABLE IF NOT EXISTS trades (
 
 -- Indexes pour améliorer les performances
 CREATE INDEX IF NOT EXISTS idx_accounts_user_id ON accounts(user_id);
-CREATE INDEX IF NOT EXISTS idx_transactions_account_id ON transactions(account_id);
+DO $$ BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='transactions' AND column_name='account_id') THEN
+    CREATE INDEX IF NOT EXISTS idx_transactions_account_id ON transactions(account_id);
+  END IF;
+END $$;
 CREATE INDEX IF NOT EXISTS idx_loans_user_id ON loans(user_id);
 CREATE INDEX IF NOT EXISTS idx_orders_user_id ON orders(user_id);
 CREATE INDEX IF NOT EXISTS idx_user_actions_user_id ON user_actions(user_id);
