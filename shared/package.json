@@ -2,14 +2,14 @@
   "name": "@avenir/shared",
   "version": "1.0.0",
   "private": true,
-  "main": "index.ts",
-  "types": "index.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "exports": {
-    ".": "./index.ts",
-    "./enums": "./enums/index.ts",
-    "./schemas": "./schemas/index.ts",
-    "./schemas/*": "./schemas/*.ts",
-    "./enums/*": "./enums/*.ts"
+    ".": "./dist/index.js",
+    "./enums": "./dist/enums/index.js",
+    "./schemas": "./dist/schemas/index.js",
+    "./schemas/*": "./dist/schemas/*.js",
+    "./enums/*": "./dist/enums/*.js"
   },
   "scripts": {
     "build": "tsc",

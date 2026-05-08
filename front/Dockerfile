@@ -4,6 +4,10 @@ WORKDIR /app
 
 # Copy shared package first (build context = repo root)
 COPY shared/ ./shared/
+WORKDIR /app/shared
+RUN npm install && npm run build
+
+WORKDIR /app
 COPY front/package*.json ./front/
 RUN cd front && npm ci
 

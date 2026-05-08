@@ -1,2 +1,2 @@
-export * from './schemas/index';
+export * from './schemas';
 export * from './enums/index';
