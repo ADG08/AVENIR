@@ -24,10 +24,24 @@ services:
       dockerfile: back/Dockerfile
     container_name: avenir-back
     restart: unless-stopped
-    env_file:
-      - back/.env
     environment:
-      POSTGRES_HOST: postgres
+      DB_TYPE: postgres
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: ${POSTGRES_USER}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      DB_NAME: ${POSTGRES_DB}
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_SECURE: ${SMTP_SECURE:-false}
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASS: ${SMTP_PASS}
+      SMTP_FROM: ${SMTP_FROM}
+      FRONTEND_URL: ${FRONTEND_URL}
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      PORT: ${PORT:-3001}
+      HOST: ${HOST:-0.0.0.0}
     ports:
       - "3001:3001"
     depends_on:

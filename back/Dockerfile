@@ -4,7 +4,7 @@ WORKDIR /app
 
 COPY shared/ ./shared/
 WORKDIR /app/shared
-RUN npm install
+RUN npm install && npm run build
 
 COPY back/ /app/back/
 WORKDIR /app/back
