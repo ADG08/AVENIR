@@ -9,7 +9,11 @@ RUN npm install && npm run build
 
 WORKDIR /app
 COPY front/package*.json ./front/
-RUN cd front && npm ci
+RUN cd front && npm ci \
+    && rm -rf front/node_modules/@avenir/shared \
+    && mkdir -p front/node_modules/@avenir/shared \
+    && cp shared/package.json front/node_modules/@avenir/shared/ \
+    && cp -r shared/dist front/node_modules/@avenir/shared/
 
 COPY front/ ./front/
 

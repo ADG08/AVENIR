@@ -20,9 +20,12 @@ RUN node -e "const p=require('./package.json');delete p.workspaces;delete p.depe
 # Compiled back output
 COPY --from=builder /app/back/dist ./dist
 
-# Compiled shared output (needed by @avenir/shared resolution)
+# Compiled shared output + its own prod deps (zod lives here)
 COPY shared/package.json /app/shared/
-COPY --from=builder /app/shared/dist /app/shared/dist
+WORKDIR /app/shared
+RUN npm install --omit=dev --no-package-lock
+COPY --from=builder /app/shared/dist ./dist
+WORKDIR /app/back
 
 # Wire @avenir/* to compiled output — symlinks never point to TS source
 RUN mkdir -p node_modules/@avenir \
