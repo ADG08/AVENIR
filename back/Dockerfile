@@ -3,11 +3,11 @@ WORKDIR /app
 
 COPY shared/ ./shared/
 WORKDIR /app/shared
-RUN npm install && npm run build
+RUN npm install --include=dev && npm run build
 
 COPY back/ /app/back/
 WORKDIR /app/back
-RUN npm install && npm run build
+RUN npm install --include=dev && npm run build
 
 FROM node:20-alpine AS runner
 WORKDIR /app/back
