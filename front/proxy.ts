@@ -50,7 +50,8 @@ async function getUserInfo(accessToken: string): Promise<{ role: UserRole | null
       role: data?.user?.role || null,
       state: data?.user?.state || null,
     };
-  } catch {
+  } catch (err) {
+    console.error('[proxy] getUserInfo failed:', err);
     return { role: null, state: null };
   }
 }
